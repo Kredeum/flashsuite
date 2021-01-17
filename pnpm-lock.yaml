@@ -1,10 +1,10 @@
 devDependencies:
-  '@nomiclabs/hardhat-ethers': 2.0.1_ethers@5.0.26+hardhat@2.0.7
-  '@nomiclabs/hardhat-waffle': 2.0.1_a1606310ac84a79c95109967cbd46c5a
+  '@nomiclabs/hardhat-ethers': 2.0.1_ethers@5.0.26+hardhat@2.0.8
+  '@nomiclabs/hardhat-waffle': 2.0.1_9c6c214c47fa29e4c12dd8f765eb6bd2
   chai: 4.2.0
   ethereum-waffle: 3.2.1
   ethers: 5.0.26
-  hardhat: 2.0.7
+  hardhat: 2.0.8
 lockfileVersion: 5.2
 packages:
   /@ensdomains/ens/0.4.5:
@@ -417,24 +417,24 @@ packages:
     dev: true
     resolution:
       integrity: sha512-vVloT6g/QNPasIrGWpR583b9nn1cBjNIQtaVdunEvwVFnEmTpsE0U67OiAiqYZmd0g7zqQrj2jepw0GEgnAz7Q==
-  /@nomiclabs/hardhat-ethers/2.0.1_ethers@5.0.26+hardhat@2.0.7:
+  /@nomiclabs/hardhat-ethers/2.0.1_ethers@5.0.26+hardhat@2.0.8:
     dependencies:
       ethers: 5.0.26
-      hardhat: 2.0.7
+      hardhat: 2.0.8
     dev: true
     peerDependencies:
       ethers: ^5.0.0
       hardhat: ^2.0.0
     resolution:
       integrity: sha512-uTFHDhhvJ+UjfvvMeQxD3ZALuzuI3FXzTYT1Z5N3ebyZL5z4Ogwt55GB0R9tdKY0p5HhDhBjU/gsCjUEwIVoaw==
-  /@nomiclabs/hardhat-waffle/2.0.1_a1606310ac84a79c95109967cbd46c5a:
+  /@nomiclabs/hardhat-waffle/2.0.1_9c6c214c47fa29e4c12dd8f765eb6bd2:
     dependencies:
-      '@nomiclabs/hardhat-ethers': 2.0.1_ethers@5.0.26+hardhat@2.0.7
+      '@nomiclabs/hardhat-ethers': 2.0.1_ethers@5.0.26+hardhat@2.0.8
       '@types/sinon-chai': 3.2.5
       '@types/web3': 1.0.19
       ethereum-waffle: 3.2.1
       ethers: 5.0.26
-      hardhat: 2.0.7
+      hardhat: 2.0.8
     dev: true
     peerDependencies:
       '@nomiclabs/hardhat-ethers': ^2.0.0
@@ -573,7 +573,7 @@ packages:
       integrity: sha512-XIB2XbzHTN6ieIjfIMV9hlVcfPU26s2vafYWQcZHWXHOxiaRZYEDKEwdl129Zyg50+foYV2jCgtrqSA6qNuNSA==
   /@types/bn.js/4.11.6:
     dependencies:
-      '@types/node': 14.14.20
+      '@types/node': 14.14.21
     dev: true
     resolution:
       integrity: sha512-pqr857jrp2kPuO9uRjZ3PwnJTjoQy+fcdxvBTvHm6dkmEL9q+hDD/2j/0ELOBPtPnS8LjCX0gI9nbl8lVkadpg==
@@ -607,15 +607,19 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Y93R97Ouif9JEOWPIUyU+eyIdyRqQR0I8Ez1dzku4hDx34NWh4HbtIc3WNzwB1Y9ULvNGeu5B8h8bVL5cAk4/A==
+  /@types/node/14.14.21:
+    dev: true
+    resolution:
+      integrity: sha512-cHYfKsnwllYhjOzuC5q1VpguABBeecUp24yFluHpn/BQaVxB1CuQ1FSRZCzrPxrkIfWISXV2LbeoBthLWg0+0A==
   /@types/pbkdf2/3.1.0:
     dependencies:
-      '@types/node': 14.14.20
+      '@types/node': 14.14.21
     dev: true
     resolution:
       integrity: sha512-Cf63Rv7jCQ0LaL8tNXmEyqTHuIJxRdlS5vMh1mj5voN4+QFhVZnlZruezqpWYDiJ8UTzhP0VmeLXCmBk66YrMQ==
   /@types/secp256k1/4.0.1:
     dependencies:
-      '@types/node': 14.14.20
+      '@types/node': 14.14.21
     dev: true
     resolution:
       integrity: sha512-+ZjSA8ELlOp8SlKi0YLB2tz9d5iPNEmOBd+8Rz21wTMdaXQIa9b6TEnD6l5qKOCypE7FSyPyck12qZJxSDNoog==
@@ -859,7 +863,7 @@ packages:
       integrity: sha1-WWZ/QfrdTyDMvCu5a41Pf3jsA2c=
   /async-eventemitter/0.2.4:
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
     dev: true
     resolution:
       integrity: sha512-pd20BwL7Yt1zwDFy+8MX8F1+WCT8aQeKj0kQnTrH9WaeRETlRamVhD0JtRPmrV4GfOJ2F9CvdQkZeZhnh2TuHw==
@@ -1765,7 +1769,7 @@ packages:
       fsevents: 2.1.3
     resolution:
       integrity: sha512-dGmKLDdT3Gdl7fBUe8XK+gAtGmzy5Fn0XkkWQuYxGIgWVPPse2CxFA5mtrlD0TOHaHjEUqkWNyP1XdHoJES/4A==
-  /chokidar/3.5.0:
+  /chokidar/3.5.1:
     dependencies:
       anymatch: 3.1.1
       braces: 3.0.2
@@ -1780,7 +1784,7 @@ packages:
     optionalDependencies:
       fsevents: 2.3.1
     resolution:
-      integrity: sha512-JgQM9JS92ZbFR4P90EvmzNpSGhpPBGBSj10PILeDyYFwp4h2/D9OM03wsJ4zW1fEp4ka2DGrnUeD7FuvQ2aZ2Q==
+      integrity: sha512-9+s+Od+W0VJJzawDma/gvBNQqkTiqYTWLuZoyAsivsI4AaWTCzHG06/TMjsf1cYe9Cb97UCEhjz7HvnPk2p/tw==
   /chownr/1.1.4:
     dev: true
     optional: true
@@ -2089,7 +2093,7 @@ packages:
       integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
   /debug/3.2.6:
     dependencies:
-      ms: 2.1.3
+      ms: 2.1.1
     deprecated: 'Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)'
     dev: true
     resolution:
@@ -2583,7 +2587,7 @@ packages:
       integrity: sha512-NtlDnaVZah146Rm8HMRUNMgIwG/ED4jiqk0TME9zFheMl1jOp6jL1m0NKGjJwehXQ6ZKCPr16MTr+qspKpEXNg==
   /ethashjs/0.0.8:
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       buffer-xor: 2.0.2
       ethereumjs-util: 7.0.7
       miller-rabin: 4.0.1
@@ -2690,10 +2694,10 @@ packages:
       integrity: sha512-2p49ifhek3h2zeg/+da6XpdFR3GlqY3BIEiqxGF8j9aSRIgkb7M1Ky+yULBKJOu8PAZxfhsYA+HxUk2aCQp3vg==
   /ethereumjs-blockchain/4.0.4:
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       ethashjs: 0.0.8
       ethereumjs-block: 2.2.2
-      ethereumjs-common: 1.5.0
+      ethereumjs-common: 1.5.2
       ethereumjs-util: 6.2.1
       flow-stoplight: 1.0.0
       level-mem: 3.0.1
@@ -3448,7 +3452,7 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-nmT2T0lljbxdQZfspsno9hgrG3Uir6Ks5afism62poxqBM6sDnMEuPmzTq8XN0OEwqKLLdh1jQI3qyE66Nzb3w==
-  /hardhat/2.0.7:
+  /hardhat/2.0.8:
     dependencies:
       '@nomiclabs/ethereumjs-vm': 4.2.1
       '@sentry/node': 5.30.0
@@ -3459,7 +3463,7 @@ packages:
       adm-zip: 0.4.16
       ansi-escapes: 4.3.1
       chalk: 2.4.2
-      chokidar: 3.5.0
+      chokidar: 3.5.1
       ci-info: 2.0.0
       debug: 4.3.1
       enquirer: 2.3.6
@@ -3499,7 +3503,7 @@ packages:
       node: '>=8.2.0'
     hasBin: true
     resolution:
-      integrity: sha512-do4aigd9pXfHZwxPS2dSFGPT4BSRNOi8wkYkyOKhn2rwGjI3o0RbdcE1xB0V7AezuL0KxkPitSCjpmQD1GDHUw==
+      integrity: sha512-2tDAtOfshrBzP103dx7PQrhTwv2sqjhQStZAPwkkQTic25o2EH6HYE2++LuOG98YwqSjr0WvhvdBvKl3dCSkYA==
   /has-ansi/2.0.0:
     dependencies:
       ansi-regex: 2.1.1
@@ -7309,4 +7313,4 @@ specifiers:
   chai: ^4.2.0
   ethereum-waffle: ^3.2.1
   ethers: ^5.0.26
-  hardhat: ^2.0.7
+  hardhat: ^2.0.8

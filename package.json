@@ -23,6 +23,6 @@
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.26",
-    "hardhat": "^2.0.7"
+    "hardhat": "^2.0.8"
   }
 }

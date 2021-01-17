@@ -10,6 +10,7 @@ task("accounts", "Prints the list of accounts", async () => {
   }
 });
 
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -17,6 +18,14 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.6.12",
+  defaultNetwork: "hardhat",
+  networks: {
+    hardhat: {
+      accounts: [{privateKey:process.env.ACCOUNT_KEY,balance:"100"}]
+    },
+    kovan: {
+      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: [process.env.ACCOUNT_KEY]
+    }
+  },  solidity: "0.6.12",
 };
-rrter
