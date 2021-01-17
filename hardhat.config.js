@@ -18,10 +18,10 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "kovan",
   networks: {
     hardhat: {
-      accounts: [{privateKey:process.env.ACCOUNT_KEY,balance:"100"}]
+      accounts: [{privateKey:process.env.ACCOUNT_KEY,balance:"100000000000000000000"}]
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,

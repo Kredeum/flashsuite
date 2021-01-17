@@ -1,29 +1,20 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional 
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
-import hre  from "hardhat";
+import hre from "hardhat";
+
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile 
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
 
-  // We get the contract to deploy
-  const AaveTest = await hre.ethers.getContractFactory("MyV2FlashLoan");
-  const aavetest = await AaveTest.deploy("Deploy Aave test");
+  // Aave Deployed Contracts Addresses
+  // https://docs.aave.com/developers/deployed-contracts
+  const kovanLendingPoolAddressesProvider = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
 
+  const AaveTest = await hre.ethers.getContractFactory("AaveTest");
+  const aavetest = await AaveTest.deploy(kovanLendingPoolAddressesProvider);
   await aavetest.deployed();
-
+  
   console.log("AaveTest deployed to:", aavetest.address);
+  // AaveTest deployed to: 0xD32109Ff5a37D959BaFfd00d1Fe9AA90Dea062c8
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main()
   .then(() => process.exit(0))
   .catch(error => {
