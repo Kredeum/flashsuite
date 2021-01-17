@@ -7,6 +7,8 @@ import { FlashLoanReceiverBase } from "./FlashLoanReceiverBase.sol";
 import { ILendingPool, ILendingPoolAddressesProvider, IERC20 } from "./Interfaces.sol";
 import { SafeMath } from "./Libraries.sol";
 
+import "./console.sol";
+
 /**
     !!!
     Never keep funds permanently on your FlashLoanReceiverBase contract as they could be
@@ -32,6 +34,9 @@ contract AaveTest is FlashLoanReceiverBase {
         override
         returns (bool)
     {
+        console.log("asset", assets[0]);
+        console.log("amount", amounts[0]);
+        console.log("initiator", initiator);
 
         //
         // This contract now has the funds requested.
@@ -55,16 +60,15 @@ contract AaveTest is FlashLoanReceiverBase {
     function myFlashLoanCall() public {
         address receiverAddress = address(this);
 
-        address[] memory assets = new address[](7);
+        address[] memory assets = new address[](1);
         assets[0] = address(0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD); // Kovan DAI
 
-        uint256[] memory amounts = new uint256[](7);
-        amounts[0] = 1 ether;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1000 ether;
 
         // 0 = no debt, 1 = stable, 2 = variable
-        uint256[] memory modes = new uint256[](7);
+        uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
-
 
         address onBehalfOf = address(this);
         bytes memory params = "";
