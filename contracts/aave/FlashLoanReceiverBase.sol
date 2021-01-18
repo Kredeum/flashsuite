@@ -17,4 +17,5 @@ abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
     ADDRESSES_PROVIDER = provider;
     LENDING_POOL = ILendingPool(provider.getLendingPool());
   }
+  receive() external payable {}
 }

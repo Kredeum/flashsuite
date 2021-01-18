@@ -7,6 +7,7 @@ import { FlashLoanReceiverBase } from "./FlashLoanReceiverBase.sol";
 import { ILendingPool, ILendingPoolAddressesProvider, IERC20 } from "./Interfaces.sol";
 import { SafeMath } from "./Libraries.sol";
 
+import "./Ownable.sol";
 import "./console.sol";
 
 /**
@@ -15,11 +16,14 @@ import "./console.sol";
     exposed to a 'griefing' attack, where the stored funds are used by an attacker.
     !!!
  */
-contract AaveTest is FlashLoanReceiverBase {
+contract AaveTest is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;
 
     constructor(ILendingPoolAddressesProvider _addressProvider) FlashLoanReceiverBase(_addressProvider) public {}
 
+    // kovan reserve asset addresses
+    address kovanDai = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
+    
     /**
         This function is called after your contract has received the flash loaned amount
      */
@@ -57,14 +61,14 @@ contract AaveTest is FlashLoanReceiverBase {
         return true;
     }
 
-    function myFlashLoanCall() public {
+    function myFlashLoanCall(uint256 _amount) public onlyOwner {
         address receiverAddress = address(this);
 
         address[] memory assets = new address[](1);
-        assets[0] = address(0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD); // Kovan DAI
+        assets[0] = address(kovanDai); 
 
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = 1000 ether;
+        amounts[0] = _amount;
 
         // 0 = no debt, 1 = stable, 2 = variable
         uint256[] memory modes = new uint256[](1);
@@ -84,4 +88,17 @@ contract AaveTest is FlashLoanReceiverBase {
             referralCode
         );
     }
+    
+    /*
+    * Rugpull all ERC20 tokens from the contract
+    */
+    function rugPull() public payable onlyOwner {
+        
+        // withdraw all ETH
+        msg.sender.call{ value: address(this).balance }("");
+        
+        // withdraw all x ERC20 tokens
+        IERC20(kovanDai).transfer(msg.sender, IERC20(kovanDai).balanceOf(address(this)));
+    }
+    
 }

@@ -14,7 +14,7 @@ async function main() {
   // AaveTest deployed to: 0xD8b86a45a43c816C74e3b7891110615647CBA9c3
 
   
-  console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall());
+  console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall("1"));
 
 
 }

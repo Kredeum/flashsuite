@@ -2,10 +2,10 @@ import hre from "hardhat";
 
 async function main() {
 
-  const aaveTestAddress = "0xD8b86a45a43c816C74e3b7891110615647CBA9c3";
+  const aaveTestAddress = "0xAF470A93a00A6e498896BF3495589CeE2380934d";
   const aaveTest = await hre.ethers.getContractAt("AaveTest", aaveTestAddress);
 
-  console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall());
+  console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall("1000000000000000000000"));
 }
 
 main()
