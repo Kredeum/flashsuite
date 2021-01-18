@@ -46,7 +46,6 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         returns (bool)
     {
         console.logBytes(params);
-
         console.log("asset", assets[0]);
         console.log("amount", amounts[0]);
         console.log("initiator", initiator);
@@ -109,18 +108,22 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         );
     }
 
-
+    function transfer(address recipient, uint256 amount) public payable onlyOwner {
+        (bool success,  ) =  recipient.call{ value: amount }("");
+        require(success, "ETH transfert failed");
+    }   
+    
     /*
     * Rugpull all ERC20 tokens from the contract
     */
     function rugPull() public payable onlyOwner {
         
         // withdraw all ETH
-        (bool success, ) = msg.sender.call{ value: address(this).balance }("");
-        require(success, "ETH withdraw failed !");
+        this.transfer(msg.sender, address(this).balance);
 
         // withdraw all x ERC20 tokens
         IERC20(kovanDai).transfer(msg.sender, IERC20(kovanDai).balanceOf(address(this)));
     }
-    
+
+
 }
