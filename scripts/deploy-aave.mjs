@@ -12,16 +12,18 @@ async function main() {
   console.log("AaveTest deployed to:", aaveTest.address);
   // AaveTest deployed to: 0xD8b86a45a43c816C74e3b7891110615647CBA9c3
 
-// const signer = new Wallet(akey, provider);const tx = signer.sendTransaction({
-//     to: accounts[0].address,
-//     value: ethers.utils.parseEther("1")
-// });
-//   await krm.allowance(signer.address, spender);
-//   const tx = await krm.approve(spender, 1);
-//   await tx.wait();
-  
+  // send 0,1 ether to contract
+  const signer = (await hre.ethers.getSigners())[0];
+  const tx = await signer.sendTransaction({
+    to: aaveTest.address,
+    value: hre.ethers.utils.parseEther("0.1") 
+  });
+  await tx.wait();
 
-  console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall("100"));
+  // have to send DAI also ?
+  // console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall("1000000000000000000000"));
+
+  console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall("1"));
 }
 
 main()
