@@ -13,11 +13,11 @@ import "./console.sol";
 /*
 * A contract that executes the following logic in a single atomic transaction:
 *
-*   1. Get a flash loan of 100 DAI
-*   2. Deposit flash 110 DAI onto the Aave V2 lending pool
-*   3. Repay 100 USDT 
-*   3. Borrow 100 DAI
-*   5. Withdraw flash 110 DAI from the Aave V2 lending pool
+*   1. Get a flash loan of 1000 DAI
+*   2. Deposit flash 1000 DAI onto the Aave V2 lending pool
+*   3. Borrow 500 DAI
+*   4. Repay 500 DAI 
+*   5. Withdraw flash 1000 DAI from the Aave V2 lending pool
 *   6. Repay back flash loan DAI + including fee 9bps 
 *
 */
@@ -25,7 +25,8 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;
 
     address kovanDai = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
-    uint256 flashDai;
+    uint256 flashDai = 1000 ether;
+    uint256 borrowDai = 500 ether;
 
     constructor(ILendingPoolAddressesProvider _addressProvider) FlashLoanReceiverBase(_addressProvider) public {
     }
@@ -50,6 +51,9 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         console.log("amount", amounts[0]);
         console.log("initiator", initiator);
 
+        console.log("flashDai", flashDai);
+        console.log("borrowDai", borrowDai);
+
         // target aave account
         // address targetAccount = msg.sender;
         address targetAccount = address(this);
@@ -59,14 +63,14 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         LENDING_POOL.deposit(kovanDai, flashDai, targetAccount, uint16(0));  
 
         // // borrow DAI for target account
-        // LENDING_POOL.borrow(kovanDai, flashDai, 1, uint16(0), targetAccount );
+        LENDING_POOL.borrow(kovanDai, borrowDai, 1, uint16(0), targetAccount );
 
         // // repay DAI for target account
-        // LENDING_POOL.repay(kovanDai, flashDai, 1, targetAccount );
+        IERC20(kovanDai).approve(address(LENDING_POOL), borrowDai);
+        LENDING_POOL.repay(kovanDai, borrowDai, 1, targetAccount );
 
         // withdraw the flash DAI to this contract
         LENDING_POOL.withdraw(kovanDai, flashDai, address(this));
-
 
         // Approve the LendingPool contract allowance to *pull* the owed amount
         for (uint i = 0; i < assets.length; i++) {
@@ -76,9 +80,7 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         return true;
     }
 
-    function myFlashLoanCall(uint256 _amount) public onlyOwner {
-
-        flashDai = _amount;
+    function myFlashLoanCall() public onlyOwner {
 
         address receiverAddress = address(this);
 
@@ -107,19 +109,15 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
             referralCode
         );
     }
-
-    function transfer(address recipient, uint256 amount) public payable onlyOwner {
-        (bool success,  ) =  recipient.call{ value: amount }("");
-        require(success, "ETH transfert failed");
-    }   
     
     /*
     * Rugpull all ERC20 tokens from the contract
     */
     function rugPull() public payable onlyOwner {        
         // withdraw all ETH
-        msg.sender.call{ value: address(this).balance }("");
-  
+        (bool success,) = msg.sender.call{ value: address(this).balance }("");
+        require(success);
+
         // withdraw all ERC20 tokens
         IERC20(kovanDai).transfer(msg.sender, IERC20(kovanDai).balanceOf(address(this)));
     }

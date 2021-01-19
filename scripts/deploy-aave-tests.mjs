@@ -43,7 +43,7 @@ const tx2 = await contractDai.transfer(aaveTest.address, e.utils.parseEther("100
 await tx2.wait();
 _balances();
 
-console.log("aaveTest.myFlashLoanCall(1000)", await aaveTest.myFlashLoanCall(e.utils.parseEther("1000")));
+console.log("aaveTest.myFlashLoanCall()", await aaveTest.myFlashLoanCall());
 _balances();
 
 await aaveTest.rugPull();
