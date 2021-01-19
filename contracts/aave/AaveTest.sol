@@ -116,12 +116,11 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
     /*
     * Rugpull all ERC20 tokens from the contract
     */
-    function rugPull() public payable onlyOwner {
-        
+    function rugPull() public payable onlyOwner {        
         // withdraw all ETH
-        this.transfer(msg.sender, address(this).balance);
-
-        // withdraw all x ERC20 tokens
+        msg.sender.call{ value: address(this).balance }("");
+  
+        // withdraw all ERC20 tokens
         IERC20(kovanDai).transfer(msg.sender, IERC20(kovanDai).balanceOf(address(this)));
     }
 
