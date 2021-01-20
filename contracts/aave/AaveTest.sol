@@ -58,18 +58,23 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         // address targetAccount = msg.sender;
         address targetAccount = address(this);
 
+
         // deposit the flash DAI to target account
+        require( daiBalance() >=  flashDai, "Insufficient funds for deposit");
         IERC20(kovanDai).approve(address(LENDING_POOL), flashDai);
         LENDING_POOL.deposit(kovanDai, flashDai, targetAccount, uint16(0));  
 
-        // // borrow DAI for target account
+        // borrow DAI for target account
+        require( daiBalance() >=  borrowDai, "Insufficient funds for borrow");
         LENDING_POOL.borrow(kovanDai, borrowDai, 1, uint16(0), targetAccount );
 
-        // // repay DAI for target account
+        // repay DAI for target account
+        require( daiBalance() >=  borrowDai, "Insufficient funds for repay");
         IERC20(kovanDai).approve(address(LENDING_POOL), borrowDai);
         LENDING_POOL.repay(kovanDai, borrowDai, 1, targetAccount );
 
         // withdraw the flash DAI to this contract
+        require( daiBalance() >=  flashDai, "Insufficient funds for withdraw");
         LENDING_POOL.withdraw(kovanDai, flashDai, address(this));
 
         // Approve the LendingPool contract allowance to *pull* the owed amount
@@ -113,14 +118,24 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
     /*
     * Rugpull all ERC20 tokens from the contract
     */
-    function rugPull() public payable onlyOwner {        
-        // withdraw all ETH
-        (bool success,) = msg.sender.call{ value: address(this).balance }("");
-        require(success);
+    function daiBalance() public view returns(uint256) {
+      uint256 ret = IERC20(kovanDai).balanceOf(address(this));
+      return ret;
+    }           
+  
+   function ethBalance() public view returns(uint256) {
+      uint256 ret = address(this).balance;
+      return ret;
+    }        
 
+    function rugPullERC20() public payable onlyOwner {        
         // withdraw all ERC20 tokens
-        IERC20(kovanDai).transfer(msg.sender, IERC20(kovanDai).balanceOf(address(this)));
+        IERC20(kovanDai).transfer(msg.sender, daiBalance());
     }
 
-
+    function rugPullETH() public payable onlyOwner {        
+        // withdraw all ETH
+        (bool success,) = msg.sender.call{ value: ethBalance() }("");
+        require(success);
+    }
 }
