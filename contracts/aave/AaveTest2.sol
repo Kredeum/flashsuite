@@ -8,21 +8,12 @@ import { ILendingPool, ILendingPoolAddressesProvider, IERC20 } from "./Interface
 import { SafeMath } from "./Libraries.sol";
 
 import "./Ownable.sol";
-import "./console.sol";
 
-/*
-* A contract that executes the following logic in a single atomic transaction:
-*
-*   1. Get a flash loan of 1000 DAI
-*   2. Deposit flash 1000 DAI onto the Aave V2 lending pool
-*   3. Borrow 500 DAI
-*   4. Repay 500 DAI 
-*   5. Withdraw flash 1000 DAI from the Aave V2 lending pool
-*   6. Repay back flash loan DAI + including fee 9bps 
-*
-*/
-contract AaveTest is FlashLoanReceiverBase, Ownable {
+contract AaveTest2 is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;
+
+    address address1 = 0x981ab0D817710d8FFFC5693383C00D985A3BDa38;
+    address address2 = 0xb09Ae31E045Bb9d8D74BB6624FeEB18B3Af72A8e;
 
     address kovanDai = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
     uint256 flashDai = 1000 ether;
@@ -31,10 +22,20 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
     constructor(ILendingPoolAddressesProvider _addressProvider) FlashLoanReceiverBase(_addressProvider) public {
     }
 
-    
     /**
-        This function is called after your contract has received the flash loaned amount
-     */
+      * This function is called after your contract has received the flash loaned amount
+      *
+      *   1. Get a flash loan of X DAI
+      *   2. Deposit these X DAI onto the Aave V2 lending pool
+      *    
+      *   3. Call some function using this X DAI
+      *
+      *   4. Withdraw X DAI from the Aave V2 lending pool
+      *   5. Repay back flash loan X DAI + including fee 9bps 
+      *
+      *   6. transfer back any token left in the contract, back to the owner
+    */
+
     function executeOperation(
         address[] calldata assets,
         uint256[] calldata amounts,
@@ -46,36 +47,9 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         override
         returns (bool)
     {
-        console.logBytes(params);
-        console.log("asset", assets[0]);
-        console.log("amount", amounts[0]);
-        console.log("initiator", initiator);
-
-        console.log("flashDai", flashDai);
-        console.log("borrowDai", borrowDai);
-
-        // target aave account
-        // address targetAccount = msg.sender;
-        address targetAccount = address(this);
-
-
-        // deposit the flash DAI to target account
-        require( daiBalance() >=  flashDai, "Insufficient funds for deposit");
-        IERC20(kovanDai).approve(address(LENDING_POOL), flashDai);
-        LENDING_POOL.deposit(kovanDai, flashDai, targetAccount, uint16(0));  
-
-        // borrow DAI for target account
-        require( daiBalance() >=  borrowDai, "Insufficient funds for borrow");
-        LENDING_POOL.borrow(kovanDai, borrowDai, 1, uint16(0), targetAccount );
-
-        // repay DAI for target account
-        require( daiBalance() >=  borrowDai, "Insufficient funds for repay");
-        IERC20(kovanDai).approve(address(LENDING_POOL), borrowDai);
-        LENDING_POOL.repay(kovanDai, borrowDai, 1, targetAccount );
-
-        // withdraw the flash DAI to this contract
-        require( daiBalance() >=  flashDai, "Insufficient funds for withdraw");
-        LENDING_POOL.withdraw(kovanDai, flashDai, address(this));
+        someFunction1();
+        // someFunction2();
+        // someFunction3();
 
         // Approve the LendingPool contract allowance to *pull* the owed amount
         for (uint i = 0; i < assets.length; i++) {
@@ -84,6 +58,56 @@ contract AaveTest is FlashLoanReceiverBase, Ownable {
         }
         return true;
     }
+
+    /* Deposit Dai */
+    function daiDeposit(address onBehalfOf) internal {
+        require( daiBalance() >=  flashDai, "Insufficient funds for deposit");
+
+        IERC20(kovanDai).approve(address(LENDING_POOL), flashDai);
+        LENDING_POOL.deposit(kovanDai, flashDai, onBehalfOf, uint16(0)); 
+    }
+    /* Withdraw Dai */
+    function daiWithdraw(address onBehalfOf) internal {
+        require( daiBalance() >=  flashDai, "Insufficient funds for withdraw");
+
+        LENDING_POOL.withdraw(kovanDai, flashDai, onBehalfOf);
+    }
+
+
+    // Unchanged : Borrow and Repay for the contract
+    function someFunction1() internal {
+        daiDeposit(address(this));
+        daiBorrow(address(this));
+        daiRepay(address(this));
+        daiWithdraw(address(this));
+    }
+    // Unchanged : Borrow and Repay or the owner
+    function someFunction2() internal {
+        daiDeposit(msg.sender);
+        daiBorrow(msg.sender);
+        daiRepay(msg.sender);
+        daiWithdraw(msg.sender);
+    }
+    // Swap address, repay loan on A1to borrow on A2
+    function someFunction3() internal {
+        daiRepay(address1);
+        daiBorrow(address2);
+    }
+
+
+    /* Borrow Dai */
+    function daiBorrow(address onBehalfOf) internal {
+        require( daiBalance() >=  borrowDai, "Insufficient funds for borrow");
+        LENDING_POOL.borrow(kovanDai, borrowDai, 1, uint16(0), onBehalfOf );
+    }
+    /* Repay Dai */
+    function daiRepay(address onBehalfOf) internal {
+        require( daiBalance() >=  borrowDai, "Insufficient funds for repay");
+        IERC20(kovanDai).approve(address(LENDING_POOL), borrowDai);
+        LENDING_POOL.repay(kovanDai, borrowDai, 1, onBehalfOf );  
+    }
+
+
 
     function myFlashLoanCall() public onlyOwner {
 
