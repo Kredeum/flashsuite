@@ -3,6 +3,56 @@ const { ethers } = require("hardhat");
 
 describe("AaveTest deployment and run", function () {
   this.timeout(0);
+  const kovanDaiAddress = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
+  const kovanLendingPoolAddress = "0x9FE532197ad76c5a68961439604C037EB79681F0";
+  let signer1;
+  let lendingPool;
+  let kovanDai;
+
+  before(async () => {
+    [signer1] = await ethers.getSigners();
+    console.log("signer1", signer1.address);
+
+    lendingPool = await ethers.getContractAt(
+      "ILendingPool",
+      kovanLendingPoolAddress
+    );
+    kovanDai = await ethers.getContractAt("IERC20", kovanDaiAddress);
+  });
+
+  it.only("should deposit in lending pool", async () => {
+    const amountToDeposit = ethers.utils.parseEther("1000");
+
+    const {
+      totalCollateralETH: initialCollateralETH,
+    } = await lendingPool.getUserAccountData(signer1.address);
+    console.log("initialCollateralETH:", initialCollateralETH.toString());
+
+    // Approve lendingPool
+    const approveTx = await kovanDai.approve(
+      kovanLendingPoolAddress,
+      amountToDeposit
+    );
+    await approveTx.wait();
+    console.log("lending pool allowance approved");
+
+    // Deposit
+    const depositTx = await lendingPool.deposit(
+      kovanDaiAddress,
+      amountToDeposit,
+      signer1.address,
+      0
+    );
+    await depositTx.wait();
+    console.log(`deposit of ${amountToDeposit} complete`);
+
+    const {
+      totalCollateralETH: newCollateralETH,
+    } = await lendingPool.getUserAccountData(signer1.address);
+    console.log("newCollateralETH:", newCollateralETH.toString());
+
+    expect(newCollateralETH).gt(initialCollateralETH);
+  });
 
   it("Should run AaveTest Contract and start FlashLoan", async function () {
     // Aave Deployed Contracts Addresses : https://docs.aave.com/developers/deployed-contracts
