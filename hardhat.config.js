@@ -32,6 +32,8 @@ module.exports = {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts: [process.env.ACCOUNT_KEY],
       gasMultiplier: 1.5,
+      gasPrice: 4000000000,
+      gas: 12390000,
     },
   },
   solidity: "0.6.12",

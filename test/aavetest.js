@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { formatEth, parseEth } = require("../utils/ethers-util");
 
 describe("AaveTest deployment and run", function () {
   this.timeout(0);
@@ -8,6 +9,8 @@ describe("AaveTest deployment and run", function () {
   let signer1;
   let lendingPool;
   let kovanDai;
+
+  let positionMigrator;
 
   before(async () => {
     [signer1] = await ethers.getSigners();
@@ -18,10 +21,24 @@ describe("AaveTest deployment and run", function () {
       kovanLendingPoolAddress
     );
     kovanDai = await ethers.getContractAt("IERC20", kovanDaiAddress);
+
+    // ##### Deploy PositionMigrator ######
+    PositionMigratorFactory = await ethers.getContractFactory(
+      "PositionMigrator"
+    );
+    positionMigrator = await PositionMigratorFactory.deploy();
+    console.log(
+      "Position Migrator deployed! Address:",
+      positionMigrator.address
+    );
   });
 
-  it.only("should deposit in lending pool", async () => {
-    const amountToDeposit = ethers.utils.parseEther("1000");
+  after(async () => {
+    await positionMigrator.rugPull();
+  });
+
+  it.skip("should deposit in lending pool", async () => {
+    const amountToDeposit = parseEth("1000");
 
     const {
       totalCollateralETH: initialCollateralETH,
@@ -54,8 +71,8 @@ describe("AaveTest deployment and run", function () {
     expect(newCollateralETH).gt(initialCollateralETH);
   });
 
-  it.only("should let signer1 borrow", async () => {
-    const amountToBorrow = ethers.utils.parseEther("100");
+  it.skip("should let signer1 borrow", async () => {
+    const amountToBorrow = parseEth("100");
     const rateMode = 1; // stable
 
     const {
@@ -64,13 +81,14 @@ describe("AaveTest deployment and run", function () {
     } = await lendingPool.getUserAccountData(signer1.address);
     console.log(
       "initialCollateralETH:",
-      ethers.utils.formatEther(totalCollateralETH),
+      formatEth(totalCollateralETH),
       "initialDebtETH",
-      ethers.utils.formatEther(initialDebtETH)
+      formatEth(initialDebtETH)
     );
 
     // Need some collateral to be able to borrow
-    expect(totalCollateralETH).gt(ethers.utils.parseEther("0.8"));
+    // checks roughly 1000 DAI, hardcoded for now
+    expect(totalCollateralETH).gt(parseEth("0.8"));
 
     const borrowTx = await lendingPool.borrow(
       kovanDaiAddress,
@@ -86,12 +104,62 @@ describe("AaveTest deployment and run", function () {
     const { totalDebtETH: newDebtETH } = await lendingPool.getUserAccountData(
       signer1.address
     );
-    console.log("newDebtETH", ethers.utils.formatEther(newDebtETH));
+    console.log("newDebtETH", formatEth(newDebtETH));
 
     expect(newDebtETH).gt(initialDebtETH);
   });
 
-  it("Should run AaveTest Contract and start FlashLoan", async function () {
+  describe.only("repay loan through PositionMigrator", async () => {
+    const amountToRepay = parseEth("100");
+
+    it("should approve contract for Dai transfer", async () => {
+      // approve contract for Dai transfer
+      const approveTx = await kovanDai.approve(
+        positionMigrator.address,
+        amountToRepay
+      );
+      await approveTx.wait();
+      console.log("PositionMigrator allowance approved");
+
+      const allowance = await kovanDai.allowance(
+        signer1.address,
+        positionMigrator.address
+      );
+
+      expect(allowance).to.be.at.least(amountToRepay);
+    });
+
+    it("should let PositionMigrator repays the loan on behalf of signer 1", async () => {
+      const asset = kovanDaiAddress;
+      const borrower = signer1.address;
+      const rateMode = 1;
+
+      // Check initial debt
+      const {
+        totalDebtETH: initialDebtETH,
+      } = await lendingPool.getUserAccountData(signer1.address);
+      console.log("initialDebtETH", formatEth(initialDebtETH));
+
+      // Repay
+      const repayTx = await positionMigrator.repayLoan(
+        asset,
+        borrower,
+        amountToRepay,
+        rateMode
+      );
+      await repayTx.wait();
+
+      // Check new debt
+      const { totalDebtETH: newDebtETH } = await lendingPool.getUserAccountData(
+        signer1.address
+      );
+      console.log("newDebtETH", formatEth(newDebtETH));
+
+      expect(newDebtETH).lt(initialDebtETH);
+    });
+  });
+
+  it.skip("Should run AaveTest Contract and start FlashLoan", async function () {
     // Aave Deployed Contracts Addresses : https://docs.aave.com/developers/deployed-contracts
     const kovanLendingPool = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
     const aaveTestDAI = "1000";
@@ -118,7 +186,7 @@ describe("AaveTest deployment and run", function () {
     console.log("Sending " + aaveTestETH + " ether to contract... ");
     const tx2 = await signer.sendTransaction({
       to: aaveTest.address,
-      value: ethers.utils.parseEther(aaveTestETH),
+      value: parseEth(aaveTestETH),
     });
     expect(tx2.hash).to.match(/^0x/);
     console.log("Tx2       https://kovan.etherscan.io/tx/" + tx2.hash);
@@ -145,7 +213,7 @@ describe("AaveTest deployment and run", function () {
 
     const tx3 = await aaveTestDai.transfer(
       aaveTest.address,
-      ethers.utils.parseEther(aaveTestDAI)
+      parseEth(aaveTestDAI)
     );
     expect(tx3.hash).to.match(/^0x/);
     console.log("Tx3       https://kovan.etherscan.io/tx/" + tx3.hash);
