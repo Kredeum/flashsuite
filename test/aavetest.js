@@ -54,6 +54,43 @@ describe("AaveTest deployment and run", function () {
     expect(newCollateralETH).gt(initialCollateralETH);
   });
 
+  it.only("should let signer1 borrow", async () => {
+    const amountToBorrow = ethers.utils.parseEther("100");
+    const rateMode = 1; // stable
+
+    const {
+      totalCollateralETH,
+      totalDebtETH: initialDebtETH,
+    } = await lendingPool.getUserAccountData(signer1.address);
+    console.log(
+      "initialCollateralETH:",
+      ethers.utils.formatEther(totalCollateralETH),
+      "initialDebtETH",
+      ethers.utils.formatEther(initialDebtETH)
+    );
+
+    // Need some collateral to be able to borrow
+    expect(totalCollateralETH).gt(ethers.utils.parseEther("0.8"));
+
+    const borrowTx = await lendingPool.borrow(
+      kovanDaiAddress,
+      amountToBorrow,
+      rateMode,
+      0,
+      signer1.address
+    );
+
+    await borrowTx.wait();
+    console.log("Borrowing done");
+
+    const { totalDebtETH: newDebtETH } = await lendingPool.getUserAccountData(
+      signer1.address
+    );
+    console.log("newDebtETH", ethers.utils.formatEther(newDebtETH));
+
+    expect(newDebtETH).gt(initialDebtETH);
+  });
+
   it("Should run AaveTest Contract and start FlashLoan", async function () {
     // Aave Deployed Contracts Addresses : https://docs.aave.com/developers/deployed-contracts
     const kovanLendingPool = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
