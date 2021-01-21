@@ -4,9 +4,6 @@ pragma experimental ABIEncoderV2;
 
 import { DataTypes } from "./Libraries.sol";
 
-/**
- * @dev Interface of the ERC20 standard as defined in the EIP.
- */
 interface IERC20 {
   /**
    * @dev Returns the amount of tokens in existence.
@@ -82,28 +79,23 @@ interface IERC20 {
   event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-interface IFlashLoanReceiver {
-  function executeOperation(
-    address[] calldata assets,
-    uint256[] calldata amounts,
-    uint256[] calldata premiums,
-    address initiator,
-    bytes calldata params
-  ) external returns (bool);
+interface IProtocolDataProvider {
+  struct TokenData {
+    string symbol;
+    address tokenAddress;
+  }
 
   function ADDRESSES_PROVIDER() external view returns (ILendingPoolAddressesProvider);
-
-  function LENDING_POOL() external view returns (ILendingPool);
+  function getAllReservesTokens() external view returns (TokenData[] memory);
+  function getAllATokens() external view returns (TokenData[] memory);
+  function getReserveConfigurationData(address asset) external view returns (uint256 decimals, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus, uint256 reserveFactor, bool usageAsCollateralEnabled, bool borrowingEnabled, bool stableBorrowRateEnabled, bool isActive, bool isFrozen);
+  function getReserveData(address asset) external view returns (uint256 availableLiquidity, uint256 totalStableDebt, uint256 totalVariableDebt, uint256 liquidityRate, uint256 variableBorrowRate, uint256 stableBorrowRate, uint256 averageStableBorrowRate, uint256 liquidityIndex, uint256 variableBorrowIndex, uint40 lastUpdateTimestamp);
+  function getUserReserveData(address asset, address user) external view returns (uint256 currentATokenBalance, uint256 currentStableDebt, uint256 currentVariableDebt, uint256 principalStableDebt, uint256 scaledVariableDebt, uint256 stableBorrowRate, uint256 liquidityRate, uint40 stableRateLastUpdated, bool usageAsCollateralEnabled);
+  function getReserveTokensAddresses(address asset) external view returns (address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress);
 }
 
-/**
- * @title LendingPoolAddressesProvider contract
- * @dev Main registry of addresses part of or connected to the protocol, including permissioned roles
- * - Acting also as factory of proxies and admin of those, so with right to change its implementations
- * - Owned by the Aave Governance
- * @author Aave
- **/
 interface ILendingPoolAddressesProvider {
+  event MarketIdSet(string newMarketId);
   event LendingPoolUpdated(address indexed newAddress);
   event ConfigurationAdminUpdated(address indexed newAddress);
   event EmergencyAdminUpdated(address indexed newAddress);
@@ -113,6 +105,10 @@ interface ILendingPoolAddressesProvider {
   event LendingRateOracleUpdated(address indexed newAddress);
   event ProxyCreated(bytes32 id, address indexed newAddress);
   event AddressSet(bytes32 id, address indexed newAddress, bool hasProxy);
+
+  function getMarketId() external view returns (string memory);
+
+  function setMarketId(string calldata marketId) external;
 
   function setAddress(bytes32 id, address newAddress) external;
 
@@ -338,12 +334,13 @@ interface ILendingPool {
    * @param to Address that will receive the underlying, same as msg.sender if the user
    *   wants to receive it on his own wallet, or a different address if the beneficiary is a
    *   different wallet
+   * @return The final amount withdrawn
    **/
   function withdraw(
     address asset,
     uint256 amount,
     address to
-  ) external;
+  ) external returns (uint256);
 
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -378,13 +375,14 @@ interface ILendingPool {
    * @param onBehalfOf Address of the user who will get his debt reduced/removed. Should be the address of the
    * user calling the function if he wants to reduce/remove his own debt, or the address of any other
    * other borrower whose debt should be removed
+   * @return The final amount repaid
    **/
   function repay(
     address asset,
     uint256 amount,
     uint256 rateMode,
     address onBehalfOf
-  ) external;
+  ) external returns (uint256);
 
   /**
    * @dev Allows a borrower to swap his debt between stable and variable mode, or viceversa
@@ -497,14 +495,20 @@ interface ILendingPool {
    * @param asset The address of the underlying asset of the reserve
    * @return The configuration of the reserve
    **/
-  function getConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory);
+  function getConfiguration(address asset)
+    external
+    view
+    returns (DataTypes.ReserveConfigurationMap memory);
 
   /**
    * @dev Returns the configuration of the user across all the reserves
    * @param user The user address
    * @return The configuration of the user
    **/
-  function getUserConfiguration(address user) external view returns (DataTypes.UserConfigurationMap memory);
+  function getUserConfiguration(address user)
+    external
+    view
+    returns (DataTypes.UserConfigurationMap memory);
 
   /**
    * @dev Returns the normalized income normalized income of the reserve
@@ -544,22 +548,6 @@ interface ILendingPool {
 
   function paused() external view returns (bool);
 }
-
-interface IProtocolDataProvider {
-  struct TokenData {
-    string symbol;
-    address tokenAddress;
-  }
-
-  function ADDRESSES_PROVIDER() external view returns (ILendingPoolAddressesProvider);
-  function getAllReservesTokens() external view returns (TokenData[] memory);
-  function getAllATokens() external view returns (TokenData[] memory);
-  function getReserveConfigurationData(address asset) external view returns (uint256 decimals, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus, uint256 reserveFactor, bool usageAsCollateralEnabled, bool borrowingEnabled, bool stableBorrowRateEnabled, bool isActive, bool isFrozen);
-  function getReserveData(address asset) external view returns (uint256 availableLiquidity, uint256 totalStableDebt, uint256 totalVariableDebt, uint256 liquidityRate, uint256 variableBorrowRate, uint256 stableBorrowRate, uint256 averageStableBorrowRate, uint256 liquidityIndex, uint256 variableBorrowIndex, uint40 lastUpdateTimestamp);
-  function getUserReserveData(address asset, address user) external view returns (uint256 currentATokenBalance, uint256 currentStableDebt, uint256 currentVariableDebt, uint256 principalStableDebt, uint256 scaledVariableDebt, uint256 stableBorrowRate, uint256 liquidityRate, uint40 stableRateLastUpdated, bool usageAsCollateralEnabled);
-  function getReserveTokensAddresses(address asset) external view returns (address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress);
-}
-
 
 interface IStableDebtToken {
   /**
