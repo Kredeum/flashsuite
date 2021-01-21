@@ -159,7 +159,6 @@ contract AaveTest2 is FlashLoanReceiverBase, Ownable {
 
     function rugPullETH() public payable onlyOwner {        
         // withdraw all ETH
-        (bool success,) = msg.sender.call{ value: ethBalance() }("");
-        require(success);
+        selfdestruct(msg.sender);
     }
 }
