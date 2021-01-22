@@ -81,6 +81,7 @@ describe("AaveTest deployment and run", function () {
       totalCollateralETH,
       totalDebtETH: initialDebtETH,
     } = await lendingPool.getUserAccountData(signer1.address);
+
     console.log(
       "initialCollateralETH:",
       formatEth(totalCollateralETH),
