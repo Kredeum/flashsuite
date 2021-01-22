@@ -674,7 +674,6 @@ interface IAToken is IERC20, IScaledBalanceToken {
  * @dev It does not inherit from IERC20 to save in code size
  * @author Aave
  **/
->>>>>>> aave-exploration
 
 interface IStableDebtToken {
   /**
