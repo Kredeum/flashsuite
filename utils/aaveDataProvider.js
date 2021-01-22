@@ -5,7 +5,7 @@ const getReserveTokensAddresses = async ({
   underlyingAssetAddress,
 }) => {
   const protocolDataProvider = await ethers.getContractAt(
-    "IProtocolDataProvider",
+    "contracts/aave/Interfaces.sol:IProtocolDataProvider",
     dataProviderAddress
   );
   const tokenAddresses = await protocolDataProvider.getReserveTokensAddresses(

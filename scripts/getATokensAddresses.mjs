@@ -17,7 +17,7 @@ async function main() {
   // await hre.run('compile');
 
   const protocolDataProvider = await hre.ethers.getContractAt(
-    "IProtocolDataProvider",
+    "contracts/aave/Interfaces.sol:IProtocolDataProvider",
     kovanProtocolDataProviderAddress
   );
   const aTokens = await protocolDataProvider.getAllATokens();
