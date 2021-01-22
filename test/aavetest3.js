@@ -1,11 +1,13 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { getReserveTokensAddresses } = require("../utils/aaveDataProvider");
 const { formatEth, parseEth } = require("../utils/ethers-util");
 
 describe("AaveTest deployment and run", function () {
   this.timeout(0);
   const kovanDaiAddress = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
   const kovanLendingPoolAddress = "0x9FE532197ad76c5a68961439604C037EB79681F0";
+  const kovanDataProviderAddress = "0x3c73A5E5785cAC854D468F727c606C07488a29D6";
   let signer1;
   let signer2;
   let lendingPool;
@@ -37,6 +39,7 @@ describe("AaveTest deployment and run", function () {
 
   after(async () => {
     await positionMigrator.rugPull();
+    console.log("💥 Position Migrator contract destroyed 💥");
   });
 
   it.skip("should deposit in lending pool", async () => {
@@ -162,7 +165,7 @@ describe("AaveTest deployment and run", function () {
     });
   });
 
-  describe.only("should let PositionMigrator transfers deposit", () => {
+  describe.skip("should let PositionMigrator transfers deposit", () => {
     const aDaiAddress = "0xdCf0aF9e59C002FA3AA091a46196b37530FD48a8";
     const depositAmount = parseEth("500");
 
@@ -214,6 +217,43 @@ describe("AaveTest deployment and run", function () {
         initialSigner2ADaiBalance.sub(depositAmount)
       );
     });
+  });
+
+  it.only("should approve credit delegation to SC", async () => {
+    const daiAmountToBorrowWithDelegation = parseEth("100");
+
+    // get Dai stable debt token address
+    const kovanDaiAddresses = await getReserveTokensAddresses({
+      dataProviderAddress: kovanDataProviderAddress,
+      underlyingAssetAddress: kovanDaiAddress,
+    });
+
+    const daiStableDebt = await ethers.getContractAt(
+      "IStableDebtToken",
+      kovanDaiAddresses.stableDebtTokenAddress
+    );
+
+    // approve credit delegation of stable Dai to Position Migrator SC
+    const approveDelegationTx = await daiStableDebt
+      .connect(signer2)
+      .approveDelegation(
+        positionMigrator.address,
+        daiAmountToBorrowWithDelegation
+      );
+    await approveDelegationTx.wait();
+    console.log("Credit Delegation tx done!");
+
+    // Check allowance
+    const allowance = await daiStableDebt.borrowAllowance(
+      signer2.address,
+      positionMigrator.address
+    );
+    console.log(
+      "stable Dai debt allowance from signer 2 to positionMigrator: ",
+      allowance.toString()
+    );
+
+    expect(allowance).to.be.at.least(daiAmountToBorrowWithDelegation);
   });
 
   it.skip("Should run AaveTest Contract and start FlashLoan", async function () {
