@@ -26,11 +26,15 @@ module.exports = {
           privateKey: process.env.ACCOUNT_KEY,
           balance: "100000000000000000000",
         },
+        {
+          privateKey: process.env.ACCOUNT_KEY_2,
+          balance: "100000000000000000000",
+        },
       ],
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.ACCOUNT_KEY],
+      accounts: [process.env.ACCOUNT_KEY, process.env.ACCOUNT_KEY_2],
       gasMultiplier: 1.5,
       gasPrice: 4000000000,
       gas: 12390000,

@@ -559,3 +559,251 @@ interface IProtocolDataProvider {
   function getUserReserveData(address asset, address user) external view returns (uint256 currentATokenBalance, uint256 currentStableDebt, uint256 currentVariableDebt, uint256 principalStableDebt, uint256 scaledVariableDebt, uint256 stableBorrowRate, uint256 liquidityRate, uint40 stableRateLastUpdated, bool usageAsCollateralEnabled);
   function getReserveTokensAddresses(address asset) external view returns (address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress);
 }
+
+interface IScaledBalanceToken {
+  /**
+   * @dev Returns the scaled balance of the user. The scaled balance is the sum of all the
+   * updated stored balance divided by the reserve's liquidity index at the moment of the update
+   * @param user The user whose balance is calculated
+   * @return The scaled balance of the user
+   **/
+  function scaledBalanceOf(address user) external view returns (uint256);
+
+  /**
+   * @dev Returns the scaled balance of the user and the scaled total supply.
+   * @param user The address of the user
+   * @return The scaled balance of the user
+   * @return The scaled balance and the scaled total supply
+   **/
+  function getScaledUserBalanceAndSupply(address user) external view returns (uint256, uint256);
+
+  /**
+   * @dev Returns the scaled total supply of the variable debt token. Represents sum(debt/index)
+   * @return The scaled total supply
+   **/
+  function scaledTotalSupply() external view returns (uint256);
+}
+
+
+interface IAToken is IERC20, IScaledBalanceToken {
+  /**
+   * @dev Emitted after the mint action
+   * @param from The address performing the mint
+   * @param value The amount being
+   * @param index The new liquidity index of the reserve
+   **/
+  event Mint(address indexed from, uint256 value, uint256 index);
+
+  /**
+   * @dev Mints `amount` aTokens to `user`
+   * @param user The address receiving the minted tokens
+   * @param amount The amount of tokens getting minted
+   * @param index The new liquidity index of the reserve
+   * @return `true` if the the previous balance of the user was 0
+   */
+  function mint(
+    address user,
+    uint256 amount,
+    uint256 index
+  ) external returns (bool);
+
+  /**
+   * @dev Emitted after aTokens are burned
+   * @param from The owner of the aTokens, getting them burned
+   * @param target The address that will receive the underlying
+   * @param value The amount being burned
+   * @param index The new liquidity index of the reserve
+   **/
+  event Burn(address indexed from, address indexed target, uint256 value, uint256 index);
+
+  /**
+   * @dev Emitted during the transfer action
+   * @param from The user whose tokens are being transferred
+   * @param to The recipient
+   * @param value The amount being transferred
+   * @param index The new liquidity index of the reserve
+   **/
+  event BalanceTransfer(address indexed from, address indexed to, uint256 value, uint256 index);
+
+  /**
+   * @dev Burns aTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
+   * @param user The owner of the aTokens, getting them burned
+   * @param receiverOfUnderlying The address that will receive the underlying
+   * @param amount The amount being burned
+   * @param index The new liquidity index of the reserve
+   **/
+  function burn(
+    address user,
+    address receiverOfUnderlying,
+    uint256 amount,
+    uint256 index
+  ) external;
+
+  /**
+   * @dev Mints aTokens to the reserve treasury
+   * @param amount The amount of tokens getting minted
+   * @param index The new liquidity index of the reserve
+   */
+  function mintToTreasury(uint256 amount, uint256 index) external;
+
+  /**
+   * @dev Transfers aTokens in the event of a borrow being liquidated, in case the liquidators reclaims the aToken
+   * @param from The address getting liquidated, current owner of the aTokens
+   * @param to The recipient
+   * @param value The amount of tokens getting transferred
+   **/
+  function transferOnLiquidation(
+    address from,
+    address to,
+    uint256 value
+  ) external;
+
+  /**
+   * @dev Transfers the underlying asset to `target`. Used by the LendingPool to transfer
+   * assets in borrow(), withdraw() and flashLoan()
+   * @param user The recipient of the aTokens
+   * @param amount The amount getting transferred
+   * @return The amount transferred
+   **/
+  function transferUnderlyingTo(address user, uint256 amount) external returns (uint256);
+}
+
+/**
+ * @title IStableDebtToken
+ * @notice Defines the interface for the stable debt token
+ * @dev It does not inherit from IERC20 to save in code size
+ * @author Aave
+ **/
+
+interface IStableDebtToken {
+  /**
+   * @dev Emitted when new stable debt is minted
+   * @param user The address of the user who triggered the minting
+   * @param onBehalfOf The recipient of stable debt tokens
+   * @param amount The amount minted
+   * @param currentBalance The current balance of the user
+   * @param balanceIncrease The increase in balance since the last action of the user
+   * @param newRate The rate of the debt after the minting
+   * @param avgStableRate The new average stable rate after the minting
+   * @param newTotalSupply The new total supply of the stable debt token after the action
+   **/
+  event Mint(
+    address indexed user,
+    address indexed onBehalfOf,
+    uint256 amount,
+    uint256 currentBalance,
+    uint256 balanceIncrease,
+    uint256 newRate,
+    uint256 avgStableRate,
+    uint256 newTotalSupply
+  );
+
+  /**
+   * @dev Emitted when new stable debt is burned
+   * @param user The address of the user
+   * @param amount The amount being burned
+   * @param currentBalance The current balance of the user
+   * @param balanceIncrease The the increase in balance since the last action of the user
+   * @param avgStableRate The new average stable rate after the burning
+   * @param newTotalSupply The new total supply of the stable debt token after the action
+   **/
+  event Burn(
+    address indexed user,
+    uint256 amount,
+    uint256 currentBalance,
+    uint256 balanceIncrease,
+    uint256 avgStableRate,
+    uint256 newTotalSupply
+  );
+  
+  /**
+   * @dev delegates borrowing power to a user on the specific debt token
+   * @param delegatee the address receiving the delegated borrowing power
+   * @param amount the maximum amount being delegated. Delegation will still
+   * respect the liquidation constraints (even if delegated, a delegatee cannot
+   * force a delegator HF to go below 1)
+   **/
+  function approveDelegation(address delegatee, uint256 amount) external;
+  
+  /**
+   * @dev returns the borrow allowance of the user
+   * @param fromUser The user to giving allowance
+   * @param toUser The user to give allowance to
+   * @return the current allowance of toUser
+   **/
+  function borrowAllowance(address fromUser, address toUser) external view returns (uint256);
+
+  /**
+   * @dev Mints debt token to the `onBehalfOf` address.
+   * - The resulting rate is the weighted average between the rate of the new debt
+   * and the rate of the previous debt
+   * @param user The address receiving the borrowed underlying, being the delegatee in case
+   * of credit delegate, or same as `onBehalfOf` otherwise
+   * @param onBehalfOf The address receiving the debt tokens
+   * @param amount The amount of debt tokens to mint
+   * @param rate The rate of the debt being minted
+   **/
+  function mint(
+    address user,
+    address onBehalfOf,
+    uint256 amount,
+    uint256 rate
+  ) external returns (bool);
+
+  /**
+   * @dev Burns debt of `user`
+   * - The resulting rate is the weighted average between the rate of the new debt
+   * and the rate of the previous debt
+   * @param user The address of the user getting his debt burned
+   * @param amount The amount of debt tokens getting burned
+   **/
+  function burn(address user, uint256 amount) external;
+
+  /**
+   * @dev Returns the average rate of all the stable rate loans.
+   * @return The average stable rate
+   **/
+  function getAverageStableRate() external view returns (uint256);
+
+  /**
+   * @dev Returns the stable rate of the user debt
+   * @return The stable rate of the user
+   **/
+  function getUserStableRate(address user) external view returns (uint256);
+
+  /**
+   * @dev Returns the timestamp of the last update of the user
+   * @return The timestamp
+   **/
+  function getUserLastUpdated(address user) external view returns (uint40);
+
+  /**
+   * @dev Returns the principal, the total supply and the average stable rate
+   **/
+  function getSupplyData()
+    external
+    view
+    returns (
+      uint256,
+      uint256,
+      uint256,
+      uint40
+    );
+
+  /**
+   * @dev Returns the timestamp of the last update of the total supply
+   * @return The timestamp
+   **/
+  function getTotalSupplyLastUpdated() external view returns (uint40);
+
+  /**
+   * @dev Returns the total supply and the average stable rate
+   **/
+  function getTotalSupplyAndAvgRate() external view returns (uint256, uint256);
+
+  /**
+   * @dev Returns the principal debt balance of the user
+   * @return The debt balance of the user since the last burn/mint action
+   **/
+  function principalBalanceOf(address user) external view returns (uint256);
+}

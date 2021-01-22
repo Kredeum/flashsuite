@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.6.12;
 import { SafeMath, SafeERC20 } from "./Libraries.sol";
-import { ILendingPoolAddressesProvider, ILendingPool, IProtocolDataProvider, IERC20  } from "./Interfaces.sol";
+import { ILendingPoolAddressesProvider, ILendingPool, IProtocolDataProvider, IERC20, IAToken  } from "./Interfaces.sol";
 
 
 contract PositionMigrator {
@@ -56,6 +56,11 @@ contract PositionMigrator {
             // by zero, etc. inside getData.
             return false;
         }
+    }
+
+    function migrateATokens(address _asset, address _from, address _to, uint256 _amount) public returns (bool result) {
+        // require(asset.isTransferAllowed(_from, _amount), "Health factor does not allow such transfer");
+        result = IAToken(_asset).transferFrom(_from, _to, _amount);
     }
     
     function getContractDaiBalance() public view returns(uint256) {

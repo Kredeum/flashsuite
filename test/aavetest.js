@@ -7,14 +7,16 @@ describe("AaveTest deployment and run", function () {
   const kovanDaiAddress = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
   const kovanLendingPoolAddress = "0x9FE532197ad76c5a68961439604C037EB79681F0";
   let signer1;
+  let signer2;
   let lendingPool;
   let kovanDai;
 
   let positionMigrator;
 
   before(async () => {
-    [signer1] = await ethers.getSigners();
+    [signer1, signer2] = await ethers.getSigners();
     console.log("signer1", signer1.address);
+    console.log("signer2", signer2.address);
 
     lendingPool = await ethers.getContractAt(
       "ILendingPool",
@@ -109,7 +111,7 @@ describe("AaveTest deployment and run", function () {
     expect(newDebtETH).gt(initialDebtETH);
   });
 
-  describe.only("repay loan through PositionMigrator", async () => {
+  describe.skip("repay loan through PositionMigrator", async () => {
     const amountToRepay = parseEth("100");
 
     it("should approve contract for Dai transfer", async () => {
@@ -156,6 +158,60 @@ describe("AaveTest deployment and run", function () {
       console.log("newDebtETH", formatEth(newDebtETH));
 
       expect(newDebtETH).lt(initialDebtETH);
+    });
+  });
+
+  describe.only("should let PositionMigrator transfers deposit", () => {
+    const aDaiAddress = "0xdCf0aF9e59C002FA3AA091a46196b37530FD48a8";
+    const depositAmount = parseEth("500");
+
+    it("should approve contract for aDai transfer", async () => {
+      const aDai = await ethers.getContractAt("IAToken", aDaiAddress);
+      // approve contract for aDai transfer
+      const approveTx = await aDai.approve(
+        positionMigrator.address,
+        depositAmount
+      );
+      await approveTx.wait();
+      console.log("PositionMigrator allowance approved");
+
+      const allowance = await aDai.allowance(
+        signer1.address,
+        positionMigrator.address
+      );
+
+      expect(allowance).to.be.at.least(depositAmount);
+    });
+
+    it("should transfer aDai", async () => {
+      const aDai = await ethers.getContractAt("IAToken", aDaiAddress);
+
+      const initialSigner1ADaiBalance = await aDai.balanceOf(signer1.address);
+      const initialSigner2ADaiBalance = await aDai.balanceOf(signer2.address);
+      console.log("initialSigner1ADaiBalance", initialSigner1ADaiBalance);
+      console.log("initialSigner2ADaiBalance", initialSigner2ADaiBalance);
+      // TODO: need to add checks before because migration will fail if not enough deposit
+      // or health factor does not permit
+      const aDaiTransferTx = await positionMigrator.migrateATokens(
+        aDaiAddress,
+        signer1.address,
+        signer2.address,
+        depositAmount
+      );
+
+      await aDaiTransferTx.wait();
+
+      const newSigner1ADaiBalance = await aDai.balanceOf(signer1.address);
+      const newSigner2ADaiBalance = await aDai.balanceOf(signer2.address);
+      console.log("newSigner1ADaiBalance", newSigner1ADaiBalance);
+      console.log("newSigner2ADaiBalance", newSigner2ADaiBalance);
+
+      expect(newSigner1ADaiBalance).to.equal(
+        initialSigner1ADaiBalance.sub(depositAmount)
+      );
+      expect(newSigner2ADaiBalance).to.equal(
+        initialSigner2ADaiBalance.sub(depositAmount)
+      );
     });
   });
 
