@@ -1,5 +1,5 @@
-import balance from "./lib/balance.mjs";
-import ERC20 from "./lib/erc20.mjs";
+import balance from "../utils/balance.mjs";
+import ERC20 from "../utils/erc20.mjs";
 import hre from 'hardhat';
 const { ethers } = hre;
 
@@ -16,7 +16,7 @@ function _balances() {
 // Aave Deployed Contracts Addresses : https://docs.aave.com/developers/deployed-contracts
 const kovanLendingPoolAddressesProvider = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
 
-const AaveTest = await ethers.getContractFactory("AaveTest");
+const AaveTest = await ethers.getContractFactory("AaveTest1");
 const aaveTest = await AaveTest.deploy(kovanLendingPoolAddressesProvider);
 await aaveTest.deployed();
 console.log("Owner ? ", await aaveTest.isOwner());

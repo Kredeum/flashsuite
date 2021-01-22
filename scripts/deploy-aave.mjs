@@ -8,7 +8,7 @@ const aaveTestETH = "0.1";
 
 console.log("AaveTest deployment and test");
 
-const AaveTest = await ethers.getContractFactory("AaveTest");
+const AaveTest = await ethers.getContractFactory("AaveTest1");
 const aaveTest = await AaveTest.deploy(kovanLendingPoolAddressesProvider);
 await aaveTest.deployed();
 console.log("AaveTest deployed to:", aaveTest.address);
