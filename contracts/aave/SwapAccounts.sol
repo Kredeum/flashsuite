@@ -22,9 +22,9 @@ contract SwapAccounts is FlashLoanReceiverBase, Ownable {
     address Bob = 0x981ab0D817710d8FFFC5693383C00D985A3BDa38;
     address contrat;
 
+    uint256 collSNX = 20 ether;
+    uint256 borrowDAI = 10 ether;
     uint256 flashDAI = 10 ether;
-    uint256 borrowDAI = 8 ether;
-    uint256 collSNX = 2 ether;
 
     event opExec(string desc, address indexed _from, address indexed _asset, uint256 _amount, uint256 _premium);
 
@@ -61,7 +61,6 @@ contract SwapAccounts is FlashLoanReceiverBase, Ownable {
 
         // TX3.1 Get FlashLoan
         emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
-        require(Bob == msg.sender, "Hi anonymous, you are not Bob ?!");
 
         // TX3.2 Repay Alice Loan
         repay(DAI, borrowDAI, Alice);
@@ -153,6 +152,8 @@ contract SwapAccounts is FlashLoanReceiverBase, Ownable {
       rugPullERC(DAI);
 
       // withdraw all ETH
+      (bool success,) = msg.sender.call{ value: address(this).balance }("");
+      require(success);
       // selfdestruct(msg.sender);
     }
 }
