@@ -23,10 +23,14 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
     address AUSDT = 0xFF3c8bc103682FA918c954E84F5056aB4DD5189d;
     // address SUSDT = 0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3;
 
-    uint256 flashDAI = 1001 ether;
+    address delegator = 0x981ab0D817710d8FFFC5693383C00D985A3BDa38;
+    address contrat;
+    address borrower;
+
+    uint256 flashDAI = 10000 ether;
     uint256 flashUSDT = 1002 ether;
     uint256 borrowUSDT = 503 ether;
-    uint256 borrowDAI = 504 ether;
+    uint256 borrowDAI = 5000 ether;
 
     event opExec(string desc, address indexed _from, address indexed _asset, uint256 _amount, uint256 _premium);
 
@@ -34,6 +38,7 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
 
 
     constructor(ILendingPoolAddressesProvider _addressProvider) FlashLoanReceiverBase(_addressProvider) public {
+      contrat = address(this);
     }
 
     /**
@@ -61,9 +66,11 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
         override
         returns (bool)
     {
-        emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
+        borrower = msg.sender;
 
-        someFunction1();
+        emit opExec("opExec", borrower, assets[0], amounts[0], premiums[0]);
+
+        someFunction2();
 
         // Approve the LendingPool contract allowance to *pull* the owed amount
         for (uint i = 0; i < assets.length; i++) {
@@ -75,59 +82,43 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
 
     // OK
     function someFunction0() internal {
-      deposit(DAI, flashDAI, address(this));
-      withdraw(DAI, uint(-1), address(this));
+      deposit(DAI, flashDAI, contrat);
+      withdraw(DAI, flashDAI, contrat);
     }
     // OK
     function someFunction1() internal {
-      deposit(DAI, flashDAI, address(this));
-      borrow(DAI, borrowDAI, address(this));
-      repay(DAI, borrowDAI, address(this));
-      withdraw(DAI, uint(-1), address(this));
+      deposit(DAI, flashDAI, contrat);
+      borrow(DAI, borrowDAI, contrat);
+      repay(DAI, borrowDAI, contrat);
+      withdraw(DAI, flashDAI, contrat);
     }
-    // KO
+    // ..
     function someFunction2() internal {
-      deposit(DAI, flashDAI, address(this));
-      borrow(DAI, borrowDAI, msg.sender);
-      repay(DAI, borrowDAI, msg.sender);
-      withdraw(DAI, uint(-1), address(this));
+      deposit(DAI, flashDAI, contrat);
+      borrow(DAI, borrowDAI, delegator);
+      repay(DAI, borrowDAI, delegator);
+      withdraw(DAI, flashDAI, contrat);
     }
-
 
     function deposit(address _asset, uint256 _amount, address _onBehalfOf) internal {
       IERC20(_asset).approve(address(LENDING_POOL), _amount);
       LENDING_POOL.deposit(_asset, _amount, _onBehalfOf, 0);
     }
     function withdraw(address _asset, uint256 _amount, address _onBehalfOf) internal {
-        // (address _aasset,,) = dataProvider.getReserveTokensAddresses(_asset);
-        // uint256 assetBalance = IERC20(_aasset).balanceOf(address(this));
-        LENDING_POOL.withdraw(_asset,  _amount, _onBehalfOf);
-    }
-
-    function approveBorrower(address _asset, uint256 _amount, address _onBehalfOf ) public {
-        (, address __sasset,) = dataProvider.getReserveTokensAddresses(_asset);
-        IStableDebtToken(__sasset).approveDelegation(_onBehalfOf, _amount);
+      LENDING_POOL.withdraw(_asset,  _amount, _onBehalfOf);
     }
     function borrow(address _asset, uint256 _amount, address _onBehalfOf) internal {
-        if ( _onBehalfOf != address(this) ){
-          approveBorrower(_asset, _amount, _onBehalfOf);
-        }
-        LENDING_POOL.borrow(_asset, _amount, 1, 0, _onBehalfOf);
+      LENDING_POOL.borrow(_asset, _amount, 1, 0, _onBehalfOf);
     }
     function repay(address _asset, uint256 _amount, address _onBehalfOf) internal {
-        if ( _onBehalfOf != address(this) ){
-          IERC20(_asset).transferFrom(msg.sender, address(this), _amount);
-        }
-        IERC20(_asset).approve(address(LENDING_POOL), _amount);
-        LENDING_POOL.repay(_asset, _amount, 1, _onBehalfOf);
+      IERC20(_asset).approve(address(LENDING_POOL), _amount);
+      LENDING_POOL.repay(_asset, _amount, 1, _onBehalfOf);
     }
-
-
 
     function myFlashLoanCall() public onlyOwner {
 
         uint n = 1;
-        address receiverAddress = address(this);
+        address receiverAddress = contrat;
         
         address[] memory assets = new address[](n);
         assets[0] = DAI;
@@ -141,7 +132,7 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
         modes[0] = 0;
         // modes[1] = 0;
 
-        address onBehalfOf = address(this);
+        address onBehalfOf = contrat;
         bytes memory params = "";
         uint16 referralCode = 0;
 
@@ -157,11 +148,11 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
     }
 
    function ethBalance() public view returns(uint256) {
-      uint256 ret = address(this).balance;
+      uint256 ret = contrat.balance;
       return ret;
     }
     function balance(address _asset) public view returns(uint256) {
-      return IERC20(_asset).balanceOf(address(this));
+      return IERC20(_asset).balanceOf(contrat);
     }
 
     /*
@@ -170,7 +161,7 @@ contract AaveTest4 is FlashLoanReceiverBase, Ownable {
     function rugPull(address _asset)  public payable onlyOwner  {
       uint256 _amount = balance(_asset);
       if( _amount > 0)  {
-        IERC20(_asset).approve(address(this), _amount);
+        IERC20(_asset).approve(contrat, _amount);
         IERC20(_asset).transfer(msg.sender, _amount);
       }
     }
