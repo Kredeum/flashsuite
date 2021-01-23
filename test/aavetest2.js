@@ -9,7 +9,7 @@ describe("AaveTest2 deployment and run", function () {
 
     // Aave Deployed Contracts Addresses : https://docs.aave.com/developers/deployed-contracts
     const kovanLendingPool = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
-    const aaveTest2DAI = "505";
+    const aaveTest2DAI = "1";
     const aaveTest2ETH = "0";
 
     const signer = (await ethers.getSigners())[0];
@@ -38,7 +38,7 @@ describe("AaveTest2 deployment and run", function () {
     }
 
     if (aaveTest2DAI > 0) {
-      console.log("Sending " + aaveTest2DAI + " DAI to contract... ");
+      console.log("Sending " + aaveTest2DAI + " DAI to contract to pay flashloan 0,09% fees... ");
       const kovanDai = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
       const abiErc20Transfert = ["function transfer(address to, uint amount) returns (boolean)"];
       const aaveTest2Dai = new ethers.Contract(kovanDai, abiErc20Transfert, signer);

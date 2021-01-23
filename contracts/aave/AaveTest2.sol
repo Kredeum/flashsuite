@@ -73,36 +73,40 @@ contract AaveTest2 is FlashLoanReceiverBase, Ownable {
         return true;
     }
 
+    // OK
     function someFunction0() internal {
-      deposit(DAI, flashDAI);
-      withdraw(DAI);
+      deposit(DAI, flashDAI, address(this));
+      withdraw(DAI, uint(-1), address(this));
     }
+    // OK
     function someFunction1() internal {
-      deposit(DAI, flashDAI);
+      deposit(DAI, flashDAI, address(this));
       borrow(DAI, borrowDAI, address(this));
       repay(DAI, borrowDAI, address(this));
-      withdraw(DAI);
+      withdraw(DAI, uint(-1), address(this));
     }
+    // KO
     function someFunction2() internal {
-      deposit(DAI, flashDAI);
+      deposit(DAI, flashDAI, address(this));
       borrow(DAI, borrowDAI, msg.sender);
       repay(DAI, borrowDAI, msg.sender);
-      withdraw(DAI);
+      withdraw(DAI, uint(-1), address(this));
     }
 
-    function deposit(address _asset, uint256 _amount) internal {
+
+    function deposit(address _asset, uint256 _amount, address _onBehalfOf) internal {
       IERC20(_asset).approve(address(LENDING_POOL), _amount);
-      LENDING_POOL.deposit(_asset, _amount, address(this), 0);
+      LENDING_POOL.deposit(_asset, _amount, _onBehalfOf, 0);
     }
-    function withdraw(address _asset) internal {
+    function withdraw(address _asset, uint256 _amount, address _onBehalfOf) internal {
         // (address _aasset,,) = dataProvider.getReserveTokensAddresses(_asset);
         // uint256 assetBalance = IERC20(_aasset).balanceOf(address(this));
-        LENDING_POOL.withdraw(_asset,  uint(-1), address(this));
+        LENDING_POOL.withdraw(_asset,  _amount, _onBehalfOf);
     }
 
     function approveBorrower(address _asset, uint256 _amount, address _onBehalfOf ) public {
-        (, address stableDebtTokenAddress,) = dataProvider.getReserveTokensAddresses(_asset);
-        IStableDebtToken(stableDebtTokenAddress).approveDelegation(_onBehalfOf, _amount);
+        (, address __sasset,) = dataProvider.getReserveTokensAddresses(_asset);
+        IStableDebtToken(__sasset).approveDelegation(_onBehalfOf, _amount);
     }
     function borrow(address _asset, uint256 _amount, address _onBehalfOf) internal {
         if ( _onBehalfOf != address(this) ){
