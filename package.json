@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "MarketMake FlashSuite project",
   "main": "index.js",
+  "module": true,
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",

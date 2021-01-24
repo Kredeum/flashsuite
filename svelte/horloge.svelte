@@ -10,4 +10,4 @@
 </script>
 
 <svelte:options tag="svelte-horloge" immutable={true} />
-<p>H1 {time}</p>
+<p>{time}</p>

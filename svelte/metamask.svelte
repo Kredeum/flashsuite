@@ -1,3 +1,5 @@
+<svelte:options tag="svelte-metamask" immutable={true} />
+
 <script>
   function _networkGet(chainId) {
     const networks = new Map([
@@ -12,6 +14,9 @@
   function _log(bal) {
     return (bal / 10 ** 18).toString();
   }
+  function _alertKovan() {
+    alert("FlashAccount is in beta mode ! only available on Kovan\nPlease switch to the Kovan testnet");
+  }
 
   const eth = window.ethereum;
   if (eth) {
@@ -24,10 +29,12 @@
 
   // init => chainId
   let chainId = eth.chainId;
+  if (chainId && chainId != 42) _alertKovan();
 
   // onChainChanged => chainId
   eth.on("chainChanged", (chainIdChanged) => {
     chainId = chainIdChanged;
+    if (chainId != 42) _alertKovan();
   });
 
   // chainId => network
@@ -66,6 +73,21 @@
   $: console.log(chainId, network, address, balance);
 </script>
 
+<main>
+  <h1>FlashSuite - AAVE Dashboard</h1>
+  <hr/>
+  <h2>Deposits</h2>
+  <hr/>
+  <h2>Borrows</h2>
+  <hr/>
+  <small>
+    <br/>network: {chainId} "{network}"
+    <br/>address: {address}
+    <br/>balance: {balance} ETH 
+  </small>
+  <hr/>
+</main>
+
 <style>
   main {
     padding: 1em;
@@ -90,11 +112,3 @@
     }
   }
 </style>
-
-<svelte:options tag="svelte-metamask" immutable={true} />
-<main>
-  <h1>Ethereum Balance</h1>
-  <p>network: {network} ({chainId})</p>
-  <p>address: {address}</p>
-  <p>balance: {balance} ETH</p>
-</main>
