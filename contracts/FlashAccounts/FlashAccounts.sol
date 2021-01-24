@@ -18,8 +18,6 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     address DAI = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
     address aSNX = 0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1;
 
-    address Alice = 0xb09Ae31E045Bb9d8D74BB6624FeEB18B3Af72A8e;
-    address Bob = 0x981ab0D817710d8FFFC5693383C00D985A3BDa38;
     address contrat;
 
     uint256 collSNX = 20 ether;
@@ -38,13 +36,13 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     /**
       * FlashLoan exec function
       *
-      * TX3.1	Get FlashLoan
-      * TX3.2	Repay Alice Loan
-      * TX3.3	Transfer aSNX From Alice to Bob
-      * TX3.4	Borrow Bob loan
-      * TX3.5	Repay FlashLoan
+      * TX4.1	Get FlashLoan
+      * TX4.2	Repay Alice Loan
+      * TX4.3	Transfer aSNX From Alice to Bob
+      * TX4.4	Borrow Bob loan
+      * TX4.5	Repay FlashLoan
       *
-      * TX4	Get crumbs back
+      * TX5	Get crumbs back
     */
 
     function executeOperation(
@@ -58,25 +56,27 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
         override
         returns (bool)
     {
+      // Decode params
+      (address Alice, address Bob ) = abi.decode(params, (address, address));
 
-        // TX3.1 Get FlashLoan
-        emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
+      // TX4.1 Get FlashLoan
+      emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
 
-        // TX3.2 Repay Alice Loan
-        repay(DAI, borrowDAI, Alice);
+      // TX4.2 Repay Alice Loan
+      repay(DAI, borrowDAI, Alice);
 
-        // TX3.3 TransferFrom aSNX
-        transferFrom(aSNX, collSNX, Alice, Bob);
+      // TX4.3 TransferFrom aSNX
+      transferFrom(aSNX, collSNX, Alice, Bob);
 
-        // TX3.4 Borrow Bob Loan
-        borrow(DAI, borrowDAI, Bob);
+      // TX4.4 Borrow Bob Loan
+      borrow(DAI, borrowDAI, Bob);
 
-        // TX3.5 (Approve to) Repay FlashLoan
-        for (uint i = 0; i < assets.length; i++) {
-            uint amountOwing = amounts[i].add(premiums[i]);
-            IERC20(assets[i]).approve(address(LENDING_POOL), amountOwing);
-        }
-        return true;
+      // TX4.5 (Approve to) Repay FlashLoan
+      for (uint i = 0; i < assets.length; i++) {
+          uint amountOwing = amounts[i].add(premiums[i]);
+          IERC20(assets[i]).approve(address(LENDING_POOL), amountOwing);
+      }
+      return true;
     }
     function transferFrom(address _asset, uint256 _amount, address _from, address _to) internal {
         require(IERC20(_asset).transferFrom(_from, _to, _amount), "TransferFrom failed");
@@ -96,9 +96,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       LENDING_POOL.repay(_asset, _amount, 1, _onBehalfOf);
     }
 
-
-
-    function myFlashLoanCall() public onlyOwner {
+    function swap(address _Alice,address _Bob) public {
 
         uint n = 1;
         address receiverAddress = contrat;
@@ -116,7 +114,9 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
         // modes[1] = 0;
 
         address onBehalfOf = contrat;
-        bytes memory params = "";
+
+        bytes memory params = abi.encode(_Alice, _Bob);
+
         uint16 referralCode = 0;
 
         LENDING_POOL.flashLoan(
@@ -146,7 +146,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       }
     }
 
-    // TX4 : Get crumbs back
+    // TX5 : Get crumbs back
     // Withdraw all ETH and ERC20 tokens
     function rugPull() public payable onlyOwner {
       rugPullERC(DAI);
