@@ -12,9 +12,6 @@ import "../aave/Ownable.sol";
 contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;
 
-    address address1 = 0x981ab0D817710d8FFFC5693383C00D985A3BDa38;
-    address address2 = 0xb09Ae31E045Bb9d8D74BB6624FeEB18B3Af72A8e;
-
     address DAI = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
     address aSNX = 0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1;
 
