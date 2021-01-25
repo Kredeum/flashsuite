@@ -1,5 +1,5 @@
-import balance from "../utils/balance.mjs";
-import ERC20 from "../utils/erc20.mjs";
+import balance from "../lib/balance.mjs";
+import ERC20 from "../lib/contracts/ERC20.mjs";
 import hre from 'hardhat';
 const { ethers } = hre;
 
