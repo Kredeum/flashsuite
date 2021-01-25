@@ -1,7 +1,7 @@
-<svelte:options tag="flash-accounts" immutable={true} />
+<svelte:options tag="flashsuite-accounts" immutable={true} />
 
 <script>
-  import Dashboard from './Dashboard.svelte';  
+  import Dashboard from "./Dashboard.svelte";
   import { ethers } from "ethers";
   import detectEthereumProvider from "@metamask/detect-provider";
 
@@ -25,25 +25,25 @@
       console.log("Please install MetaMask!");
     }
   }
-starting();
+  starting();
 </script>
 
 <main>
   <h1>FlashSuite</h1>
-    <table>
-      <tr>
-        <td class="cadre"><Dashboard user={"Alice"}/></td>
-        <td class="cadre"><Dashboard user={"Bob"}/></td>
+  <table>
+    <tr>
+      <td class="cadre"><Dashboard user={"Alice"} /></td>
+      <td class="cadre"><Dashboard user={"Bob"} /></td>
     </tr>
-    </table>
+  </table>
 
-   <hr />
+  <hr />
   <h4>metamask user</h4>
-    <small>
-      network: {network}<br />
-      signer: {address}<br />
-      balance: {balance} ETH<br />
-    </small>
+  <small>
+    network: {network}<br />
+    signer: {address}<br />
+    balance: {balance} ETH<br />
+  </small>
 
   <hr />
 </main>
@@ -66,11 +66,11 @@ starting();
     width: 300px;
   }
   td.cadre {
-    border: 1px solid black;  
+    border: 1px solid black;
     vertical-align: top;
   }
   td.cadre {
-    align: left;  
+    align: left;
   }
 
   p {
