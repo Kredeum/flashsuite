@@ -1,0 +1,10 @@
+devDependencies:
+  coingecko-api: 1.0.10
+lockfileVersion: 5.2
+packages:
+  /coingecko-api/1.0.10:
+    dev: true
+    resolution:
+      integrity: sha512-7YLLC85+daxAw5QlBWoHVBVpJRwoPr4HtwanCr8V/WRjoyHTa1Lb9DQAvv4MDJZHiz4no6HGnDQnddtjV35oRA==
+specifiers:
+  coingecko-api: ^1.0.10
