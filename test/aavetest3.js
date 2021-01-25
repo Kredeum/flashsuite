@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { getReserveTokensAddresses } = require("../utils/aaveDataProvider");
-const { formatEth, parseEth } = require("../utils/ethers-util");
+const { getReserveTokensAddresses } = require("../lib/aaveDataProvider");
+const { formatEth, parseEth } = require("../lib/ethers-util");
 
 describe("AaveTest deployment and run", function () {
   this.timeout(0);
