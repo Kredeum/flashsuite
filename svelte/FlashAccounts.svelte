@@ -22,6 +22,9 @@
     }
   }
   starting();
+
+  flashLoan()
+  
 </script>
 
 <main>
@@ -35,7 +38,7 @@
   <h4>metamask user</h4>
   <small>
     network: {network}<br />
-    signer: {address}<br />
+    address: {address}<br />
   </small>
 
   <hr />
