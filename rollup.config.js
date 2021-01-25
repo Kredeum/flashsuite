@@ -34,7 +34,7 @@ const toRollupConfig = component => {
       sourcemap: true,
       format: 'iife',
       name: 'app',
-      file: `html/${component}.js`
+      file: `docs/${component}.js`
     },
     plugins: [
       svelte({
@@ -65,7 +65,7 @@ const toRollupConfig = component => {
 
       // Watch the `public` directory and refresh the
       // browser on changes when not in production
-      !production && livereload('html'),
+      !production && livereload('docs'),
 
       // If we're building for production (npm run build
       // instead of npm run dev), minify
@@ -73,12 +73,21 @@ const toRollupConfig = component => {
     ],
     watch: {
       clearScreen: false
-    }
+    },
+    onwarn: function(warning) {
+      // Skip certain warnings
+  
+      // should intercept ... but doesn't in some rollup versions
+      if ( warning.code === 'THIS_IS_UNDEFINED' ) { return; }
+  
+      // console.warn everything else
+      console.warn( warning.message );
+  }
+  
   }
 };
 
 
 export default [
-  toRollupConfig('horloge'),
-  toRollupConfig('metamask')
+  toRollupConfig('FlashAccounts')
 ];
