@@ -15,7 +15,6 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     uint256 public FLASHLOAN_PREMIUM_TOTAL;
 
     address DAI = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
-    address aSNX = 0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1;
 
     address thisContract;
 
@@ -43,7 +42,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       *
       * TX4.1	Get FlashLoan
       * TX4.2	Repay Alice Loan
-      * TX4.3	Transfer aSNX From Alice to Bob
+      * TX4.3	Transfer aTokens From Alice to Bob
       * TX4.4	Borrow Bob loan
       * TX4.5	Repay FlashLoan
       *
