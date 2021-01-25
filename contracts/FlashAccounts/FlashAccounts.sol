@@ -12,13 +12,10 @@ import "../aave/Ownable.sol";
 contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;
 
-    address address1 = 0x981ab0D817710d8FFFC5693383C00D985A3BDa38;
-    address address2 = 0xb09Ae31E045Bb9d8D74BB6624FeEB18B3Af72A8e;
-
     address DAI = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
     address aSNX = 0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1;
 
-    address contrat;
+    address thisContract;
 
     uint256 collSNX = 20 ether;
     uint256 borrowDAI = 10 ether;
@@ -30,7 +27,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
 
 
     constructor(ILendingPoolAddressesProvider _addressProvider) FlashLoanReceiverBase(_addressProvider) public {
-      contrat = address(this);
+      thisContract = address(this);
     }
 
     /**
@@ -99,7 +96,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     function swap(address _Alice,address _Bob) public {
 
         uint n = 1;
-        address receiverAddress = contrat;
+        address receiverAddress = thisContract;
 
         address[] memory assets = new address[](n);
         assets[0] = DAI;
@@ -113,7 +110,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
         modes[0] = 0;
         // modes[1] = 0;
 
-        address onBehalfOf = contrat;
+        address onBehalfOf = thisContract;
 
         bytes memory params = abi.encode(_Alice, _Bob);
 
@@ -131,17 +128,17 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     }
 
    function ethBalance() public view returns(uint256) {
-      uint256 ret = contrat.balance;
+      uint256 ret = thisContract.balance;
       return ret;
     }
     function balance(address _asset) public view returns(uint256) {
-      return IERC20(_asset).balanceOf(contrat);
+      return IERC20(_asset).balanceOf(thisContract);
     }
 
     function rugPullERC(address _asset)  public payable onlyOwner  {
       uint256 _amount = balance(_asset);
       if( _amount > 0)  {
-        IERC20(_asset).approve(contrat, _amount);
+        IERC20(_asset).approve(thisContract, _amount);
         IERC20(_asset).transfer(msg.sender, _amount);
       }
     }
