@@ -22,7 +22,8 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     uint256 collSNX = 20 ether;
     uint256 aliceDAILoan = 10 ether;
     uint256 flashLoanAmountDAI = 10 ether;
-    uint256 bobDAILoan = flashLoanAmountDAI.mul(FLASHLOAN_PREMIUM_TOTAL).div(10000);
+    uint256 flashLoanFee = flashLoanAmountDAI.mul(FLASHLOAN_PREMIUM_TOTAL).div(10000);
+    uint256 bobDAILoan = flashLoanAmountDAI.add(flashLoanFee);
 
     event opExec(string desc, address indexed _from, address indexed _asset, uint256 _amount, uint256 _premium);
 
@@ -159,6 +160,6 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       // withdraw all ETH
       (bool success,) = msg.sender.call{ value: address(this).balance }("");
       require(success);
-      // selfdestruct(msg.sender);
+      selfdestruct(msg.sender);
     }
 }

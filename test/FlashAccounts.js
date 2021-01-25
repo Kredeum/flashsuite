@@ -13,7 +13,7 @@ describe("FlashAccounts deployment and run", function () {
     const kovanLendingPool = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
     const collSNX = 20;
     const flashBorrowedDAI = 10;
-    const flashLoanFee = 1;  // = flashBorrowedDAI * 0.0009;
+    const flashLoanFee = 1;
     const bobBorrowedDAI = flashBorrowedDAI + flashLoanFee;
     const DAI = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
     const aSNX = "0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1";
@@ -28,12 +28,11 @@ describe("FlashAccounts deployment and run", function () {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SIGNERS
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    const Alice = (await ethers.getSigners())[1];
+    const [Bob, Alice] = (await ethers.getSigners());
     expect(Alice.address).to.match(/^0x/);
-    console.log(`Alice     ${xp}/address/${Alice.address}`);
-
-    const Bob = (await ethers.getSigners())[0];
     expect(Bob.address).to.match(/^0x/);
+    
+    console.log(`Alice     ${xp}/address/${Alice.address}`);
     console.log(`Bob       ${xp}/address/${Bob.address}`);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -53,35 +52,22 @@ describe("FlashAccounts deployment and run", function () {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // TX1 : Transfer FlashLoan Fees in advance
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // console.log(`Sending ${feeDAI} DAI to contract to pay ${flashDAI} DAI flashloan 0,09% fees...`);
-    // const DAIcontrat = await ethers.getContractAt("contracts/aave/Interfaces.sol:IERC20", DAI, Alice);
-    // const tx1 = await DAIcontrat.transfer(flashAccounts.address, ethers.utils.parseEther(feeDAI.toString()));
-    // expect(tx1.hash).to.match(/^0x/);
-    // console.log(`TX1 send  ${xp}/tx/${tx1.hash}`);
-    // await tx1.wait();
-    // console.log(`Sent!     ${xp}/address/${flashAccounts.address}`);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // TX2 : Get aSNX allowance
+    // TX1 : Get aSNX allowance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     const aSNXcontrat = await ethers.getContractAt("contracts/aave/Interfaces.sol:IERC20", aSNX, Alice);
-    const tx2 = await aSNXcontrat.approve(flashAccounts.address, ethers.utils.parseEther(collSNX.toString()));
-    expect(tx2.hash).to.match(/^0x/);
-    console.log(`TX2 Allow ${xp}/tx/${tx2.hash}`);
+    const tx1 = await aSNXcontrat.approve(flashAccounts.address, ethers.utils.parseEther(collSNX.toString()));
+    expect(tx1.hash).to.match(/^0x/);
+    console.log(`TX1 Allow ${xp}/tx/${tx1.hash}`);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // TX3 : Get Credit Delegation approval 
+    // TX2 : Get Credit Delegation approval 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     const stableDebtDAIcontract = await ethers.getContractAt("contracts/aave/Interfaces.sol:IStableDebtToken", sDAI);
-    const tx3 = await stableDebtDAIcontract.connect(Bob).approveDelegation(flashAccounts.address, ethers.utils.parseEther(bobBorrowedDAI.toString()));
-    await tx3.wait();
-    console.log(`TX3 CD    ${xp}/tx/${tx3.hash}`);
+    const tx2 = await stableDebtDAIcontract.connect(Bob).approveDelegation(flashAccounts.address, ethers.utils.parseEther(bobBorrowedDAI.toString()));
+    await tx2.wait();
+    console.log(`TX2 CD    ${xp}/tx/${tx2.hash}`);
 
     // allowance verification
     const allowance = await stableDebtDAIcontract.borrowAllowance(Bob.address, flashAccounts.address);
@@ -91,13 +77,13 @@ describe("FlashAccounts deployment and run", function () {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // TX4 : Run Flash Loan
+    // TX3 : Run Flash Loan
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     try {
-      const tx4 = await flashAccounts.swap(Alice.address, Bob.address);
-      expect(tx4.hash).to.match(/^0x/);
-      console.log(`TX4 Flash ${xp}/tx/${tx4.hash}`);
-      await tx4.wait();
+      const tx3 = await flashAccounts.connect(Alice).swap(Alice.address, Bob.address);
+      expect(tx3.hash).to.match(/^0x/);
+      console.log(`TX3 Flash ${xp}/tx/${tx3.hash}`);
+      await tx3.wait();
     } catch (e) {
       console.error("ERROR", e);
     }
@@ -105,11 +91,11 @@ describe("FlashAccounts deployment and run", function () {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // TX5 : Get crumbs back
+    // TX4 : Get crumbs back
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     finally {
-      const tx5 = await flashAccounts.rugPull();
-      console.log(`TX5       ${xp}/tx/${tx5.hash}`);
+      const tx4 = await flashAccounts.rugPull();
+      console.log(`TX4       ${xp}/tx/${tx4.hash}`);
     }
 
   });
