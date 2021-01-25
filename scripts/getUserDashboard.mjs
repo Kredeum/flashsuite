@@ -1,4 +1,5 @@
-// hardat version, not for browser
+// hardat version, 
+// run via "npx hardhat run getUserDashboard.mjs"
 const { ethers } = hre;
 
 async function aaveDashboard(_address) {
