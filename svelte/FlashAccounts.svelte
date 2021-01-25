@@ -3,9 +3,7 @@
 <script>
   import Dashboard from "./Dashboard.svelte";
   import { ethers } from "ethers";
-  import detectEthereumProvider from "@metamask/detect-provider";
 
-  let provider;
   let ethersProvider;
   let signer;
   let network;
@@ -13,14 +11,12 @@
   let balance;
 
   async function starting() {
-    provider = await detectEthereumProvider();
-    if (provider) {
-      ethersProvider = new ethers.providers.Web3Provider(provider);
-      console.log(ethersProvider);
-      signer = await ethersProvider.getSigner();
+    if (window.ethereum) {
+      window.ethereum.enable();
+      ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
       network = (await ethersProvider.getNetwork()).name;
+      signer = ethersProvider.getSigner();    
       address = await signer.getAddress();
-      balance = await signer.getBalance();
     } else {
       console.log("Please install MetaMask!");
     }
@@ -29,12 +25,10 @@
 </script>
 
 <main>
-  <h1>FlashSuite</h1>
+  <img src="logo.png" width ="600" alt="FlashSuite"/>
   <table>
-    <tr>
-      <td class="cadre"><Dashboard user={"Alice"} /></td>
-      <td class="cadre"><Dashboard user={"Bob"} /></td>
-    </tr>
+    <tr><td class="cadre"><Dashboard user={"Alice"} /></td> </tr>
+    <tr><td class="cadre"><Dashboard user={"Bob"} /></td> </tr>
   </table>
 
   <hr />
@@ -42,7 +36,6 @@
   <small>
     network: {network}<br />
     signer: {address}<br />
-    balance: {balance} ETH<br />
   </small>
 
   <hr />
@@ -51,32 +44,26 @@
 <style>
   main {
     padding: 1em;
-    max-width: 240px;
     margin: 0 auto;
   }
-
   h1 {
-    color: #ff3e00;
+    color: purple;
     text-transform: uppercase;
     font-size: 4em;
     font-weight: 100;
   }
+  
 
   table {
     width: 300px;
   }
   td.cadre {
-    border: 1px solid black;
+    border: 1px solid purple;
+  }
+  td {
     vertical-align: top;
+    width: 150px;
   }
-  td.cadre {
-    align: left;
-  }
-
-  p {
-    font-size: 2em;
-  }
-
   @media (min-width: 640px) {
     main {
       max-width: none;
