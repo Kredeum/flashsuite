@@ -63,29 +63,42 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       }
 
       // TX4.4 Borrow and approve to repay Flash loans
-      for (uint i = 0; i < assets.length; i++) {
-          uint amountOwing = amounts[i].add(premiums[i]);
-          
-          borrow(assets[i], amountOwing, Bob);
-
-          IERC20(assets[i]).approve(address(LENDING_POOL), amountOwing);
-      }
+      borrowToCoverFlashLoans(assets, amounts, premiums, Bob);
 
       return true;
     }
+    
     function transferFrom(address _asset, uint256 _amount, address _from, address _to) internal {
         require(IERC20(_asset).transferFrom(_from, _to, _amount), "TransferFrom failed");
     }
+    
     function deposit(address _asset, uint256 _amount, address _onBehalfOf) internal {
       IERC20(_asset).approve(address(LENDING_POOL), _amount);
       LENDING_POOL.deposit(_asset, _amount, _onBehalfOf, 0);
     }
+    
     function withdraw(address _asset, uint256 _amount, address _onBehalfOf) internal {
       LENDING_POOL.withdraw(_asset,  _amount, _onBehalfOf);
     }
+    
     function borrow(address _asset, uint256 _amount, address _onBehalfOf) internal {
       LENDING_POOL.borrow(_asset, _amount, 1, 0, _onBehalfOf);
     }
+
+    function borrowToCoverFlashLoans(address[] calldata _assets, uint256[] calldata _borrowedAmounts, uint256[] calldata _premiums, address _borrower) internal {
+      for (uint i = 0; i < _assets.length; i++) {
+          uint amountOwing = _borrowedAmounts[i].add(_premiums[i]);
+
+          borrowAndApprove(_assets[i], amountOwing, _borrower);
+      }
+    }
+
+    function borrowAndApprove(address _asset, uint256 _amount, address _borrower) internal {
+      borrow(_asset, _amount, _borrower);
+
+      IERC20(_asset).approve(address(LENDING_POOL), _amount);
+    }
+
     function repay(address _asset, uint256 _amount, address _onBehalfOf) internal {
       IERC20(_asset).approve(address(LENDING_POOL), _amount);
       LENDING_POOL.repay(_asset, _amount, 1, _onBehalfOf);
