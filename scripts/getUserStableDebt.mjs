@@ -27,11 +27,11 @@ async function main() {
   } = await protocolDataProvider.getReserveTokensAddresses(kovanDai);
   // console.log("tokenAddresses", tokenAddresses);
   const stableDaiDebt = await hre.ethers.getContractAt(
-    "IStableDebtToken",
-    "0x447a1cc578470cc2ea4450e0b730fd7c69369ff3"
+    "contracts/aave/Interfaces.sol:IStableDebtToken",
+    stableDebtTokenAddress
   );
   const balance = await stableDaiDebt.principalBalanceOf(
-    "0xa902bEbD7b21686C6E18e856B2182327d0F39C93"
+    "USER_ADDRESS"
   );
   console.log("Dai stable debt", balance.toString());
 }
