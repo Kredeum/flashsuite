@@ -15,15 +15,13 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     uint256 public FLASHLOAN_PREMIUM_TOTAL;
 
     address DAI = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
-    address aSNX = 0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1;
 
     address thisContract;
 
-    uint256 collSNX = 20 ether;
     uint256 aliceDAILoan = 10 ether;
     uint256 flashLoanAmountDAI = 10 ether;
-    uint256 flashLoanFee = flashLoanAmountDAI.mul(FLASHLOAN_PREMIUM_TOTAL).div(10000);
-    uint256 bobDAILoan = flashLoanAmountDAI.add(flashLoanFee);
+    // uint256 flashLoanFee = flashLoanAmountDAI.mul(FLASHLOAN_PREMIUM_TOTAL).div(10000);
+    uint256 bobDAILoan = 11 ether;
 
     event opExec(string desc, address indexed _from, address indexed _asset, uint256 _amount, uint256 _premium);
 
@@ -44,7 +42,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       *
       * TX4.1	Get FlashLoan
       * TX4.2	Repay Alice Loan
-      * TX4.3	Transfer aSNX From Alice to Bob
+      * TX4.3	Transfer aTokens From Alice to Bob
       * TX4.4	Borrow Bob loan
       * TX4.5	Repay FlashLoan
       *
@@ -63,7 +61,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
         returns (bool)
     {
       // Decode params
-      (address Alice, address Bob ) = abi.decode(params, (address, address));
+      (address Alice, address Bob, address[] memory aTokens, uint256[] memory aTokenAmounts ) = abi.decode(params, (address, address, address[], uint256[]));
 
       // TX4.1 Get FlashLoan
       emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
@@ -71,8 +69,10 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       // TX4.2 Repay Alice Loan
       repay(DAI, aliceDAILoan, Alice);
 
-      // TX4.3 TransferFrom aSNX
-      transferFrom(aSNX, collSNX, Alice, Bob);
+      // TX4.3 TransferFrom aTokens
+       for (uint i = 0; i < aTokens.length; i++) {
+          transferFrom(aTokens[i], aTokenAmounts[i], Alice, Bob);
+      }
 
       // TX4.4 Borrow Bob Loan
       borrow(DAI, bobDAILoan, Bob);
@@ -102,7 +102,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       LENDING_POOL.repay(_asset, _amount, 1, _onBehalfOf);
     }
 
-    function swap(address _Alice,address _Bob) public {
+    function migratePositions(address _from, address _to, address[] calldata _aTokens, uint256[] calldata _aTokenAmounts) public {
 
         uint n = 1;
         address receiverAddress = thisContract;
@@ -121,7 +121,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
 
         address onBehalfOf = thisContract;
 
-        bytes memory params = abi.encode(_Alice, _Bob);
+        bytes memory params = abi.encode(_from, _to, _aTokens, _aTokenAmounts);
 
         uint16 referralCode = 0;
 
