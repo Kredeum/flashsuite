@@ -3,13 +3,9 @@
 <script>
   import { ethers } from "ethers";
   import aaveDashboard from "../lib/aaveDashboard.mjs";
+  import { Dashboards } from "./stores.mjs";
 
-  export let user = "Alice";
-
-  const users = {
-    Alice: "0xb09Ae31E045Bb9d8D74BB6624FeEB18B3Af72A8e",
-    Bob: "0x981ab0D817710d8FFFC5693383C00D985A3BDa38",
-  };
+  export let user = {};
 
   function _bal(_balance, _decimals) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -17,16 +13,25 @@
   }
 
   async function dashboard() {
-    return await aaveDashboard(
-      users[user],
-      new ethers.providers.Web3Provider(window.ethereum),
-      true
-    );
+    let _dashboard = {};
+    if (user) {
+      console.log("dashboard(user)", user);
+      
+      const _provider = new ethers.providers.Web3Provider(window.ethereum);
+      console.log("_provider", _provider);
+
+      _dashboard = await aaveDashboard(user, _provider, true);
+      console.log("_dashboard", _dashboard);
+
+      $Dashboards[user] = _dashboard;
+    }
+    return _dashboard;
   }
 </script>
 
 <main>
-  <h2>AAVE Dashboard {user}</h2>
+  <h2>AAVE Dashboard</h2>
+  <small>{user}</small>
 
   {#await dashboard(user)}
     <p>loading</p>

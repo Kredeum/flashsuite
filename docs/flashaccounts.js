@@ -1,5 +1,5 @@
 
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35730/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(window.document);
+(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(window.document);
 (function () {
     'use strict';
 
@@ -24,11 +24,33 @@
     function is_function(thing) {
         return typeof thing === 'function';
     }
+    function safe_not_equal(a, b) {
+        return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
+    }
     function not_equal(a, b) {
         return a != a ? b == b : a !== b;
     }
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
+    }
+    function validate_store(store, name) {
+        if (store != null && typeof store.subscribe !== 'function') {
+            throw new Error(`'${name}' is not a store with a 'subscribe' method`);
+        }
+    }
+    function subscribe(store, ...callbacks) {
+        if (store == null) {
+            return noop;
+        }
+        const unsub = store.subscribe(...callbacks);
+        return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+    }
+    function component_subscribe(component, store, callback) {
+        component.$$.on_destroy.push(subscribe(store, callback));
+    }
+    function set_store_value(store, ret, value = ret) {
+        store.set(value);
+        return ret;
     }
 
     function append(target, node) {
@@ -57,6 +79,10 @@
     }
     function empty() {
         return text('');
+    }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
     }
     function attr(node, attribute, value) {
         if (value == null)
@@ -91,6 +117,9 @@
         if (!current_component)
             throw new Error('Function called outside component initialization');
         return current_component;
+    }
+    function onMount(fn) {
+        get_current_component().$$.on_mount.push(fn);
     }
 
     const dirty_components = [];
@@ -424,6 +453,19 @@
     function detach_dev(node) {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
+    }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
     }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
@@ -22112,6 +22154,60 @@
     }
     catch (error) { }
 
+    const subscriber_queue = [];
+    /**
+     * Create a `Writable` store that allows both updating and reading by subscription.
+     * @param {*=}value initial value
+     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     */
+    function writable(value, start = noop) {
+        let stop;
+        const subscribers = [];
+        function set(new_value) {
+            if (safe_not_equal(value, new_value)) {
+                value = new_value;
+                if (stop) { // store is ready
+                    const run_queue = !subscriber_queue.length;
+                    for (let i = 0; i < subscribers.length; i += 1) {
+                        const s = subscribers[i];
+                        s[1]();
+                        subscriber_queue.push(s, value);
+                    }
+                    if (run_queue) {
+                        for (let i = 0; i < subscriber_queue.length; i += 2) {
+                            subscriber_queue[i][0](subscriber_queue[i + 1]);
+                        }
+                        subscriber_queue.length = 0;
+                    }
+                }
+            }
+        }
+        function update(fn) {
+            set(fn(value));
+        }
+        function subscribe(run, invalidate = noop) {
+            const subscriber = [run, invalidate];
+            subscribers.push(subscriber);
+            if (subscribers.length === 1) {
+                stop = start(set) || noop;
+            }
+            run(value);
+            return () => {
+                const index = subscribers.indexOf(subscriber);
+                if (index !== -1) {
+                    subscribers.splice(index, 1);
+                }
+                if (subscribers.length === 0) {
+                    stop();
+                    stop = null;
+                }
+            };
+        }
+        return { set, update, subscribe };
+    }
+
+    const Dashboards = writable({});
+
     const IProtocolDataProvider = {
       'ADDRESS': {
         'mainnet': '0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d',
@@ -22407,7 +22503,7 @@
 
     async function aaveDashboard(_address, _provider, _log = false) {
       const tokens = [];
-      const { name: network }  = await _provider.getNetwork();
+      const { name: network } = await _provider.getNetwork();
 
       const DP = new Contract(IProtocolDataProvider['ADDRESS'][network], IProtocolDataProvider['ABI'], _provider);
       const reserveTokens = await DP.getAllReservesTokens();
@@ -22419,30 +22515,34 @@
 
         if (aBal > 0 || sdBal > 0 || vdBal > 0) {
 
-          const { decimals } = await DP.getReserveConfigurationData(reserve.tokenAddress);
+          const reserveConf = await DP.getReserveConfigurationData(reserve.tokenAddress);
+          const decimals = reserveConf.decimals.toString();
           const { aTokenAddress: aToken, stableDebtTokenAddress: sdToken, variableDebtTokenAddress: vdToken }
             = await DP.getReserveTokensAddresses(reserve.tokenAddress);
 
           if (aBal > 0) {
-            const token = { "address": aToken, "amount": aBal.toString(), "symbol": 'a' + reserve.symbol, "type": "deposit", "decimals":decimals };
+            const token = { "address": aToken, "amount": aBal.toString(), "symbol": 'a' + reserve.symbol, "type": "deposit", "decimals": decimals };
             tokens.push(token);
-            if (_log ) console.log('a' + reserve.symbol, aBal.toString());
+            if (_log) console.log('a' + reserve.symbol, aBal.toString());
           }
           if (sdBal > 0) {
-            const token = { "address": sdToken, "amount": sdBal.toString(), "symbol": 'sd' + reserve.symbol, "type": "stable_debt", "decimals":decimals };
+            const token = { "address": sdToken, "amount": sdBal.toString(), "symbol": 'sd' + reserve.symbol, "type": "stable_debt", "decimals": decimals };
             tokens.push(token);
-            if (_log ) console.log('sd' + reserve.symbol, sdBal.toString());
+            if (_log) console.log('sd' + reserve.symbol, sdBal.toString());
           }
           if (vdBal > 0) {
-            const token = { "address": vdToken, "amount": vdBal.toString(), "symbol": 'vd' + reserve.symbol, "type": "variable_debt", "decimals":decimals };
+            const token = { "address": vdToken, "amount": vdBal.toString(), "symbol": 'vd' + reserve.symbol, "type": "variable_debt", "decimals": decimals };
             tokens.push(token);
-            if (_log ) console.log('vd' + reserve.symbol, vdBal.toString());
+            if (_log) console.log('vd' + reserve.symbol, vdBal.toString());
           }
         }
-      }  return tokens;
+      }  if (_log) console.log(tokens);
+      return tokens;
     }
 
     /* svelte/Dashboard.svelte generated by Svelte v3.31.2 */
+
+    const { console: console_1 } = globals;
     const file = "svelte/Dashboard.svelte";
 
     function get_each_context(ctx, list, i) {
@@ -22457,7 +22557,7 @@
     	return child_ctx;
     }
 
-    // (63:2) {:catch error}
+    // (68:2) {:catch error}
     function create_catch_block(ctx) {
     	let p;
     	let t_value = /*error*/ ctx[10].message + "";
@@ -22468,7 +22568,7 @@
     			p = element("p");
     			t = text(t_value);
     			set_style(p, "color", "red");
-    			add_location(p, file, 63, 4, 1574);
+    			add_location(p, file, 68, 4, 1756);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -22486,14 +22586,14 @@
     		block,
     		id: create_catch_block.name,
     		type: "catch",
-    		source: "(63:2) {:catch error}",
+    		source: "(68:2) {:catch error}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (33:2) {:then items}
+    // (38:2) {:then items}
     function create_then_block(ctx) {
     	let table2;
     	let tr;
@@ -22547,14 +22647,14 @@
     				each_blocks[i].c();
     			}
 
-    			add_location(h30, file, 36, 10, 822);
-    			add_location(table0, file, 37, 10, 850);
-    			add_location(td0, file, 35, 9, 807);
-    			add_location(h31, file, 48, 10, 1183);
-    			add_location(table1, file, 49, 10, 1210);
-    			add_location(td1, file, 47, 13, 1168);
-    			add_location(tr, file, 34, 6, 794);
-    			add_location(table2, file, 33, 4, 780);
+    			add_location(h30, file, 41, 10, 1004);
+    			add_location(table0, file, 42, 10, 1032);
+    			add_location(td0, file, 40, 9, 989);
+    			add_location(h31, file, 53, 10, 1365);
+    			add_location(table1, file, 54, 10, 1392);
+    			add_location(td1, file, 52, 13, 1350);
+    			add_location(tr, file, 39, 6, 976);
+    			add_location(table2, file, 38, 4, 962);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, table2, anchor);
@@ -22638,14 +22738,14 @@
     		block,
     		id: create_then_block.name,
     		type: "then",
-    		source: "(33:2) {:then items}",
+    		source: "(38:2) {:then items}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (40:14) {#if item.type == "deposit"}
+    // (45:14) {#if item.type == "deposit"}
     function create_if_block_1(ctx) {
     	let tr;
     	let td0;
@@ -22667,9 +22767,9 @@
     			t2 = text(t2_value);
     			t3 = space();
     			attr_dev(td0, "align", "right");
-    			add_location(td0, file, 41, 18, 974);
-    			add_location(td1, file, 42, 18, 1051);
-    			add_location(tr, file, 40, 16, 951);
+    			add_location(td0, file, 46, 18, 1156);
+    			add_location(td1, file, 47, 18, 1233);
+    			add_location(tr, file, 45, 16, 1133);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -22693,14 +22793,14 @@
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(40:14) {#if item.type == \\\"deposit\\\"}",
+    		source: "(45:14) {#if item.type == \\\"deposit\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (39:12) {#each items as item}
+    // (44:12) {#each items as item}
     function create_each_block_1(ctx) {
     	let if_block_anchor;
     	let if_block = /*item*/ ctx[5].type == "deposit" && create_if_block_1(ctx);
@@ -22738,14 +22838,14 @@
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(39:12) {#each items as item}",
+    		source: "(44:12) {#each items as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (52:14) {#if item.type != "deposit"}
+    // (57:14) {#if item.type != "deposit"}
     function create_if_block(ctx) {
     	let tr;
     	let td0;
@@ -22767,9 +22867,9 @@
     			t2 = text(t2_value);
     			t3 = space();
     			attr_dev(td0, "align", "right");
-    			add_location(td0, file, 53, 18, 1334);
-    			add_location(td1, file, 54, 18, 1410);
-    			add_location(tr, file, 52, 16, 1311);
+    			add_location(td0, file, 58, 18, 1516);
+    			add_location(td1, file, 59, 18, 1592);
+    			add_location(tr, file, 57, 16, 1493);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -22793,14 +22893,14 @@
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(52:14) {#if item.type != \\\"deposit\\\"}",
+    		source: "(57:14) {#if item.type != \\\"deposit\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (51:12) {#each items as item}
+    // (56:12) {#each items as item}
     function create_each_block(ctx) {
     	let if_block_anchor;
     	let if_block = /*item*/ ctx[5].type != "deposit" && create_if_block(ctx);
@@ -22838,14 +22938,14 @@
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(51:12) {#each items as item}",
+    		source: "(56:12) {#each items as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (31:26)      <p>loading</p>   {:then items}
+    // (36:26)      <p>loading</p>   {:then items}
     function create_pending_block(ctx) {
     	let p;
 
@@ -22853,7 +22953,7 @@
     		c: function create() {
     			p = element("p");
     			p.textContent = "loading";
-    			add_location(p, file, 31, 4, 745);
+    			add_location(p, file, 36, 4, 927);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -22868,7 +22968,7 @@
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(31:26)      <p>loading</p>   {:then items}",
+    		source: "(36:26)      <p>loading</p>   {:then items}",
     		ctx
     	});
 
@@ -22878,9 +22978,10 @@
     function create_fragment(ctx) {
     	let main;
     	let h2;
-    	let t0;
     	let t1;
+    	let small;
     	let t2;
+    	let t3;
     	let promise;
 
     	let info = {
@@ -22901,13 +23002,16 @@
     		c: function create() {
     			main = element("main");
     			h2 = element("h2");
-    			t0 = text("AAVE Dashboard ");
-    			t1 = text(/*user*/ ctx[0]);
-    			t2 = space();
+    			h2.textContent = "AAVE Dashboard";
+    			t1 = space();
+    			small = element("small");
+    			t2 = text(/*user*/ ctx[0]);
+    			t3 = space();
     			info.block.c();
     			this.c = noop;
-    			add_location(h2, file, 28, 2, 682);
-    			add_location(main, file, 27, 0, 673);
+    			add_location(h2, file, 32, 2, 847);
+    			add_location(small, file, 33, 2, 873);
+    			add_location(main, file, 31, 0, 838);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -22915,16 +23019,17 @@
     		m: function mount(target, anchor) {
     			insert_dev(target, main, anchor);
     			append_dev(main, h2);
-    			append_dev(h2, t0);
-    			append_dev(h2, t1);
-    			append_dev(main, t2);
+    			append_dev(main, t1);
+    			append_dev(main, small);
+    			append_dev(small, t2);
+    			append_dev(main, t3);
     			info.block.m(main, info.anchor = null);
     			info.mount = () => main;
     			info.anchor = null;
     		},
     		p: function update(new_ctx, [dirty]) {
     			ctx = new_ctx;
-    			if (dirty & /*user*/ 1) set_data_dev(t1, /*user*/ ctx[0]);
+    			if (dirty & /*user*/ 1) set_data_dev(t2, /*user*/ ctx[0]);
     			info.ctx = ctx;
 
     			if (dirty & /*user*/ 1 && promise !== (promise = /*dashboard*/ ctx[2](/*user*/ ctx[0])) && handle_promise(promise, info)) ; else {
@@ -22955,14 +23060,12 @@
     }
 
     function instance($$self, $$props, $$invalidate) {
+    	let $Dashboards;
+    	validate_store(Dashboards, "Dashboards");
+    	component_subscribe($$self, Dashboards, $$value => $$invalidate(3, $Dashboards = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("flashsuite-dashboard", slots, []);
-    	let { user = "Alice" } = $$props;
-
-    	const users = {
-    		Alice: "0xb09Ae31E045Bb9d8D74BB6624FeEB18B3Af72A8e",
-    		Bob: "0x981ab0D817710d8FFFC5693383C00D985A3BDa38"
-    	};
+    	let { user = {} } = $$props;
 
     	function _bal(_balance, _decimals) {
     		const [ent, dec] = formatUnits(_balance, _decimals).split(".");
@@ -22970,13 +23073,24 @@
     	}
 
     	async function dashboard() {
-    		return await aaveDashboard(users[user], new Web3Provider(window.ethereum), true);
+    		let _dashboard = {};
+
+    		if (user) {
+    			console.log("dashboard(user)", user);
+    			const _provider = new Web3Provider(window.ethereum);
+    			console.log("_provider", _provider);
+    			_dashboard = await aaveDashboard(user, _provider, true);
+    			console.log("_dashboard", _dashboard);
+    			set_store_value(Dashboards, $Dashboards[user] = _dashboard, $Dashboards);
+    		}
+
+    		return _dashboard;
     	}
 
     	const writable_props = ["user"];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<flashsuite-dashboard> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1.warn(`<flashsuite-dashboard> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
@@ -22986,10 +23100,11 @@
     	$$self.$capture_state = () => ({
     		ethers,
     		aaveDashboard,
+    		Dashboards,
     		user,
-    		users,
     		_bal,
-    		dashboard
+    		dashboard,
+    		$Dashboards
     	});
 
     	$$self.$inject_state = $$props => {
@@ -23048,89 +23163,631 @@
 
     customElements.define("flashsuite-dashboard", Dashboard);
 
+    const IStableDebtToken = {
+      'ADDRESS': {
+        'mainnet': '',
+        'kovan': '',
+      }
+    };
+    IStableDebtToken.ABI = [
+      'function approveDelegation(address delegatee, uint256 amount) external',
+      'function borrowAllowance(address fromUser, address toUser) external view returns(uint256)',
+      'function mint(address user, address onBehalfOf, uint256 amount, uint256 rate) external returns(bool)',
+      'function burn(address user, uint256 amount) external',
+      'function getAverageStableRate() external view returns(uint256)',
+      'function getUserStableRate(address user) external view returns(uint256)',
+      'function getUserLastUpdated(address user) external view returns(uint40)',
+      'function getSupplyData() external view returns( uint256, uint256, uint256, uint40)',
+      'function getTotalSupplyLastUpdated() external view returns(uint40)',
+      'function getTotalSupplyAndAvgRate() external view returns(uint256, uint256)',
+      'function principalBalanceOf(address user) external view returns(uint256)',
+      'event Mint(address indexed user, address indexed onBehalfOf, uint256 amount, uint256 currentBalance, uint256 balanceIncrease, uint256 newRate, uint256 avgStableRate, uint256 newTotalSupply)',
+      'event Burn(address indexed user, uint256 amount, uint256 currentBalance, uint256 balanceIncrease, uint256 avgStableRate, uint256 newTotalSupply)'
+    ];
+
+    const ERC20 = {
+      'DAI': {
+        'mainnet': '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        'ropsten': '0xad6d458402f60fd3bd25163575031acdce07538d',
+        'kovan'  : '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD',
+        'rinkeby': '0x6f5390a8cd02d83b23c5f1d594bffb9050eb4ca3'
+      },
+      'USDT': {
+        'mainnet': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+        'dec': 6
+      },
+      'COMP': {
+        'mainnet': '0xc00e94Cb662C3520282E6f5717214004A7f26888',
+      },
+      'MKR': {
+        'mainnet': '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2',
+      },
+      'CRC': {
+        'xdai': '0x317046Be3c8cbA73707b67A0d5B422553F7FD53E',
+      },
+      'WETH': {
+        'mainnet': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+      },
+      'BEL': {
+        'mainnet': '0xa91ac63d040deb1b7a5e4d4134ad23eb0ba07e14'
+      }
+    };
+    ERC20.ABI = [
+      // Read-Only Functions
+      'function balanceOf(address account) external view returns (uint256)',
+      'function decimals() view returns (uint8)',
+      'function symbol() view returns (string)',
+      'function totalSupply() external view returns (uint256)',
+
+      // Authenticated Functions
+      'function transfer(address recipient, uint256 amount) external returns (bool)',
+      'function allowance(address owner, address spender) external view returns (uint256)',
+      'function approve(address spender, uint256 amount) external returns (bool)',
+      'function transferFrom(address sender, address recipient, uint256 amount) external returns (bool)',
+
+      // Events
+      'event Transfer(address indexed from, address indexed to, uint256 value)',
+      'event Approval(address indexed owner, address indexed spender, uint256 value)'
+    ];
+
+    const ethscan = 'https://kovan.etherscan.io';
+    function _bal(_balance, _decimals) {
+      const [ent, dec] = formatUnits(_balance, _decimals).split(".");
+      return ent + "." + dec.substring(0, 3);
+    }
+
+    const FlashAccounts = {};
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // FLASH ACCOUNTS INIT
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    FlashAccounts.Init = async function ( _log = false) {
+      console.log(`FlashAccounts.Init `);
+      FlashAccounts.contract = new Contract(FlashAccounts.ADDRESS['kovan'], FlashAccounts.ABI);
+      FlashAccounts.log = _log;
+
+      if (FlashAccounts.log) console.log(`Contract  ${FlashAccounts.contract.address}`);
+    };
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // TX1 : Get aTokens allowance
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    FlashAccounts.approveTransfers = async function (_dashboard, _signer) {
+      let ia = 0;
+      for await (const position of _dashboard) {
+        if (position.type == 'deposit') {
+          const aTokenContract = new Contract(position.address, ERC20.ABI, _signer);
+          const tx1 = await aTokenContract.approve(FlashAccounts.contract.address, position.amount);
+
+          if (FlashAccounts.log) console.log(`TX1.${++ia} Allow transfer ${_bal(position.amount)} ${position.symbol}\n${ethscan}/tx/${tx1.hash}`);
+          console.log(await tx1.wait());
+        }
+      }
+    };
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // TX2 : Get Credit Delegation approval 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    FlashAccounts.approveLoans = async function (_dashboard, _signer) {
+      console.log("FlashAccounts.approveLoans");
+      let id = 0;
+      for await (const position of _dashboard) {
+        if (position.type != 'deposit') {
+          let debtTokenContract;
+          if (position.type == 'stable_debt') {
+            debtTokenContract = new Contract(position.address, IStableDebtToken.ABI, _signer);
+          }
+          if (position.type == 'variable_debt') {
+            debtTokenContract = new Contract(position.address, IVariableDebtToken.ABI, _signer);
+          }
+          const tx2 = await debtTokenContract.approveDelegation(FlashAccounts.contract.address, position.amount);
+
+          if (FlashAccounts.log) console.log(`TX2.${++id} Allow borrow ${_bal(position.amount)} ${position.symbol}\n${ethscan}/tx/${tx2.hash}`);
+          console.log(await tx2.wait());
+        }
+      }
+    };
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // TX3 : Run Flash Loan
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    FlashAccounts.callFlashLoan = async function (_dashboard, _from, _to, _signer) {
+      const aTokens = [];
+      const aTokenAmounts = [];
+      for await (const position of _dashboard) {
+        aTokens.push(position.address);
+        aTokenAmounts.push(position.amount);
+      }
+
+      try {
+        if (FlashAccounts.log) console.log("Call FlashAccounts.migratePositions");
+        if (FlashAccounts.log) console.log(_from, _to, aTokens, aTokenAmounts);
+
+        const options = { gasPrice: "10000000000", gasLimit: "10000000" };
+        const tx3 = await FlashAccounts.contract.connect(_signer).migratePositions(_from, _to, aTokens, aTokenAmounts, options);
+
+        if (FlashAccounts.log) console.log(`TX3 Flash ${ethscan}/tx/${tx3.hash}`);
+        console.log(await tx3.wait());
+      } catch (e) {
+        if (FlashAccounts.log) console.error("ERROR", e);
+      }
+    };
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    FlashAccounts.ADDRESS = {
+      'mainnet': '',
+      'kovan': '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD',
+    };
+    FlashAccounts.ABI = [
+      {
+        "inputs": [
+          {
+            "internalType": "contract ILendingPoolAddressesProvider",
+            "name": "_addressProvider",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "previousOwner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "newOwner",
+            "type": "address"
+          }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "desc",
+            "type": "string"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "_from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "_asset",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_amount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_premium",
+            "type": "uint256"
+          }
+        ],
+        "name": "opExec",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "ADDRESSES_PROVIDER",
+        "outputs": [
+          {
+            "internalType": "contract ILendingPoolAddressesProvider",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "FLASHLOAN_PREMIUM_TOTAL",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "LENDING_POOL",
+        "outputs": [
+          {
+            "internalType": "contract ILendingPool",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_asset",
+            "type": "address"
+          }
+        ],
+        "name": "balance",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "ethBalance",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address[]",
+            "name": "assets",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "premiums",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "address",
+            "name": "initiator",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "params",
+            "type": "bytes"
+          }
+        ],
+        "name": "executeOperation",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "isOwner",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_from",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_to",
+            "type": "address"
+          },
+          {
+            "internalType": "address[]",
+            "name": "_aTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "_aTokenAmounts",
+            "type": "uint256[]"
+          }
+        ],
+        "name": "migratePositions",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "rugPull",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_asset",
+            "type": "address"
+          }
+        ],
+        "name": "rugPullERC",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "_premium",
+            "type": "uint256"
+          }
+        ],
+        "name": "setFlashLoanPremium",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "newOwner",
+            "type": "address"
+          }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "stateMutability": "payable",
+        "type": "receive"
+      }
+    ];
+
     /* svelte/FlashAccounts.svelte generated by Svelte v3.31.2 */
 
-    const { console: console_1 } = globals;
+    const { console: console_1$1 } = globals;
     const file$1 = "svelte/FlashAccounts.svelte";
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[2] = list[i];
+    	return child_ctx;
+    }
+
+    // (108:4) {#each addresses as address}
+    function create_each_block$1(ctx) {
+    	let tr;
+    	let td;
+    	let dashboard;
+    	let t;
+    	let current;
+
+    	dashboard = new Dashboard({
+    			props: { user: /*address*/ ctx[2] },
+    			$$inline: true
+    		});
+
+    	const block = {
+    		c: function create() {
+    			tr = element("tr");
+    			td = element("td");
+    			create_component(dashboard.$$.fragment);
+    			t = space();
+    			attr_dev(td, "class", "cadre");
+    			add_location(td, file$1, 108, 10, 2893);
+    			add_location(tr, file$1, 108, 6, 2889);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, tr, anchor);
+    			append_dev(tr, td);
+    			mount_component(dashboard, td, null);
+    			append_dev(tr, t);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const dashboard_changes = {};
+    			if (dirty & /*addresses*/ 2) dashboard_changes.user = /*address*/ ctx[2];
+    			dashboard.$set(dashboard_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(dashboard.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(dashboard.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(tr);
+    			destroy_component(dashboard);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block$1.name,
+    		type: "each",
+    		source: "(108:4) {#each addresses as address}",
+    		ctx
+    	});
+
+    	return block;
+    }
 
     function create_fragment$1(ctx) {
     	let main;
     	let img;
     	let img_src_value;
     	let t0;
-    	let table;
-    	let tr0;
-    	let td0;
-    	let dashboard0;
-    	let t1;
-    	let tr1;
-    	let td1;
-    	let dashboard1;
-    	let t2;
     	let hr0;
+    	let t1;
+    	let p;
+    	let button0;
     	let t3;
-    	let h4;
+    	let button1;
     	let t5;
-    	let small;
-    	let t6;
+    	let button2;
     	let t7;
-    	let br0;
+    	let table;
     	let t8;
-    	let t9;
-    	let br1;
-    	let t10;
     	let hr1;
+    	let t9;
+    	let h4;
+    	let t11;
+    	let small;
+    	let t12;
+    	let t13;
+    	let br0;
+    	let t14;
+    	let t15;
+    	let br1;
+    	let t16;
+    	let hr2;
     	let current;
-    	dashboard0 = new Dashboard({ props: { user: "Alice" }, $$inline: true });
-    	dashboard1 = new Dashboard({ props: { user: "Bob" }, $$inline: true });
+    	let mounted;
+    	let dispose;
+    	let each_value = /*addresses*/ ctx[1];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
+    	}
+
+    	const out = i => transition_out(each_blocks[i], 1, 1, () => {
+    		each_blocks[i] = null;
+    	});
 
     	const block = {
     		c: function create() {
     			main = element("main");
     			img = element("img");
     			t0 = space();
-    			table = element("table");
-    			tr0 = element("tr");
-    			td0 = element("td");
-    			create_component(dashboard0.$$.fragment);
-    			t1 = space();
-    			tr1 = element("tr");
-    			td1 = element("td");
-    			create_component(dashboard1.$$.fragment);
-    			t2 = space();
     			hr0 = element("hr");
+    			t1 = space();
+    			p = element("p");
+    			button0 = element("button");
+    			button0.textContent = "STEP 1 : Approve Tranfers";
     			t3 = space();
-    			h4 = element("h4");
-    			h4.textContent = "metamask user";
+    			button1 = element("button");
+    			button1.textContent = "STEP 2 : Approve Loan";
     			t5 = space();
-    			small = element("small");
-    			t6 = text("network: ");
-    			t7 = text(/*network*/ ctx[0]);
-    			br0 = element("br");
-    			t8 = text("\n    signer: ");
-    			t9 = text(/*address*/ ctx[1]);
-    			br1 = element("br");
-    			t10 = space();
+    			button2 = element("button");
+    			button2.textContent = "STEP 3 : Call FlashLoan";
+    			t7 = space();
+    			table = element("table");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t8 = space();
     			hr1 = element("hr");
+    			t9 = space();
+    			h4 = element("h4");
+    			h4.textContent = "metamask";
+    			t11 = space();
+    			small = element("small");
+    			t12 = text("network: ");
+    			t13 = text(/*network*/ ctx[0]);
+    			br0 = element("br");
+    			t14 = text("\n    account: ");
+    			t15 = text(/*address*/ ctx[2]);
+    			br1 = element("br");
+    			t16 = space();
+    			hr2 = element("hr");
     			this.c = noop;
     			if (img.src !== (img_src_value = "logo.png")) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "width", "600");
     			attr_dev(img, "alt", "FlashSuite");
-    			add_location(img, file$1, 27, 2, 652);
-    			attr_dev(td0, "class", "cadre");
-    			add_location(td0, file$1, 29, 8, 722);
-    			add_location(tr0, file$1, 29, 4, 718);
-    			attr_dev(td1, "class", "cadre");
-    			add_location(td1, file$1, 30, 8, 788);
-    			add_location(tr1, file$1, 30, 4, 784);
-    			add_location(table, file$1, 28, 2, 706);
-    			add_location(hr0, file$1, 33, 2, 858);
-    			add_location(h4, file$1, 34, 2, 867);
-    			add_location(br0, file$1, 36, 22, 922);
-    			add_location(br1, file$1, 37, 21, 950);
-    			add_location(small, file$1, 35, 2, 892);
-    			add_location(hr1, file$1, 40, 2, 971);
-    			add_location(main, file$1, 26, 0, 643);
+    			add_location(img, file$1, 97, 2, 2578);
+    			add_location(hr0, file$1, 99, 2, 2633);
+    			add_location(button0, file$1, 101, 4, 2650);
+    			add_location(button1, file$1, 102, 4, 2714);
+    			add_location(button2, file$1, 103, 4, 2774);
+    			add_location(p, file$1, 100, 2, 2642);
+    			add_location(table, file$1, 106, 2, 2842);
+    			add_location(hr1, file$1, 112, 2, 2977);
+    			add_location(h4, file$1, 113, 2, 2986);
+    			add_location(br0, file$1, 115, 22, 3036);
+    			add_location(br1, file$1, 116, 22, 3065);
+    			add_location(small, file$1, 114, 2, 3006);
+    			add_location(hr2, file$1, 119, 2, 3086);
+    			add_location(main, file$1, 96, 0, 2569);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -23139,49 +23796,102 @@
     			insert_dev(target, main, anchor);
     			append_dev(main, img);
     			append_dev(main, t0);
-    			append_dev(main, table);
-    			append_dev(table, tr0);
-    			append_dev(tr0, td0);
-    			mount_component(dashboard0, td0, null);
-    			append_dev(table, t1);
-    			append_dev(table, tr1);
-    			append_dev(tr1, td1);
-    			mount_component(dashboard1, td1, null);
-    			append_dev(main, t2);
     			append_dev(main, hr0);
-    			append_dev(main, t3);
-    			append_dev(main, h4);
-    			append_dev(main, t5);
-    			append_dev(main, small);
-    			append_dev(small, t6);
-    			append_dev(small, t7);
-    			append_dev(small, br0);
-    			append_dev(small, t8);
-    			append_dev(small, t9);
-    			append_dev(small, br1);
-    			append_dev(main, t10);
+    			append_dev(main, t1);
+    			append_dev(main, p);
+    			append_dev(p, button0);
+    			append_dev(p, t3);
+    			append_dev(p, button1);
+    			append_dev(p, t5);
+    			append_dev(p, button2);
+    			append_dev(main, t7);
+    			append_dev(main, table);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(table, null);
+    			}
+
+    			append_dev(main, t8);
     			append_dev(main, hr1);
+    			append_dev(main, t9);
+    			append_dev(main, h4);
+    			append_dev(main, t11);
+    			append_dev(main, small);
+    			append_dev(small, t12);
+    			append_dev(small, t13);
+    			append_dev(small, br0);
+    			append_dev(small, t14);
+    			append_dev(small, t15);
+    			append_dev(small, br1);
+    			append_dev(main, t16);
+    			append_dev(main, hr2);
     			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button0, "click", /*step1*/ ctx[3], false, false, false),
+    					listen_dev(button1, "click", /*step2*/ ctx[4], false, false, false),
+    					listen_dev(button2, "click", /*step3*/ ctx[5], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (!current || dirty & /*network*/ 1) set_data_dev(t7, /*network*/ ctx[0]);
-    			if (!current || dirty & /*address*/ 2) set_data_dev(t9, /*address*/ ctx[1]);
+    			if (dirty & /*addresses*/ 2) {
+    				each_value = /*addresses*/ ctx[1];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(table, null);
+    					}
+    				}
+
+    				group_outros();
+
+    				for (i = each_value.length; i < each_blocks.length; i += 1) {
+    					out(i);
+    				}
+
+    				check_outros();
+    			}
+
+    			if (!current || dirty & /*network*/ 1) set_data_dev(t13, /*network*/ ctx[0]);
+    			if (!current || dirty & /*address*/ 4) set_data_dev(t15, /*address*/ ctx[2]);
     		},
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(dashboard0.$$.fragment, local);
-    			transition_in(dashboard1.$$.fragment, local);
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(dashboard0.$$.fragment, local);
-    			transition_out(dashboard1.$$.fragment, local);
+    			each_blocks = each_blocks.filter(Boolean);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(main);
-    			destroy_component(dashboard0);
-    			destroy_component(dashboard1);
+    			destroy_each(each_blocks, detaching);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -23197,60 +23907,148 @@
     }
 
     function instance$1($$self, $$props, $$invalidate) {
+    	let addresses;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("flashsuite-accounts", slots, []);
-    	let ethersProvider;
+    	let address, addressFrom, addressTo;
     	let signer;
+    	let dashboards = {};
+    	let signerFrom, signerTo;
+    	let dashboardFrom = {};
     	let network;
-    	let address;
-    	let balance;
 
-    	async function starting() {
-    		if (window.ethereum) {
-    			window.ethereum.enable();
-    			ethersProvider = new Web3Provider(window.ethereum);
-    			$$invalidate(0, network = (await ethersProvider.getNetwork()).name);
-    			signer = ethersProvider.getSigner();
-    			$$invalidate(1, address = await signer.getAddress());
+    	Dashboards.subscribe(value => {
+    		dashboards = value;
+    	});
+
+    	async function handleAccounts(accounts) {
+    		if (accounts[0]) {
+    			$$invalidate(2, address = accounts[0]);
+    			signer = new Web3Provider(ethereum).getSigner();
+
+    			if (addresses.indexOf(address) == -1) {
+    				$$invalidate(1, addresses = [...addresses, address]);
+    			}
     		} else {
-    			console.log("Please install MetaMask!");
+    			alert("no accounts");
+    		}
+
+    		console.log("handleAccounts", accounts, addresses);
+    	}
+
+    	async function handleChain(chainId) {
+    		const networks = new Map([
+    				[1, "mainnet"],
+    				[3, "ropsten"],
+    				[4, "rinkeby"],
+    				[5, "goerli"],
+    				[42, "kovan"]
+    			]);
+
+    		$$invalidate(0, network = networks.get(Number(chainId)));
+
+    		if (chainId != 42) {
+    			alert("FlashAccount is in beta mode ! only available on Kovan\nPlease switch to the Kovan testnet");
+    		}
+
+    		console.log("handleChain", chainId, network);
+    	}
+
+    	onMount(async function () {
+    		try {
+    			handleChain(await ethereum.request({ method: "eth_chainId" }));
+    			handleAccounts(await ethereum.request({ method: "eth_accounts" }));
+    		} catch(e) {
+    			alert("Please install MetaMask!", e);
+    		}
+
+    		await FlashAccounts.Init(true);
+    	});
+
+    	ethereum.on("connect", console.log);
+    	ethereum.on("message", console.log);
+    	ethereum.on("disconnect", console.error);
+    	ethereum.on("chainChanged", handleChain);
+    	ethereum.on("accountsChanged", handleAccounts);
+
+    	async function step1() {
+    		addressFrom = address;
+    		await FlashAccounts.approveTransfers(dashboards[addressFrom], signer);
+    	}
+
+    	async function step2() {
+    		if (addressFrom) {
+    			addressTo = address;
+
+    			if (addressFrom != addressTo) {
+    				await FlashAccounts.approveLoans(dashboards[addressFrom], signer);
+    			} else {
+    				alert("You have to use another account");
+    			}
+    		} else {
+    			alert("Step 1 first !");
     		}
     	}
 
-    	starting();
+    	async function step3() {
+    		if (addressTo) {
+    			await FlashAccounts.callFlashLoan(dashboards[addressFrom], addressFrom, addressTo, signer);
+    		} else {
+    			alert("Step 1 and 2 first !");
+    		}
+    	}
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1.warn(`<flashsuite-accounts> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$1.warn(`<flashsuite-accounts> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$capture_state = () => ({
-    		Dashboard,
     		ethers,
-    		ethersProvider,
-    		signer,
-    		network,
+    		onMount,
+    		Dashboards,
+    		Dashboard,
+    		FlashAccounts,
     		address,
-    		balance,
-    		starting
+    		addressFrom,
+    		addressTo,
+    		signer,
+    		dashboards,
+    		signerFrom,
+    		signerTo,
+    		dashboardFrom,
+    		network,
+    		handleAccounts,
+    		handleChain,
+    		step1,
+    		step2,
+    		step3,
+    		addresses
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("ethersProvider" in $$props) ethersProvider = $$props.ethersProvider;
+    		if ("address" in $$props) $$invalidate(2, address = $$props.address);
+    		if ("addressFrom" in $$props) addressFrom = $$props.addressFrom;
+    		if ("addressTo" in $$props) addressTo = $$props.addressTo;
     		if ("signer" in $$props) signer = $$props.signer;
+    		if ("dashboards" in $$props) dashboards = $$props.dashboards;
+    		if ("signerFrom" in $$props) signerFrom = $$props.signerFrom;
+    		if ("signerTo" in $$props) signerTo = $$props.signerTo;
+    		if ("dashboardFrom" in $$props) dashboardFrom = $$props.dashboardFrom;
     		if ("network" in $$props) $$invalidate(0, network = $$props.network);
-    		if ("address" in $$props) $$invalidate(1, address = $$props.address);
-    		if ("balance" in $$props) balance = $$props.balance;
+    		if ("addresses" in $$props) $$invalidate(1, addresses = $$props.addresses);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [network, address];
+    	 $$invalidate(1, addresses = []);
+    	return [network, addresses, address, step1, step2, step3];
     }
 
-    class FlashAccounts extends SvelteElement {
+    class FlashAccounts_1 extends SvelteElement {
     	constructor(options) {
     		super();
     		this.shadowRoot.innerHTML = `<style>main{padding:1em;margin:0 auto}table{width:300px}td.cadre{border:1px solid purple}td{vertical-align:top;width:150px}@media(min-width: 640px){main{max-width:none}}</style>`;
@@ -23275,7 +24073,7 @@
     	}
     }
 
-    customElements.define("flashsuite-accounts", FlashAccounts);
+    customElements.define("flashsuite-accounts", FlashAccounts_1);
 
 }());
 //# sourceMappingURL=FlashAccounts.js.map
