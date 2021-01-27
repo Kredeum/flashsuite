@@ -7,24 +7,27 @@
   import Dashboard from "./Dashboard.svelte";
   import FlashAccounts from "../lib/contracts/FlashAccounts.mjs";
 
-  let dashboards = [];
   $: addresses = [];
-  let address;
-  let signer = {};
+  let address, addressFrom, addressTo;
+  let signer;
+  let dashboards = {};
+
   let signerFrom, signerTo;
+  let dashboardFrom = {};
   let network;
   Dashboards.subscribe((value) => {
     dashboards = value;
   });
 
   async function handleAccounts(accounts) {
-    address = accounts[0];
-    console.log("handleAccounts", accounts[0], addresses);
-    if (address) {
+    if (accounts[0]) {
+      address = accounts[0];
       signer = new ethers.providers.Web3Provider(ethereum).getSigner();
       if (addresses.indexOf(address) == -1) {
         addresses = [...addresses, address];
       }
+    } else {
+      alert("no accounts");
     }
     console.log("handleAccounts", accounts, addresses);
   }
@@ -62,24 +65,32 @@
   ethereum.on("accountsChanged", handleAccounts);
 
   async function step1() {
-    signerFrom = await signer.getAddress();
-    console.log(signerFrom);
-    console.log(dashboards[signerFrom]);
-    console.log(dashboards);
-    console.log( JSON.stringify(dashboards));
-   
-    await FlashAccounts.approveTransfers(dashboards[signerFrom], signer);
+    addressFrom = address;
+    await FlashAccounts.approveTransfers(dashboards[addressFrom], signer);
   }
   async function step2() {
-    signerTo = await signer.getAddress();
-    await FlashAccounts.approveLoans(dashboards[signerFrom], signer);
+    if (addressFrom) {
+      addressTo = address;
+      if (addressFrom != addressTo) {
+        await FlashAccounts.approveLoans(dashboards[addressFrom], signer);
+      } else {
+        alert("You have to use another account");
+      }
+    } else {
+      alert("Step 1 first !");
+    }
   }
   async function step3() {
-    await FlashAccounts.callFlashLoan(
-      dashboards[signerFrom],
-      signerFrom,
-      signerTo
-    );
+    if (addressTo) {
+      await FlashAccounts.callFlashLoan(
+        dashboards[addressFrom],
+        addressFrom,
+        addressTo,
+        signer
+      );
+    } else {
+      alert("Step 1 and 2 first !");
+    }
   }
 </script>
 

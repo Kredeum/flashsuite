@@ -23254,15 +23254,15 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // TX1 : Get aTokens allowance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    FlashAccounts.approveTransfers = async function (_dashboard, _Signer) {
+    FlashAccounts.approveTransfers = async function (_dashboard, _signer) {
       let ia = 0;
       for await (const position of _dashboard) {
         if (position.type == 'deposit') {
-          const aTokenContract = new Contract(position.address, ERC20.ABI, _Signer);
+          const aTokenContract = new Contract(position.address, ERC20.ABI, _signer);
           const tx1 = await aTokenContract.approve(FlashAccounts.contract.address, position.amount);
 
           if (FlashAccounts.log) console.log(`TX1.${++ia} Allow transfer ${_bal(position.amount)} ${position.symbol}\n${ethscan}/tx/${tx1.hash}`);
-          await tx1.wait();
+          console.log(await tx1.wait());
         }
       }
     };
@@ -23272,22 +23272,22 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // TX2 : Get Credit Delegation approval 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    FlashAccounts.approveLoans = async function (_dashboard, _Signer) {
+    FlashAccounts.approveLoans = async function (_dashboard, _signer) {
       console.log("FlashAccounts.approveLoans");
       let id = 0;
       for await (const position of _dashboard) {
         if (position.type != 'deposit') {
           let debtTokenContract;
           if (position.type == 'stable_debt') {
-            debtTokenContract = new Contract(position.address, IStableDebtToken.ABI, _Signer);
+            debtTokenContract = new Contract(position.address, IStableDebtToken.ABI, _signer);
           }
           if (position.type == 'variable_debt') {
-            debtTokenContract = new Contract(position.address, IVariableDebtToken.ABI, _Signer);
+            debtTokenContract = new Contract(position.address, IVariableDebtToken.ABI, _signer);
           }
           const tx2 = await debtTokenContract.approveDelegation(FlashAccounts.contract.address, position.amount);
 
           if (FlashAccounts.log) console.log(`TX2.${++id} Allow borrow ${_bal(position.amount)} ${position.symbol}\n${ethscan}/tx/${tx2.hash}`);
-          await tx2.wait();
+          console.log(await tx2.wait());
         }
       }
     };
@@ -23296,7 +23296,7 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // TX3 : Run Flash Loan
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    FlashAccounts.callFlashLoan = async function (_dashboard, From, To) {
+    FlashAccounts.callFlashLoan = async function (_dashboard, _from, _to, _signer) {
       const aTokens = [];
       const aTokenAmounts = [];
       for await (const position of _dashboard) {
@@ -23306,13 +23306,13 @@
 
       try {
         if (FlashAccounts.log) console.log("Call FlashAccounts.migratePositions");
-        if (FlashAccounts.log) console.log(From.address, To.address, aTokens, aTokenAmounts);
+        if (FlashAccounts.log) console.log(_from, _to, aTokens, aTokenAmounts);
 
         const options = { gasPrice: "10000000000", gasLimit: "10000000" };
-        const tx3 = await FlashAccounts.contract.migratePositions(From.address, To.address, aTokens, aTokenAmounts, options);
+        const tx3 = await FlashAccounts.contract.connect(_signer).migratePositions(_from, _to, aTokens, aTokenAmounts, options);
 
         if (FlashAccounts.log) console.log(`TX3 Flash ${ethscan}/tx/${tx3.hash}`);
-        await tx3.wait();
+        console.log(await tx3.wait());
       } catch (e) {
         if (FlashAccounts.log) console.error("ERROR", e);
       }
@@ -23627,7 +23627,7 @@
     	return child_ctx;
     }
 
-    // (97:4) {#each addresses as address}
+    // (108:4) {#each addresses as address}
     function create_each_block$1(ctx) {
     	let tr;
     	let td;
@@ -23647,8 +23647,8 @@
     			create_component(dashboard.$$.fragment);
     			t = space();
     			attr_dev(td, "class", "cadre");
-    			add_location(td, file$1, 97, 10, 2744);
-    			add_location(tr, file$1, 97, 6, 2740);
+    			add_location(td, file$1, 108, 10, 2893);
+    			add_location(tr, file$1, 108, 6, 2889);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -23681,7 +23681,7 @@
     		block,
     		id: create_each_block$1.name,
     		type: "each",
-    		source: "(97:4) {#each addresses as address}",
+    		source: "(108:4) {#each addresses as address}",
     		ctx
     	});
 
@@ -23774,20 +23774,20 @@
     			if (img.src !== (img_src_value = "logo.png")) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "width", "600");
     			attr_dev(img, "alt", "FlashSuite");
-    			add_location(img, file$1, 86, 2, 2429);
-    			add_location(hr0, file$1, 88, 2, 2484);
-    			add_location(button0, file$1, 90, 4, 2501);
-    			add_location(button1, file$1, 91, 4, 2565);
-    			add_location(button2, file$1, 92, 4, 2625);
-    			add_location(p, file$1, 89, 2, 2493);
-    			add_location(table, file$1, 95, 2, 2693);
-    			add_location(hr1, file$1, 101, 2, 2828);
-    			add_location(h4, file$1, 102, 2, 2837);
-    			add_location(br0, file$1, 104, 22, 2887);
-    			add_location(br1, file$1, 105, 22, 2916);
-    			add_location(small, file$1, 103, 2, 2857);
-    			add_location(hr2, file$1, 108, 2, 2937);
-    			add_location(main, file$1, 85, 0, 2420);
+    			add_location(img, file$1, 97, 2, 2578);
+    			add_location(hr0, file$1, 99, 2, 2633);
+    			add_location(button0, file$1, 101, 4, 2650);
+    			add_location(button1, file$1, 102, 4, 2714);
+    			add_location(button2, file$1, 103, 4, 2774);
+    			add_location(p, file$1, 100, 2, 2642);
+    			add_location(table, file$1, 106, 2, 2842);
+    			add_location(hr1, file$1, 112, 2, 2977);
+    			add_location(h4, file$1, 113, 2, 2986);
+    			add_location(br0, file$1, 115, 22, 3036);
+    			add_location(br1, file$1, 116, 22, 3065);
+    			add_location(small, file$1, 114, 2, 3006);
+    			add_location(hr2, file$1, 119, 2, 3086);
+    			add_location(main, file$1, 96, 0, 2569);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -23910,10 +23910,11 @@
     	let addresses;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("flashsuite-accounts", slots, []);
-    	let dashboards = [];
-    	let address;
-    	let signer = {};
+    	let address, addressFrom, addressTo;
+    	let signer;
+    	let dashboards = {};
     	let signerFrom, signerTo;
+    	let dashboardFrom = {};
     	let network;
 
     	Dashboards.subscribe(value => {
@@ -23921,15 +23922,15 @@
     	});
 
     	async function handleAccounts(accounts) {
-    		$$invalidate(2, address = accounts[0]);
-    		console.log("handleAccounts", accounts[0], addresses);
-
-    		if (address) {
+    		if (accounts[0]) {
+    			$$invalidate(2, address = accounts[0]);
     			signer = new Web3Provider(ethereum).getSigner();
 
     			if (addresses.indexOf(address) == -1) {
     				$$invalidate(1, addresses = [...addresses, address]);
     			}
+    		} else {
+    			alert("no accounts");
     		}
 
     		console.log("handleAccounts", accounts, addresses);
@@ -23971,21 +23972,30 @@
     	ethereum.on("accountsChanged", handleAccounts);
 
     	async function step1() {
-    		signerFrom = await signer.getAddress();
-    		console.log(signerFrom);
-    		console.log(dashboards[signerFrom]);
-    		console.log(dashboards);
-    		console.log(JSON.stringify(dashboards));
-    		await FlashAccounts.approveTransfers(dashboards[signerFrom], signer);
+    		addressFrom = address;
+    		await FlashAccounts.approveTransfers(dashboards[addressFrom], signer);
     	}
 
     	async function step2() {
-    		signerTo = await signer.getAddress();
-    		await FlashAccounts.approveLoans(dashboards[signerFrom], signer);
+    		if (addressFrom) {
+    			addressTo = address;
+
+    			if (addressFrom != addressTo) {
+    				await FlashAccounts.approveLoans(dashboards[addressFrom], signer);
+    			} else {
+    				alert("You have to use another account");
+    			}
+    		} else {
+    			alert("Step 1 first !");
+    		}
     	}
 
     	async function step3() {
-    		await FlashAccounts.callFlashLoan(dashboards[signerFrom], signerFrom, signerTo);
+    		if (addressTo) {
+    			await FlashAccounts.callFlashLoan(dashboards[addressFrom], addressFrom, addressTo, signer);
+    		} else {
+    			alert("Step 1 and 2 first !");
+    		}
     	}
 
     	const writable_props = [];
@@ -24000,11 +24010,14 @@
     		Dashboards,
     		Dashboard,
     		FlashAccounts,
-    		dashboards,
     		address,
+    		addressFrom,
+    		addressTo,
     		signer,
+    		dashboards,
     		signerFrom,
     		signerTo,
+    		dashboardFrom,
     		network,
     		handleAccounts,
     		handleChain,
@@ -24015,11 +24028,14 @@
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("dashboards" in $$props) dashboards = $$props.dashboards;
     		if ("address" in $$props) $$invalidate(2, address = $$props.address);
+    		if ("addressFrom" in $$props) addressFrom = $$props.addressFrom;
+    		if ("addressTo" in $$props) addressTo = $$props.addressTo;
     		if ("signer" in $$props) signer = $$props.signer;
+    		if ("dashboards" in $$props) dashboards = $$props.dashboards;
     		if ("signerFrom" in $$props) signerFrom = $$props.signerFrom;
     		if ("signerTo" in $$props) signerTo = $$props.signerTo;
+    		if ("dashboardFrom" in $$props) dashboardFrom = $$props.dashboardFrom;
     		if ("network" in $$props) $$invalidate(0, network = $$props.network);
     		if ("addresses" in $$props) $$invalidate(1, addresses = $$props.addresses);
     	};
