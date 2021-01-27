@@ -14,6 +14,8 @@ describe("FlashAccounts deployment and run", function () {
     const kovanLendingPool = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
     const DAI = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
     const USDC = "0xe22da380ee6B445bb8273C81944ADEB6E8450422";
+    const BAT = "0x2d12186Fbb9f9a8C28B3FfdD4c42920f8539D738";
+
 
     // COLLATERALS
     const collateralSNX = ethers.utils.parseEther('20');
@@ -24,14 +26,16 @@ describe("FlashAccounts deployment and run", function () {
 
     // DEBT
     const stableDAI = "0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3";
-    const stableUSDC = "0x252C017036b144A812b53BC122d0E67cBB451aD4";
-    const aliceBorrowedDAI = ethers.utils.parseEther('100');
-    const aliceBorrowedUSDC = ethers.utils.parseEther('100');
-    const loans = [{symbol: 'DAI', underlyingAsset: DAI, amount: aliceBorrowedDAI, stableDebtTokenAddress: stableDAI}, {symbol: 'USDC', underlyingAsset: USDC, amount: aliceBorrowedUSDC, stableDebtTokenAddress: stableUSDC}];
+    const stableBAT = "0x07a0B32983ab8203E8C3493F0AbE5bFe784fAa15";
+    const aliceBorrowedDAI = ethers.utils.parseEther('10');
+    const aliceBorrowedBAT = ethers.utils.parseEther('10');
+    const loans = [{symbol: 'DAI', underlyingAsset: DAI, amount: aliceBorrowedDAI, stableDebtTokenAddress: stableDAI}, {symbol: 'BAT', underlyingAsset: BAT, amount: aliceBorrowedBAT, stableDebtTokenAddress: stableBAT}];
    
     // console.log(`DAI       ${ethscan}/address/${DAI}`);
     // console.log(`sDAI      ${ethscan}/address/${sDAI}`);
     // console.log(`aSNX      ${ethscan}/address/${aSNX}`);
+    console.log(`DAI borrowed ${aliceBorrowedDAI.toString()}`)
+    console.log(`BAT borrowed ${aliceBorrowedBAT.toString()}`)
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -85,7 +89,7 @@ describe("FlashAccounts deployment and run", function () {
       const stableDebtcontract = await ethers.getContractAt("contracts/aave/Interfaces.sol:IStableDebtToken", loan.stableDebtTokenAddress);
 
       const amountToBorrow = loan.amount;
-      const flashloanPremium = amountToBorrow.mul(9).div(100000);
+      const flashloanPremium = amountToBorrow.mul(9).div(10000);
       const totalToBorrow = amountToBorrow.add(flashloanPremium);
       
       const tx2 = await stableDebtcontract.connect(Bob).approveDelegation(flashAccounts.address, totalToBorrow);
