@@ -6,10 +6,6 @@ const ethscan = "https://kovan.etherscan.io";
 describe("FlashAccounts deployment and run", function () {
   this.timeout(0);
 
-  // Approve transfer of all aTokens
-  // Approve credit delegation
-  // Transfer position
-
   it("Should run FlashAccounts and start FlashLoan", async function () {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
