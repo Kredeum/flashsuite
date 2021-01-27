@@ -42,7 +42,7 @@
           <h3>Deposits</h3>
           <table>
             {#each items as item}
-              {#if item.type == "deposit"}
+              {#if item.type == 0}
                 <tr>
                   <td align="right"> {_bal(item.amount, item.decimals)}</td>
                   <td>{item.symbol}</td>
@@ -54,7 +54,7 @@
           <h3>Borrows</h3>
           <table>
             {#each items as item}
-              {#if item.type != "deposit"}
+              {#if item.type > 0}
                 <tr>
                   <td align="right">{_bal(item.amount, item.decimals)}</td>
                   <td>{item.symbol}</td>
