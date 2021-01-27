@@ -46,26 +46,29 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
         returns (bool)
     {
       // Decode params
-      (address Alice, address Bob, address[] memory aTokens, uint256[] memory aTokenAmounts ) = abi.decode(params, (address, address, address[], uint256[]));
+      (address Alice,,,,) = abi.decode(params, (address, address, address[], uint256[], uint256[]));
 
       // TX4.1 Get FlashLoan
       // TODO: include other assets
       emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
 
       // TX4.2 Repay Alice's loans
-      for (uint i = 0; i < assets.length; i++) {
-          repay(assets[i], amounts[i], Alice);
-      }
+      repayMultipleLoans(assets, amounts, Alice);
 
-      // TX4.3 Transfer aTokens
-      transferATokens(aTokens, aTokenAmounts, Alice, Bob);
-
-      // TX4.4 Borrow and approve to repay Flash loans
-      borrowToCoverFlashLoans(assets, amounts, premiums, Bob);
+      transferAndBorrow(assets, amounts, premiums, params);
 
       return true;
     }
-    
+
+
+    function transferAndBorrow(address[] calldata assets, uint256[] calldata amounts, uint256[] calldata premiums, bytes calldata params) internal {
+      (address Alice, address Bob, address[] memory aTokens, uint256[] memory aTokenAmounts, uint256[] memory interestRateModes) = abi.decode(params, (address, address, address[], uint256[], uint256[]));
+      
+      transferATokens(aTokens, aTokenAmounts, Alice, Bob);
+
+      borrowToCoverFlashLoans(assets, amounts, interestRateModes, premiums, Bob);
+    }
+
     function transferATokens(address[] memory _aTokens, uint256[] memory _aTokenAmounts, address _from, address _to) internal {
       for (uint i = 0; i < _aTokens.length; i++) {
 
@@ -94,22 +97,20 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       LENDING_POOL.withdraw(_asset,  _amount, _onBehalfOf);
     }
     
-    function borrow(address _asset, uint256 _amount, address _onBehalfOf) internal {
-      LENDING_POOL.borrow(_asset, _amount, 1, 0, _onBehalfOf);
-    }
-
-    function borrowToCoverFlashLoans(address[] calldata _assets, uint256[] calldata _borrowedAmounts, uint256[] calldata _premiums, address _borrower) internal {
+    function borrowToCoverFlashLoans(address[] calldata _assets, uint256[] calldata _borrowedAmounts, uint256[] memory _interestRateModes, uint256[] calldata _premiums, address _borrower) internal {
       for (uint i = 0; i < _assets.length; i++) {
           uint amountOwing = _borrowedAmounts[i].add(_premiums[i]);
 
-          borrowAndApprove(_assets[i], amountOwing, _borrower);
+          LENDING_POOL.borrow(_assets[i], amountOwing, _interestRateModes[i], 0, _borrower);
+
+          IERC20(_assets[i]).approve(address(LENDING_POOL), amountOwing);
       }
     }
 
-    function borrowAndApprove(address _asset, uint256 _amount, address _borrower) internal {
-      borrow(_asset, _amount, _borrower);
-
-      IERC20(_asset).approve(address(LENDING_POOL), _amount);
+    function repayMultipleLoans(address[] memory _assets, uint256[] memory _amounts, address _onBehalfOf ) internal {
+      for (uint i = 0; i < _assets.length; i++) {
+          repay(_assets[i], _amounts[i], _onBehalfOf);
+      }
     }
 
     function repay(address _asset, uint256 _amount, address _onBehalfOf) internal {
@@ -118,28 +119,25 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     }
 
     function migratePositions(address _from, address _to, address[] calldata _aTokens, uint256[] calldata _aTokenAmounts,
-     address[] calldata _borrowedAssets, uint256[] calldata _borrowedAmounts) public {
+     address[] calldata _borrowedUnderlyingAssets, uint256[] calldata _borrowedAmounts, uint256[] calldata _interestRateModes ) public {
 
-        address receiverAddress = thisContract;
-        uint numberOfLoans = _borrowedAssets.length;
+        uint numberOfLoans = _borrowedUnderlyingAssets.length;
 
         uint256[] memory modes = new uint256[](numberOfLoans);
         for (uint i = 0; i < numberOfLoans; i++) {
            modes[i] = 0;
         }
 
-        address onBehalfOf = thisContract;
-
-        bytes memory params = abi.encode(_from, _to, _aTokens, _aTokenAmounts);
+        bytes memory params = abi.encode(_from, _to, _aTokens, _aTokenAmounts, _interestRateModes);
 
         uint16 referralCode = 0;
 
         LENDING_POOL.flashLoan(
-            receiverAddress,
-            _borrowedAssets,
+            thisContract, // receiverAddress
+            _borrowedUnderlyingAssets,
             _borrowedAmounts,
             modes,
-            onBehalfOf,
+            thisContract, // onBehalfOf
             params,
             referralCode
         );
