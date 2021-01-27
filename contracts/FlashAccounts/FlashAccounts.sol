@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 // https://github.com/aave/code-examples-protocol/tree/main/V2/Flash%20Loan%20-%20Batch
 
 import { FlashLoanReceiverBase } from "../aave/FlashLoanReceiverBase.sol";
-import { ILendingPool, ILendingPoolAddressesProvider, IERC20, IProtocolDataProvider, IStableDebtToken } from "../aave/Interfaces.sol";
+import { ILendingPool, ILendingPoolAddressesProvider, IERC20, IProtocolDataProvider, IStableDebtToken, IAToken } from "../aave/Interfaces.sol";
 import { SafeMath } from "../aave/Libraries.sol";
 
 import "../aave/Ownable.sol";
@@ -57,10 +57,8 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
           repay(assets[i], amounts[i], Alice);
       }
 
-      // TX4.3 TransferFrom aTokens
-      for (uint i = 0; i < aTokens.length; i++) {
-          transferFrom(aTokens[i], aTokenAmounts[i], Alice, Bob);
-      }
+      // TX4.3 Transfer aTokens
+      transferATokens(aTokens, aTokenAmounts, Alice, Bob);
 
       // TX4.4 Borrow and approve to repay Flash loans
       borrowToCoverFlashLoans(assets, amounts, premiums, Bob);
@@ -68,6 +66,21 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       return true;
     }
     
+    function transferATokens(address[] memory _aTokens, uint256[] memory _aTokenAmounts, address _from, address _to) internal {
+      for (uint i = 0; i < _aTokens.length; i++) {
+
+          uint256 amountToTransfer = _aTokenAmounts[i];
+
+          // Transfer whole balance if aTokenAmount == -1
+          if (amountToTransfer == type(uint256).max) {
+            uint256 userBalance = IAToken(_aTokens[i]).balanceOf(_from);
+            amountToTransfer = userBalance;
+          }
+
+          transferFrom(_aTokens[i], amountToTransfer, _from, _to);
+      }
+    }
+
     function transferFrom(address _asset, uint256 _amount, address _from, address _to) internal {
         require(IERC20(_asset).transferFrom(_from, _to, _amount), "TransferFrom failed");
     }

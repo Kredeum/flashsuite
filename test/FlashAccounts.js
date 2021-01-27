@@ -1,4 +1,5 @@
 const { expect } = require("chai");
+const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
 const ethscan = "https://kovan.etherscan.io";
@@ -18,17 +19,17 @@ describe("FlashAccounts deployment and run", function () {
 
 
     // COLLATERALS
-    const collateralSNX = ethers.utils.parseEther('20');
-    const collateralYFI = ethers.utils.parseEther('1');
+    const aSNXApproval = ethers.utils.parseEther('100');
+    const aYFIApproval = ethers.utils.parseEther('100');
     const aSNX = "0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1";
     const aYFI = "0xF6c7282943Beac96f6C70252EF35501a6c1148Fe";
-    const deposits = [{aTokenAddress: aSNX, amount: collateralSNX, symbol: 'aSNX'}, {aTokenAddress: aYFI, amount: collateralYFI, symbol: 'aYFI'}];
+    const deposits = [{aTokenAddress: aSNX, approval: aSNXApproval, symbol: 'aSNX'}, {aTokenAddress: aYFI, approval: aYFIApproval, symbol: 'aYFI'}];
 
     // DEBT
     const stableDAI = "0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3";
     const stableBAT = "0x07a0B32983ab8203E8C3493F0AbE5bFe784fAa15";
-    const aliceBorrowedDAI = ethers.utils.parseEther('10');
-    const aliceBorrowedBAT = ethers.utils.parseEther('10');
+    const aliceBorrowedDAI = ethers.utils.parseEther('11');
+    const aliceBorrowedBAT = ethers.utils.parseEther('11');
     const loans = [{symbol: 'DAI', underlyingAsset: DAI, amount: aliceBorrowedDAI, stableDebtTokenAddress: stableDAI}, {symbol: 'BAT', underlyingAsset: BAT, amount: aliceBorrowedBAT, stableDebtTokenAddress: stableBAT}];
    
     // console.log(`DAI       ${ethscan}/address/${DAI}`);
@@ -71,12 +72,10 @@ describe("FlashAccounts deployment and run", function () {
     for await (const [index, deposit] of deposits.entries()) {
       const aTokencontrat = await ethers.getContractAt("contracts/aave/Interfaces.sol:IERC20", deposit.aTokenAddress, Alice);
 
-      const balance = await aTokencontrat.balanceOf(Alice.address);
-      expect(balance).to.be.at.least(deposit.amount);
-      
-      const tx1 = await aTokencontrat.approve(flashAccounts.address, deposit.amount);
+      const tx1 = await aTokencontrat.approve(flashAccounts.address, deposit.approval);
       expect(tx1.hash).to.match(/^0x/);
-      console.log(`TX1.${index} Allow ${deposit.symbol} ${ethscan}/tx/${tx1.hash}`);
+      await tx1.wait();
+      console.log(`TX1.${index} Allow ${deposit.symbol} transfer for ${deposit.approval} ${ethscan}/tx/${tx1.hash}`);
     }
      
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,10 +108,12 @@ describe("FlashAccounts deployment and run", function () {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     const borrowedUnderlyingAssets = loans.map(loan => loan.underlyingAsset);
     const borrowedAmounts = loans.map(loan => loan.amount);
-    console.log('borrowedAmounts', JSON.stringify(borrowedAmounts));
+
     try {
       const aTokens = [aSNX, aYFI];
-      const aTokenAmounts = [collateralSNX, collateralYFI];
+      // const aTokenAmounts = [collateralSNX, collateralYFI];
+      const minusOne = BigNumber.from(2).pow(BigNumber.from(256)).sub(BigNumber.from(1)); 
+      const aTokenAmounts = [minusOne, minusOne]; // test with max balance
       const tx3 = await flashAccounts.connect(Alice).migratePositions(Alice.address, Bob.address, aTokens, aTokenAmounts, borrowedUnderlyingAssets, borrowedAmounts);
       expect(tx3.hash).to.match(/^0x/);
       console.log(`TX3 Flash ${ethscan}/tx/${tx3.hash}`);
