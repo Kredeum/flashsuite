@@ -1,11 +1,6 @@
 import ethers from 'ethers';
-import aaveDashboard from '../lib/aaveDashboard.mjs';
 import FlashAccounts from '../lib/contracts/FlashAccounts.mjs';
-import ERC20 from '../lib/contracts/ERC20.mjs';
-import IStableDebtToken from '../lib/contracts/IStableDebtToken.mjs';
-
-
-const ethscan = 'https://kovan.etherscan.io';
+import aaveDashboard from '../lib/aaveDashboard.mjs';
 
 const provider = ethers.getDefaultProvider("kovan", {
   etherscan: process.env.ETHERSCAN_API_KEY,
@@ -13,94 +8,38 @@ const provider = ethers.getDefaultProvider("kovan", {
   alchemy: process.env.ALCHEMY_API_KEY
 });
 
-function _bal(_balance, _decimals) {
-  const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
-  return ent + "." + dec.substring(0, 3);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// SIGNERS
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 const Alice = new ethers.Wallet(process.env.ACCOUNT_KEY_2, provider);
 const Bob = new ethers.Wallet(process.env.ACCOUNT_KEY, provider);
-console.log(`Alice     ${ethscan}/address/${Alice.address}`);
-console.log(`Bob       ${ethscan}/address/${Bob.address}`);
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+console.log(`Alice     https://kovan.etherscan.io/address/${Alice.address}`);
+console.log(`Bob       https://kovan.etherscan.io/address/${Bob.address}`);
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// FLASH ACCOUNTS CONTRACT
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-const flashAccounts = new ethers.Contract(FlashAccounts.ADDRESS['kovan'], FlashAccounts.ABI, Alice);
-console.log(`Contract  ${ethscan}/address/${flashAccounts.address}`);
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+// const dashboard = [
+//   {
+//     address: '0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3',
+//     amount: '6040106687666546916',
+//     symbol: 'sdDAI',
+//     type: 'stable_debt',
+//     decimals: '18'
+//   },
+//   {
+//     address: '0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1',
+//     amount: '164005971514444963536',
+//     symbol: 'aSNX',
+//     type: 'deposit',
+//     decimals: '18'
+//   },
+//   {
+//     address: '0xF6c7282943Beac96f6C70252EF35501a6c1148Fe',
+//     amount: '900000287756237460',
+//     symbol: 'aYFI',
+//     type: 'deposit',
+//     decimals: '18'
+//   }
+// ];
+const dashboard = await aaveDashboard(Alice.address, provider, true);
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ALICE DASHBOARD
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-const dashboard = await aaveDashboard(Alice.address, provider);
-console.log(dashboard);
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TX1 : Get aTokens allowance
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-let ia = 0;
-for await (const position of dashboard) {
-  if (position.type == 'deposit') {
-    const aTokenContract = new ethers.Contract(position.address, ERC20.ABI, Alice);
-
-    const tx1 = await aTokenContract.approve(flashAccounts.address, position.amount);
-    console.log(`TX1.${++ia} Allow transfer ${_bal(position.amount)} ${position.symbol}\n${ethscan}/tx/${tx1.hash}`);
-    await tx1.wait();
-  }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TX2 : Get Credit Delegation approval 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-let id = 0;
-for await (const position of dashboard) {
-  if (position.type != 'deposit') {
-    let debtTokenContract;
-    if (position.type == 'stable_debt') {
-       debtTokenContract = new ethers.Contract(position.address, IStableDebtToken.ABI, Bob);
-    }
-    if (position.type == 'variable_debt') {
-       debtTokenContract = new ethers.Contract(position.address, IVariableDebtToken.ABI, Bob);
-    }
-
-    const tx2 = await debtTokenContract.approveDelegation(flashAccounts.address, position.amount);
-    console.log(`TX2.${++id} Allow borrow ${_bal(position.amount)} ${position.symbol}\n${ethscan}/tx/${tx2.hash}`);
-    await tx2.wait();
-  }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TX3 : Run Flash Loan
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-const aTokens = [];
-const aTokenAmounts = [];
-for await (const position of dashboard) {
-  aTokens.push(position.address);
-  aTokenAmounts.push(position.amount);
-}
-
-try {
-  console.log("Call flashAccounts.migratePositions");
-  console.log(Alice.address, Bob.address, aTokens, aTokenAmounts);
-                                  
-  const options = { gasPrice: "10000000000", gasLimit: "10000000" };    
-  const tx3 = await flashAccounts.migratePositions(Alice.address, Bob.address, aTokens, aTokenAmounts, options);
-  console.log(`TX3 Flash ${ethscan}/tx/${tx3.hash}`);
-  await tx3.wait();
-} catch (e) {
-  console.error("ERROR", e);
-}
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+await FlashAccounts.Init(Alice, true);
+await FlashAccounts.approveTransfers(dashboard, Alice);
+await FlashAccounts.approveLoans(dashboard, Bob);
+await FlashAccounts.callFlashLoan(dashboard, Alice, Bob);
