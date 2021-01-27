@@ -19,21 +19,21 @@ console.log(`Bob       https://kovan.etherscan.io/address/${Bob.address}`);
 //     address: '0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3',
 //     amount: '6040106687666546916',
 //     symbol: 'sdDAI',
-//     type: 'stable_debt',
+//     type: 1,
 //     decimals: '18'
 //   },
 //   {
 //     address: '0xAA74AdA92dE4AbC0371b75eeA7b1bd790a69C9e1',
 //     amount: '164005971514444963536',
 //     symbol: 'aSNX',
-//     type: 'deposit',
+//     type: 0,
 //     decimals: '18'
 //   },
 //   {
 //     address: '0xF6c7282943Beac96f6C70252EF35501a6c1148Fe',
 //     amount: '900000287756237460',
 //     symbol: 'aYFI',
-//     type: 'deposit',
+//     type: 0,
 //     decimals: '18'
 //   }
 // ];
