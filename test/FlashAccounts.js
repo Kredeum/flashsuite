@@ -28,8 +28,8 @@ describe("FlashAccounts deployment and run", function () {
     // DEBT
     const stableDAI = "0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3";
     const stableBAT = "0x07a0B32983ab8203E8C3493F0AbE5bFe784fAa15";
-    const aliceBorrowedDAI = ethers.utils.parseEther('11');
-    const aliceBorrowedBAT = ethers.utils.parseEther('11');
+    const aliceBorrowedDAI = ethers.utils.parseEther('12');
+    const aliceBorrowedBAT = ethers.utils.parseEther('12');
     const loans = [{symbol: 'DAI', underlyingAsset: DAI, amount: aliceBorrowedDAI, stableDebtTokenAddress: stableDAI}, {symbol: 'BAT', underlyingAsset: BAT, amount: aliceBorrowedBAT, stableDebtTokenAddress: stableBAT}];
    
     // console.log(`DAI       ${ethscan}/address/${DAI}`);
@@ -114,7 +114,8 @@ describe("FlashAccounts deployment and run", function () {
       // const aTokenAmounts = [collateralSNX, collateralYFI];
       const minusOne = BigNumber.from(2).pow(BigNumber.from(256)).sub(BigNumber.from(1)); 
       const aTokenAmounts = [minusOne, minusOne]; // test with max balance
-      const tx3 = await flashAccounts.connect(Alice).migratePositions(Alice.address, Bob.address, aTokens, aTokenAmounts, borrowedUnderlyingAssets, borrowedAmounts);
+      const interestRateModes = [1,1];
+      const tx3 = await flashAccounts.connect(Alice).migratePositions(Alice.address, Bob.address, aTokens, aTokenAmounts, borrowedUnderlyingAssets, borrowedAmounts, interestRateModes);
       expect(tx3.hash).to.match(/^0x/);
       console.log(`TX3 Flash ${ethscan}/tx/${tx3.hash}`);
       await tx3.wait();
