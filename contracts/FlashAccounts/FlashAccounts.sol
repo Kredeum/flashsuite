@@ -46,14 +46,14 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
         returns (bool)
     {
       // Decode params
-      (address Alice,,,,) = abi.decode(params, (address, address, address[], uint256[], uint256[]));
+      (address Alice,,,,uint256[] memory interestRateModes) = abi.decode(params, (address, address, address[], uint256[], uint256[]));
 
       // TX4.1 Get FlashLoan
       // TODO: include other assets
       emit opExec("opExec", msg.sender, assets[0], amounts[0], premiums[0]);
 
       // TX4.2 Repay Alice's loans
-      repayMultipleLoans(assets, amounts, Alice);
+      repayMultipleLoans(assets, amounts, interestRateModes, Alice);
 
       transferAndBorrow(assets, amounts, premiums, params);
 
@@ -107,15 +107,15 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       }
     }
 
-    function repayMultipleLoans(address[] memory _assets, uint256[] memory _amounts, address _onBehalfOf ) internal {
+    function repayMultipleLoans(address[] memory _assets, uint256[] memory _amounts, uint256[] memory _interestRateModes, address _onBehalfOf ) internal {
       for (uint i = 0; i < _assets.length; i++) {
-          repay(_assets[i], _amounts[i], _onBehalfOf);
+          repay(_assets[i], _amounts[i], _interestRateModes[i], _onBehalfOf);
       }
     }
 
-    function repay(address _asset, uint256 _amount, address _onBehalfOf) internal {
+    function repay(address _asset, uint256 _amount, uint256 _interestRateModes, address _onBehalfOf) internal {
       IERC20(_asset).approve(address(LENDING_POOL), _amount);
-      LENDING_POOL.repay(_asset, _amount, 1, _onBehalfOf);
+      LENDING_POOL.repay(_asset, _amount, _interestRateModes, _onBehalfOf);
     }
 
     function migratePositions(address _from, address _to, address[] calldata _aTokens, uint256[] calldata _aTokenAmounts,
