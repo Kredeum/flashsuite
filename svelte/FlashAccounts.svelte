@@ -73,17 +73,18 @@
 
   async function step1() {
     step = 1;
+    dis1 = true; 
     addressFrom = address;
     await FlashAccounts.approveTransfers(dashboards[addressFrom], signer);
-    dis1 = true; dis2 = false;
+    dis2 = false;
   }
   async function step2() {
     if (addressFrom) {
       step = 2;
       addressTo = address;
       if (addressFrom != addressTo) {
-        await FlashAccounts.approveLoans(dashboards[addressFrom], signer);
         dis2 = true; 
+        await FlashAccounts.approveLoans(dashboards[addressFrom], signer);
         step3();
       } else {
         alert("You have to use another account");
