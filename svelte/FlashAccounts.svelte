@@ -7,16 +7,21 @@
   import Dashboard from "./Dashboard.svelte";
   import FlashAccounts from "../lib/contracts/FlashAccounts.mjs";
 
-  $: addresses = [];
+  let dashboards = {};
+  let addresses = [];
+  let dis1 = true;
+  let dis2 = true;
+  let step = 0; 
+
   let address, addressFrom, addressTo;
   let signer;
-  let dashboards = {};
-
-  let signerFrom, signerTo;
-  let dashboardFrom = {};
   let network;
+
   Dashboards.subscribe((value) => {
+    console.log("in subscribe", dashboards, value);
     dashboards = value;
+    console.log("in subscribe", dashboards, dashboards.length, step);
+    if (Object.keys(dashboards).length >= 1 && step == 0) dis1 = false;
   });
 
   async function handleAccounts(accounts) {
@@ -27,7 +32,9 @@
         addresses = [...addresses, address];
       }
     } else {
-      alert("no accounts");
+      alert(
+        "Please connect the account you want to migrate with Metamask or another Wallet"
+      );
     }
     console.log("handleAccounts", accounts, addresses);
   }
@@ -60,19 +67,24 @@
 
   ethereum.on("connect", console.log);
   ethereum.on("message", console.log);
-  ethereum.on("disconnect", console.error);
+  ethereum.on("disconnect", console.log);
   ethereum.on("chainChanged", handleChain);
   ethereum.on("accountsChanged", handleAccounts);
 
   async function step1() {
+    step = 1;
     addressFrom = address;
     await FlashAccounts.approveTransfers(dashboards[addressFrom], signer);
+    dis1 = true; dis2 = false;
   }
   async function step2() {
     if (addressFrom) {
+      step = 2;
       addressTo = address;
       if (addressFrom != addressTo) {
         await FlashAccounts.approveLoans(dashboards[addressFrom], signer);
+        dis2 = true; 
+        step3();
       } else {
         alert("You have to use another account");
       }
@@ -82,15 +94,18 @@
   }
   async function step3() {
     if (addressTo) {
+      step = 3;
       await FlashAccounts.callFlashLoan(
         dashboards[addressFrom],
         addressFrom,
         addressTo,
         signer
       );
+      document.location.reload();
     } else {
       alert("Step 1 and 2 first !");
     }
+
   }
 </script>
 
@@ -99,13 +114,12 @@
 
   <hr />
   <p>
-    <button on:click={step1}>STEP 1 : Approve Tranfers</button>
-    <button on:click={step2}>STEP 2 : Approve Loan</button>
-    <button on:click={step3}>STEP 3 : Call FlashLoan</button>
+    <button disabled={dis1} on:click={step1}>STEP 1 : Approve Tranfers</button>
+    <button disabled={dis2} on:click={step2}>STEP 2 : Approve Loan</button>
   </p>
 
   <table>
-    {#each addresses as address}
+    {#each addresses as address, i}
       <tr><td class="cadre"><Dashboard user={address} /></td> </tr>
     {/each}
   </table>
