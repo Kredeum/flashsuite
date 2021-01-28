@@ -115,7 +115,7 @@
   <hr />
   <p>
     <button disabled={dis1} on:click={step1}>STEP 1 : Approve Tranfers</button>
-    <button disabled={dis2} on:click={step2}>STEP 2 : Approve Loan</button>
+    <button disabled={dis2} on:click={step2}>STEP 2 : Approve Loans</button>
   </p>
 
   <table>
