@@ -1,0 +1,12 @@
+{
+  flashLoans(first:3, where:{initiator:"0xa6d2114199e527799c22542b96f05c75234d178a"}) {
+    totalFee
+    id
+    target
+    reserve {
+      id
+    }
+    amount
+    totalFee
+  }
+}

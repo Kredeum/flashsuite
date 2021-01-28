@@ -1,0 +1,12 @@
+{
+  atokens(first: 100) {
+    id
+    underlyingAssetDecimals
+    underlyingAssetAddress
+    pool {
+      id
+    }
+    tokenContractImpl
+    
+  }
+}

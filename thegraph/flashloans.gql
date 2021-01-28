@@ -1,0 +1,12 @@
+{
+  flashLoans(first:3, orderBy:timestamp, orderDirection:desc) {
+    id
+    reserve {
+      name
+      symbol
+    }
+    amount,
+    target,
+    timestamp
+  }
+}
