@@ -29,9 +29,9 @@ function serve() {
 
 const toRollupConfig = component => {
   return {
-    input: `svelte/${component}.js`,
+    input: `svelte/${component}.svelte`,
     output: {
-      sourcemap: true,
+      sourcemap: false,
       format: 'iife',
       name: 'app',
       file: `docs/${component}.js`
@@ -43,9 +43,9 @@ const toRollupConfig = component => {
         dev: !production,
         // we'll extract any component CSS out into
         // a separate file - better for performance
-        css: css => {
-          css.write(`${component}.css`);
-        },
+        // css: css => {
+        //   css.write(`${component}.css`);
+        // },
       }),
 
       // If you have external dependencies installed from
@@ -74,16 +74,16 @@ const toRollupConfig = component => {
     watch: {
       clearScreen: false
     },
-    onwarn: function(warning) {
+    onwarn: function (warning) {
       // Skip certain warnings
-  
+
       // should intercept ... but doesn't in some rollup versions
-      if ( warning.code === 'THIS_IS_UNDEFINED' ) { return; }
-  
+      if (warning.code === 'THIS_IS_UNDEFINED') { return; }
+
       // console.warn everything else
-      console.warn( warning.message );
-  }
-  
+      console.warn(warning.message);
+    }
+
   }
 };
 
