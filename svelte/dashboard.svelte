@@ -16,7 +16,7 @@
     let _dashboard = {};
     if (user) {
       console.log("dashboard(user)", user);
-      
+
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       console.log("_provider", _provider);
 
@@ -30,7 +30,6 @@
 </script>
 
 <main>
-  <h2>AAVE Dashboard</h2>
   <small>{user}</small>
 
   {#await dashboard(user)}
@@ -72,7 +71,7 @@
 
 <style>
   main {
-    padding: 1em;
+    padding: 0em;
     max-width: 240px;
     margin: 0 auto;
   }

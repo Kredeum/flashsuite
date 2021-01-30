@@ -31,7 +31,7 @@ const toRollupConfig = component => {
   return {
     input: `svelte/${component}.svelte`,
     output: {
-      sourcemap: false,
+      sourcemap: true,
       format: 'iife',
       name: 'app',
       file: `docs/${component}.js`
