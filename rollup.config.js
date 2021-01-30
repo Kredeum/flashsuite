@@ -90,4 +90,5 @@ const toRollupConfig = component => {
 
 export default [
   toRollupConfig('flashaccounts'),
+  toRollupConfig('arbitrage')
 ];
