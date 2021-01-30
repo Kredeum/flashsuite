@@ -40,6 +40,12 @@ var app = (function () {
     function detach(node) {
         node.parentNode.removeChild(node);
     }
+    function destroy_each(iterations, detaching) {
+        for (let i = 0; i < iterations.length; i += 1) {
+            if (iterations[i])
+                iterations[i].d(detaching);
+        }
+    }
     function element(name) {
         return document.createElement(name);
     }
@@ -52,8 +58,25 @@ var app = (function () {
     function empty() {
         return text('');
     }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
     function children(element) {
         return Array.from(element.childNodes);
+    }
+    function select_option(select, value) {
+        for (let i = 0; i < select.options.length; i += 1) {
+            const option = select.options[i];
+            if (option.__value === value) {
+                option.selected = true;
+                return;
+            }
+        }
+    }
+    function select_value(select) {
+        const selected_option = select.querySelector(':checked') || select.options[0];
+        return selected_option && selected_option.__value;
     }
     function custom_event(type, detail) {
         const e = document.createEvent('CustomEvent');
@@ -249,6 +272,12 @@ var app = (function () {
             info.resolved = promise;
         }
     }
+
+    const globals = (typeof window !== 'undefined'
+        ? window
+        : typeof globalThis !== 'undefined'
+            ? globalThis
+            : global);
     function mount_component(component, target, anchor) {
         const { fragment, on_mount, on_destroy, after_update } = component.$$;
         fragment && fragment.m(target, anchor);
@@ -400,6 +429,35 @@ var app = (function () {
     function detach_dev(node) {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
+    }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
+    }
+    function set_data_dev(text, data) {
+        data = '' + data;
+        if (text.wholeText === data)
+            return;
+        dispatch_dev('SvelteDOMSetData', { node: text, data });
+        text.data = data;
+    }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
     }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
@@ -17670,44 +17728,117 @@ var app = (function () {
       }
     ];
 
-    const UNISWAP_FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
+    var addresses = {
+      mainnet: {
+        uniswap: {
+          factory: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f',
+        },
+        sushiswap: {
+          factory: '0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac',
+        },
+        DAIAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+        WETHAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+        USDCAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        USDTAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      },
+      kovan: {
+        daiAddress: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
+        wethAddress: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
+      }
+    };
 
-    // Kovan addresses
-    const daiAddress = '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa';
-    const wethAddress = '0xd0a1e359811322d97991e03f863a0c30c2cf029c';
+    const {mainnet} = addresses;
 
-    async function getUniswapPairPrice(asset1 = 'DAI', asset2= 'ETH') {
+
+    async function getUniswapPairPrice({asset1 = 'DAI', asset2 = 'WETH', _protocol = 'uniswap'}) {
 
       // Get provider
-      const _provider = new Web3Provider(window.ethereum);
-      console.log("_provider", _provider);
+      const provider = new Web3Provider(window.ethereum);
 
-      const uniswapFactory = new Contract(UNISWAP_FACTORY_ADDRESS, IUniswapV2FactoryABI, _provider);
-
-
+      // Get Uniswap Factory
+      const uniswapFactory = new Contract(mainnet[_protocol].factory, IUniswapV2FactoryABI, provider);
       console.log('uniswapFactory loaded from', uniswapFactory.address);
-      const pairAddress = await uniswapFactory.getPair(wethAddress, daiAddress);
-      // const pairAddress = await uniswapFactory.allPairs(1);
-      console.log('pairAddress', pairAddress);
-      const uniswapEthDai = new Contract(pairAddress,
-        IUniswapV2PairABI, _provider
+
+      // Get asset addresses
+      const asset1Address = mainnet[`${asset1}Address`];
+      const asset2Address = mainnet[`${asset2}Address`];
+
+      const pairAddress = await uniswapFactory.getPair(asset1Address, asset2Address);
+      console.log('pairAddress: ', pairAddress);
+
+      const pair = new Contract(pairAddress,
+        IUniswapV2PairABI, provider
       );
-      console.log('uniswapEthDai', uniswapEthDai);
       
-      const uniswapReserves = await uniswapEthDai.getReserves();
+      const pairReserves = await pair.getReserves();
 
-      const reserve0Uni = Number(formatUnits(uniswapReserves[0], 18));
-      const reserve1Uni = Number(formatUnits(uniswapReserves[1], 18));
+      const reserve0 = Number(formatUnits(pairReserves[0], 18));
+      const reserve1 = Number(formatUnits(pairReserves[1], 18));
 
-      const uniswapPrice = reserve0Uni / reserve1Uni;
+      const price = reserve0 / reserve1;
 
-      console.log('price from Uniswap:', uniswapPrice);
+      console.log(`price for ${asset1} / ${asset2}:`, price);
 
-      return uniswapPrice;
+      return price;
      }
 
+    async function getPriceData({ pair }) {
+      const uniswapPrice = await getUniswapPairPrice({ "asset1": pair.asset1, "asset2": pair.asset2 });
+      const sushiswapPrice = await getUniswapPairPrice({ "_protocol": "sushiswap", "asset1": pair.asset1, "asset2": pair.asset2 });
+
+      const spread = `${(sushiswapPrice / uniswapPrice - 1) * 100}%`;
+
+      return { uniswapPrice, sushiswapPrice, spread };
+    }
+
     /* svelte/arbitrage.svelte generated by Svelte v3.32.0 */
+
+    const { console: console_1 } = globals;
     const file = "svelte/arbitrage.svelte";
+
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[10] = list[i];
+    	return child_ctx;
+    }
+
+    // (39:2) {#each pairs as pair}
+    function create_each_block(ctx) {
+    	let option;
+    	let t0_value = /*pair*/ ctx[10].text + "";
+    	let t0;
+    	let t1;
+
+    	const block = {
+    		c: function create() {
+    			option = element("option");
+    			t0 = text(t0_value);
+    			t1 = space();
+    			option.__value = /*pair*/ ctx[10];
+    			option.value = option.__value;
+    			add_location(option, file, 39, 4, 1003);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, option, anchor);
+    			append_dev(option, t0);
+    			append_dev(option, t1);
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(option);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(39:2) {#each pairs as pair}",
+    		ctx
+    	});
+
+    	return block;
+    }
 
     // (1:0) <svelte:options tag="flashsuite-arbitrage" immutable={true}
     function create_catch_block(ctx) {
@@ -17724,24 +17855,138 @@ var app = (function () {
     	return block;
     }
 
-    // (18:0) {:then payload }
+    // (48:0) {:then}
     function create_then_block(ctx) {
-    	let p;
+    	let if_block_anchor;
+
+    	function select_block_type(ctx, dirty) {
+    		if (/*loading*/ ctx[0]) return create_if_block;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
+
+    	const block = {
+    		c: function create() {
+    			if_block.c();
+    			if_block_anchor = empty();
+    		},
+    		m: function mount(target, anchor) {
+    			if_block.m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if_block.d(detaching);
+    			if (detaching) detach_dev(if_block_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_then_block.name,
+    		type: "then",
+    		source: "(48:0) {:then}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (51:2) {:else}
+    function create_else_block(ctx) {
+    	let p0;
     	let t0;
-    	let t1_value = /*payload*/ ctx[1].uniswapPrice + "";
     	let t1;
+    	let t2;
+    	let p1;
+    	let t3;
+    	let t4;
+    	let t5;
+    	let p2;
+    	let t6;
+    	let t7;
+
+    	const block = {
+    		c: function create() {
+    			p0 = element("p");
+    			t0 = text("Price from Uniswap is ");
+    			t1 = text(/*uniswapPrice*/ ctx[1]);
+    			t2 = space();
+    			p1 = element("p");
+    			t3 = text("Price from Sushiswap is ");
+    			t4 = text(/*sushiswapPrice*/ ctx[2]);
+    			t5 = space();
+    			p2 = element("p");
+    			t6 = text("Spread is: ");
+    			t7 = text(/*spread*/ ctx[3]);
+    			add_location(p0, file, 51, 4, 1174);
+    			add_location(p1, file, 52, 4, 1222);
+    			add_location(p2, file, 53, 4, 1274);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, p0, anchor);
+    			append_dev(p0, t0);
+    			append_dev(p0, t1);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, p1, anchor);
+    			append_dev(p1, t3);
+    			append_dev(p1, t4);
+    			insert_dev(target, t5, anchor);
+    			insert_dev(target, p2, anchor);
+    			append_dev(p2, t6);
+    			append_dev(p2, t7);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*uniswapPrice*/ 2) set_data_dev(t1, /*uniswapPrice*/ ctx[1]);
+    			if (dirty & /*sushiswapPrice*/ 4) set_data_dev(t4, /*sushiswapPrice*/ ctx[2]);
+    			if (dirty & /*spread*/ 8) set_data_dev(t7, /*spread*/ ctx[3]);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(p0);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(p1);
+    			if (detaching) detach_dev(t5);
+    			if (detaching) detach_dev(p2);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block.name,
+    		type: "else",
+    		source: "(51:2) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (49:2) {#if loading}
+    function create_if_block(ctx) {
+    	let p;
 
     	const block = {
     		c: function create() {
     			p = element("p");
-    			t0 = text("Price from uni is ");
-    			t1 = text(t1_value);
-    			add_location(p, file, 18, 2, 336);
+    			p.textContent = "Fetching";
+    			add_location(p, file, 49, 4, 1144);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
-    			append_dev(p, t0);
-    			append_dev(p, t1);
     		},
     		p: noop,
     		d: function destroy(detaching) {
@@ -17751,16 +17996,16 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_then_block.name,
-    		type: "then",
-    		source: "(18:0) {:then payload }",
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(49:2) {#if loading}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (16:15)    <p>Loading</p> {:then payload }
+    // (46:20)    <p>Loading</p> {:then}
     function create_pending_block(ctx) {
     	let p;
 
@@ -17768,7 +18013,7 @@ var app = (function () {
     		c: function create() {
     			p = element("p");
     			p.textContent = "Loading";
-    			add_location(p, file, 16, 2, 301);
+    			add_location(p, file, 46, 2, 1101);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -17783,7 +18028,7 @@ var app = (function () {
     		block,
     		id: create_pending_block.name,
     		type: "pending",
-    		source: "(16:15)    <p>Loading</p> {:then payload }",
+    		source: "(46:20)    <p>Loading</p> {:then}",
     		ctx
     	});
 
@@ -17793,7 +18038,18 @@ var app = (function () {
     function create_fragment(ctx) {
     	let h1;
     	let t1;
+    	let select;
+    	let t2;
     	let await_block_anchor;
+    	let mounted;
+    	let dispose;
+    	let each_value = /*pairs*/ ctx[5];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
 
     	let info = {
     		ctx,
@@ -17802,21 +18058,29 @@ var app = (function () {
     		hasCatch: false,
     		pending: create_pending_block,
     		then: create_then_block,
-    		catch: create_catch_block,
-    		value: 1
+    		catch: create_catch_block
     	};
 
-    	handle_promise(/*main*/ ctx[0](), info);
+    	handle_promise(/*getPrices*/ ctx[6](), info);
 
     	const block = {
     		c: function create() {
     			h1 = element("h1");
-    			h1.textContent = "HEY";
+    			h1.textContent = "FlashArb";
     			t1 = space();
+    			select = element("select");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t2 = space();
     			await_block_anchor = empty();
     			info.block.c();
     			this.c = noop;
-    			add_location(h1, file, 14, 0, 270);
+    			add_location(h1, file, 35, 0, 845);
+    			if (/*selectedPair*/ ctx[4] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[8].call(select));
+    			add_location(select, file, 37, 0, 903);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -17824,17 +18088,61 @@ var app = (function () {
     		m: function mount(target, anchor) {
     			insert_dev(target, h1, anchor);
     			insert_dev(target, t1, anchor);
+    			insert_dev(target, select, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(select, null);
+    			}
+
+    			select_option(select, /*selectedPair*/ ctx[4]);
+    			insert_dev(target, t2, anchor);
     			insert_dev(target, await_block_anchor, anchor);
     			info.block.m(target, info.anchor = anchor);
     			info.mount = () => await_block_anchor.parentNode;
     			info.anchor = await_block_anchor;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(select, "change", /*select_change_handler*/ ctx[8]),
+    					listen_dev(select, "change", /*change_handler*/ ctx[9], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
     		p: function update(new_ctx, [dirty]) {
     			ctx = new_ctx;
 
+    			if (dirty & /*pairs*/ 32) {
+    				each_value = /*pairs*/ ctx[5];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(select, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*selectedPair, pairs*/ 48) {
+    				select_option(select, /*selectedPair*/ ctx[4]);
+    			}
+
     			{
     				const child_ctx = ctx.slice();
-    				child_ctx[1] = info.resolved;
     				info.block.p(child_ctx, dirty);
     			}
     		},
@@ -17843,10 +18151,15 @@ var app = (function () {
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(h1);
     			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(select);
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(t2);
     			if (detaching) detach_dev(await_block_anchor);
     			info.block.d(detaching);
     			info.token = null;
     			info = null;
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
@@ -17864,20 +18177,98 @@ var app = (function () {
     function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("flashsuite-arbitrage", slots, []);
+    	let loading;
+    	let uniswapPrice = 0;
+    	let sushiswapPrice = 0;
+    	let spread;
 
-    	const main = async () => {
-    		const uniswapPrice = await getUniswapPairPrice();
-    		return { uniswapPrice };
-    	};
+    	const pairs = [
+    		{
+    			id: "DAI_WETH",
+    			text: "DAI-WETH",
+    			asset1: "DAI",
+    			asset2: "WETH"
+    		},
+    		{
+    			id: "USDC_WETH",
+    			text: "USDC-WETH",
+    			asset1: "USDC",
+    			asset2: "WETH"
+    		},
+    		{
+    			id: "USDT_WETH",
+    			text: "USDT-WETH",
+    			asset1: "USDT",
+    			asset2: "WETH"
+    		}
+    	];
+
+    	let selectedPair = pairs[0];
+
+    	async function getPrices() {
+    		console.log("selectedPair", selectedPair);
+    		const data = await getPriceData({ pair: selectedPair });
+    		$$invalidate(1, uniswapPrice = data.uniswapPrice);
+    		$$invalidate(2, sushiswapPrice = data.sushiswapPrice);
+    		$$invalidate(3, spread = data.spread);
+    	}
+
+    	async function onReloadPrices() {
+    		$$invalidate(0, loading = true);
+    		await getPrices();
+    		$$invalidate(0, loading = false);
+    	}
 
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<flashsuite-arbitrage> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1.warn(`<flashsuite-arbitrage> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ getUniswapPairPrice, main });
-    	return [main];
+    	function select_change_handler() {
+    		selectedPair = select_value(this);
+    		$$invalidate(4, selectedPair);
+    		$$invalidate(5, pairs);
+    	}
+
+    	const change_handler = () => onReloadPrices();
+
+    	$$self.$capture_state = () => ({
+    		getPriceData,
+    		loading,
+    		uniswapPrice,
+    		sushiswapPrice,
+    		spread,
+    		pairs,
+    		selectedPair,
+    		getPrices,
+    		onReloadPrices
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ("loading" in $$props) $$invalidate(0, loading = $$props.loading);
+    		if ("uniswapPrice" in $$props) $$invalidate(1, uniswapPrice = $$props.uniswapPrice);
+    		if ("sushiswapPrice" in $$props) $$invalidate(2, sushiswapPrice = $$props.sushiswapPrice);
+    		if ("spread" in $$props) $$invalidate(3, spread = $$props.spread);
+    		if ("selectedPair" in $$props) $$invalidate(4, selectedPair = $$props.selectedPair);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [
+    		loading,
+    		uniswapPrice,
+    		sushiswapPrice,
+    		spread,
+    		selectedPair,
+    		pairs,
+    		getPrices,
+    		onReloadPrices,
+    		select_change_handler,
+    		change_handler
+    	];
     }
 
     class Arbitrage extends SvelteElement {
