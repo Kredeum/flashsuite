@@ -124,7 +124,6 @@
 </script>
 
 <main>
-  <img src="logo.png" width="600" alt="FlashSuite" />
   <p><strong>FlashSuite Accounts : transfer your AAVE account to another address</strong></p>
   <hr />
 
@@ -171,6 +170,7 @@
   main {
     padding: 1em;
     margin: 0 auto;
+    background-color: white;
   }
   h2 {
     padding-left: 10px;
