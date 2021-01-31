@@ -26,26 +26,30 @@
     }
   }
   async function setBalance(_address) {
-    ethereum
-      .request({
-        method: "eth_getBalance",
-        params: [_address, "latest"],
-      })
-      .then((bal) => {
-        balance = (bal / 10 ** 18).toString();
-      });
+    if (_address) {
+      ethereum
+        .request({
+          method: "eth_getBalance",
+          params: [_address, "latest"],
+        })
+        .then((bal) => {
+          balance = (bal / 10 ** 18).toString();
+        })
+        .catch(console.error);
+    }
   }
   function setNetwork(_chainId) {
     const networks = new Map([
-      [1, "mainnet"],
-      [3, "ropsten"],
-      [4, "rinkeby"],
-      [5, "goerli"],
-      [42, "kovan"],
-    ]);
-    network = networks.get(Number(_chainId));
+        [1, "mainnet"],
+        [3, "ropsten"],
+        [4, "rinkeby"],
+        [5, "goerli"],
+        [42, "kovan"],
+      ]);
+    if (_chainId) {
+      network = networks.get(Number(_chainId));
+    }
   }
-
   function connectMetamask() {
     ethereum
       .request({ method: "eth_requestAccounts" })
