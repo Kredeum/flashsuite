@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.6.12;
 
-import {IFlashLoanReceiver, ILendingPoolAddressesProvider, ILendingPool, IERC20  } from "./Interfaces.sol";
-import { SafeERC20, SafeMath } from "./Libraries.sol";
+import {IFlashLoanReceiver, ILendingPoolAddressesProvider, ILendingPool  } from "./Interfaces.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
+import { SafeERC20 } from "../libraries/SafeERC20.sol";
+import { SafeMath } from "../libraries/SafeMath.sol";
 
 abstract contract FlashLoanReceiverBase is IFlashLoanReceiver {
   using SafeERC20 for IERC20;

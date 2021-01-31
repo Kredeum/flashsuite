@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.6.12;
 
-// https://github.com/aave/code-examples-protocol/tree/main/V2/Flash%20Loan%20-%20Batch
-
 import { FlashLoanReceiverBase } from "../aave/FlashLoanReceiverBase.sol";
-import { ILendingPool, ILendingPoolAddressesProvider, IERC20, IProtocolDataProvider, IStableDebtToken, IAToken } from "../aave/Interfaces.sol";
-import { SafeMath } from "../aave/Libraries.sol";
+import { ILendingPool, ILendingPoolAddressesProvider, IProtocolDataProvider, IStableDebtToken, IAToken } from "../aave/Interfaces.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
+import { SafeMath } from "../libraries/SafeMath.sol";
 
-import "../aave/Ownable.sol";
+import "../libraries/Ownable.sol";
 
 contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;

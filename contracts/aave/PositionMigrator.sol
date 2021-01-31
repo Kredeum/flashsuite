@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.6.12;
-import { SafeMath, SafeERC20 } from "./Libraries.sol";
-import { ILendingPoolAddressesProvider, ILendingPool, IProtocolDataProvider, IERC20, IAToken  } from "./Interfaces.sol";
+import { ILendingPoolAddressesProvider, ILendingPool, IProtocolDataProvider, IAToken  } from "./Interfaces.sol";
 
+import { IERC20 } from "../interfaces/IERC20.sol";
+import { SafeMath } from "../libraries/SafeMath.sol";
+import { SafeERC20 } from "../libraries/SafeERC20.sol";
 
 contract PositionMigrator {
     using SafeMath for uint256;
