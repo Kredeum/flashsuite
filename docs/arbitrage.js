@@ -16909,6 +16909,28 @@ var app = (function () {
         return formatFixed(value, (unitName != null) ? unitName : 18);
     }
 
+    const MAINNET_ENDPOINT = "https://api.0x.org";
+    const KOVAN_ENDPOINT =	"https://kovan.api.0x.org";
+
+    async function get0xPairPrice({asset1 = 'DAI', asset2 = 'WETH', amount = '1000000000000000000',  network = 'mainnet'}) {
+
+      const endpoint = network === 'mainnet' ? MAINNET_ENDPOINT : KOVAN_ENDPOINT;
+
+      const withoutUniswapV2 = 'Uniswap_V2,';
+
+      const params = {
+        buyToken: asset1,
+        sellToken: asset2,
+        sellAmount: amount,
+        excludedSources: withoutUniswapV2
+      };
+
+      const data = await fetch(`${endpoint}/swap/v1/price?` + new URLSearchParams(params));
+
+      console.log('data', data);
+
+    }
+
     const IUniswapV2FactoryABI = 
     [
         {
@@ -17785,6 +17807,8 @@ var app = (function () {
     async function getPriceData({ pair }) {
       const uniswapPrice = await getUniswapPairPrice({ "asset1": pair.asset1, "asset2": pair.asset2 });
       const sushiswapPrice = await getUniswapPairPrice({ "_protocol": "sushiswap", "asset1": pair.asset1, "asset2": pair.asset2 });
+      
+      await get0xPairPrice({asset1: pair.asset1, asset2: pair.asset2});
 
       const spread = `${(sushiswapPrice / uniswapPrice - 1) * 100}%`;
 
