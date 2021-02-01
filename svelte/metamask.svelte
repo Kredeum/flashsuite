@@ -1,5 +1,28 @@
 <svelte:options tag="svelte-metamask" immutable={true} />
 
+
+<style>
+  .block_contents {
+  position: absolute;
+  z-index: 1;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-align-self: center;
+  -ms-flex-item-align: center;
+  align-self: center;
+}
+</style>
+
 <script>
   import { ethers } from "ethers";
   import detectEthereumProvider from "@metamask/detect-provider";
@@ -87,13 +110,16 @@
 </script>
 
 {#if address}
-  <p><strong>account connected</strong></p>
+  <!-- <p><strong>account connected</strong></p>
   <small>
     account: {address}<br />
     balance: {balance}<br />
     network: {network}
-  </small>
+  </small> -->
+  <span>{address.substr(0, 6) +
+    "..." +
+    address.substring(address.length - 4, address.length)}
+  </span>
 {:else}
-  <button on:click={connectMetamask}>Connect Metamask</button>
+  <span on:click={connectMetamask}>Connect wallet</span>
 {/if}
-<hr />

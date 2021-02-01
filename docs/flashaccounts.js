@@ -24032,29 +24032,29 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$1 = "svelte/metamask.svelte";
 
-    // (96:0) {:else}
+    // (123:0) {:else}
     function create_else_block(ctx) {
-    	let button;
+    	let span;
     	let mounted;
     	let dispose;
 
     	const block = {
     		c: function create() {
-    			button = element("button");
-    			button.textContent = "Connect Metamask";
-    			add_location(button, file$1, 96, 2, 2379);
+    			span = element("span");
+    			span.textContent = "Connect wallet";
+    			add_location(span, file$1, 123, 2, 2981);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, button, anchor);
+    			insert_dev(target, span, anchor);
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*connectMetamask*/ ctx[3], false, false, false);
+    				dispose = listen_dev(span, "click", /*connectMetamask*/ ctx[1], false, false, false);
     				mounted = true;
     			}
     		},
     		p: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(button);
+    			if (detaching) detach_dev(span);
     			mounted = false;
     			dispose();
     		}
@@ -24064,72 +24064,34 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(96:0) {:else}",
+    		source: "(123:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (89:0) {#if address}
+    // (112:0) {#if address}
     function create_if_block$1(ctx) {
-    	let p;
-    	let strong;
-    	let t1;
-    	let small;
-    	let t2;
-    	let t3;
-    	let br0;
-    	let t4;
-    	let t5;
-    	let br1;
-    	let t6;
-    	let t7;
+    	let span;
+    	let t_value = /*address*/ ctx[0].substr(0, 6) + "..." + /*address*/ ctx[0].substring(/*address*/ ctx[0].length - 4, /*address*/ ctx[0].length) + "";
+    	let t;
 
     	const block = {
     		c: function create() {
-    			p = element("p");
-    			strong = element("strong");
-    			strong.textContent = "account connected";
-    			t1 = space();
-    			small = element("small");
-    			t2 = text("account: ");
-    			t3 = text(/*address*/ ctx[0]);
-    			br0 = element("br");
-    			t4 = text("\n    balance: ");
-    			t5 = text(/*balance*/ ctx[2]);
-    			br1 = element("br");
-    			t6 = text("\n    network: ");
-    			t7 = text(/*network*/ ctx[1]);
-    			add_location(strong, file$1, 89, 5, 2228);
-    			add_location(p, file$1, 89, 2, 2225);
-    			add_location(br0, file$1, 91, 22, 2299);
-    			add_location(br1, file$1, 92, 22, 2328);
-    			add_location(small, file$1, 90, 2, 2269);
+    			span = element("span");
+    			t = text(t_value);
+    			add_location(span, file$1, 118, 2, 2860);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, p, anchor);
-    			append_dev(p, strong);
-    			insert_dev(target, t1, anchor);
-    			insert_dev(target, small, anchor);
-    			append_dev(small, t2);
-    			append_dev(small, t3);
-    			append_dev(small, br0);
-    			append_dev(small, t4);
-    			append_dev(small, t5);
-    			append_dev(small, br1);
-    			append_dev(small, t6);
-    			append_dev(small, t7);
+    			insert_dev(target, span, anchor);
+    			append_dev(span, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*address*/ 1) set_data_dev(t3, /*address*/ ctx[0]);
-    			if (dirty & /*balance*/ 4) set_data_dev(t5, /*balance*/ ctx[2]);
-    			if (dirty & /*network*/ 2) set_data_dev(t7, /*network*/ ctx[1]);
+    			if (dirty & /*address*/ 1 && t_value !== (t_value = /*address*/ ctx[0].substr(0, 6) + "..." + /*address*/ ctx[0].substring(/*address*/ ctx[0].length - 4, /*address*/ ctx[0].length) + "")) set_data_dev(t, t_value);
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(p);
-    			if (detaching) detach_dev(t1);
-    			if (detaching) detach_dev(small);
+    			if (detaching) detach_dev(span);
     		}
     	};
 
@@ -24137,7 +24099,7 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(89:0) {#if address}",
+    		source: "(112:0) {#if address}",
     		ctx
     	});
 
@@ -24145,8 +24107,7 @@ var app = (function () {
     }
 
     function create_fragment$1(ctx) {
-    	let t;
-    	let hr;
+    	let if_block_anchor;
 
     	function select_block_type(ctx, dirty) {
     		if (/*address*/ ctx[0]) return create_if_block$1;
@@ -24159,18 +24120,15 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			if_block.c();
-    			t = space();
-    			hr = element("hr");
+    			if_block_anchor = empty();
     			this.c = noop;
-    			add_location(hr, file$1, 98, 0, 2446);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			if_block.m(target, anchor);
-    			insert_dev(target, t, anchor);
-    			insert_dev(target, hr, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
     		},
     		p: function update(ctx, [dirty]) {
     			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
@@ -24181,7 +24139,7 @@ var app = (function () {
 
     				if (if_block) {
     					if_block.c();
-    					if_block.m(t.parentNode, t);
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
     				}
     			}
     		},
@@ -24189,8 +24147,7 @@ var app = (function () {
     		o: noop,
     		d: function destroy(detaching) {
     			if_block.d(detaching);
-    			if (detaching) detach_dev(t);
-    			if (detaching) detach_dev(hr);
+    			if (detaching) detach_dev(if_block_anchor);
     		}
     	};
 
@@ -24215,7 +24172,7 @@ var app = (function () {
     	let { signer = {} } = $$props;
 
     	async function handleChainChanged(_chainId) {
-    		$$invalidate(4, chainId = _chainId);
+    		$$invalidate(2, chainId = _chainId);
     		setNetwork(chainId);
     		setBalance(address);
     	}
@@ -24235,7 +24192,7 @@ var app = (function () {
     			method: "eth_getBalance",
     			params: [_address, "latest"]
     		}).then(bal => {
-    			$$invalidate(2, balance = (bal / 10 ** 18).toString());
+    			$$invalidate(4, balance = (bal / 10 ** 18).toString());
     		});
     	}
 
@@ -24248,7 +24205,7 @@ var app = (function () {
     				[42, "kovan"]
     			]);
 
-    		$$invalidate(1, network = networks.get(Number(_chainId)));
+    		$$invalidate(3, network = networks.get(Number(_chainId)));
     	}
 
     	function connectMetamask() {
@@ -24269,7 +24226,7 @@ var app = (function () {
     				alert("Do you have multiple wallets installed?");
     			}
 
-    			$$invalidate(4, chainId = await ethereum.request({ method: "eth_chainId" }));
+    			$$invalidate(2, chainId = await ethereum.request({ method: "eth_chainId" }));
     			handleChainChanged(chainId);
 
     			ethereum.request({ method: "eth_accounts" }).then(handleAccountsChanged).catch(err => {
@@ -24293,10 +24250,10 @@ var app = (function () {
     	});
 
     	$$self.$$set = $$props => {
-    		if ("chainId" in $$props) $$invalidate(4, chainId = $$props.chainId);
+    		if ("chainId" in $$props) $$invalidate(2, chainId = $$props.chainId);
     		if ("address" in $$props) $$invalidate(0, address = $$props.address);
-    		if ("network" in $$props) $$invalidate(1, network = $$props.network);
-    		if ("balance" in $$props) $$invalidate(2, balance = $$props.balance);
+    		if ("network" in $$props) $$invalidate(3, network = $$props.network);
+    		if ("balance" in $$props) $$invalidate(4, balance = $$props.balance);
     		if ("signer" in $$props) $$invalidate(5, signer = $$props.signer);
     	};
 
@@ -24317,10 +24274,10 @@ var app = (function () {
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("chainId" in $$props) $$invalidate(4, chainId = $$props.chainId);
+    		if ("chainId" in $$props) $$invalidate(2, chainId = $$props.chainId);
     		if ("address" in $$props) $$invalidate(0, address = $$props.address);
-    		if ("network" in $$props) $$invalidate(1, network = $$props.network);
-    		if ("balance" in $$props) $$invalidate(2, balance = $$props.balance);
+    		if ("network" in $$props) $$invalidate(3, network = $$props.network);
+    		if ("balance" in $$props) $$invalidate(4, balance = $$props.balance);
     		if ("signer" in $$props) $$invalidate(5, signer = $$props.signer);
     	};
 
@@ -24328,12 +24285,13 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [address, network, balance, connectMetamask, chainId, signer];
+    	return [address, connectMetamask, chainId, network, balance, signer];
     }
 
     class Metamask extends SvelteElement {
     	constructor(options) {
     		super();
+    		
 
     		init(
     			this,
@@ -24345,10 +24303,10 @@ var app = (function () {
     			create_fragment$1,
     			not_equal,
     			{
-    				chainId: 4,
+    				chainId: 2,
     				address: 0,
-    				network: 1,
-    				balance: 2,
+    				network: 3,
+    				balance: 4,
     				signer: 5
     			}
     		);
@@ -24370,7 +24328,7 @@ var app = (function () {
     	}
 
     	get chainId() {
-    		return this.$$.ctx[4];
+    		return this.$$.ctx[2];
     	}
 
     	set chainId(chainId) {
@@ -24388,7 +24346,7 @@ var app = (function () {
     	}
 
     	get network() {
-    		return this.$$.ctx[1];
+    		return this.$$.ctx[3];
     	}
 
     	set network(network) {
@@ -24397,7 +24355,7 @@ var app = (function () {
     	}
 
     	get balance() {
-    		return this.$$.ctx[2];
+    		return this.$$.ctx[4];
     	}
 
     	set balance(balance) {
