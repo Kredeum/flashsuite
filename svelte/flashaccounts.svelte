@@ -67,7 +67,7 @@
     console.log("in subscribe", dashboards, value);
     dashboards = value;
     nd = Object.keys(dashboards).length;
-    if (nd == 1 && step <= 2) step23();
+    if (nd >= 1 && step <= 2) step23();
     else if (nd == 2 && step == 5) step67();
     else if (nd == 2 && step == 8) step9();
   });
