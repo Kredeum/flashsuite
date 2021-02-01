@@ -23,7 +23,7 @@
     </div>
     <div class="headercontents right">
       <div class="headeritemcontents">
-        <a id="flashPosTrigger" href="/flashaccounts" class="headerbutton w-inline-block">
+        <a id="flashPosTrigger" href="/flashposition" class="headerbutton w-inline-block">
           <div class="frostedglasswrapper">
             <div class="frostedglasseffect"></div>
             <div class="blockimage"><img src="images/FlashPos-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
