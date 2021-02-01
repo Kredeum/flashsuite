@@ -1,0 +1,1 @@
+npx hardhat verify --contract contracts/FlashAccounts/FlashAccounts.sol:FlashAccounts 0x8BF9544D45B0F52b7e036DD2c7293C85915a0793 0x88757f2f99175387ab4c6a4b3067c77a695b0349
