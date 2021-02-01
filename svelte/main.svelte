@@ -1,18 +1,22 @@
 <svelte:options tag="flashsuite-main" immutable={true} />
 
+<script>
+   import Metamask from "./metamask.svelte";
+</script>
+
 <div class="nnavbar">
   <div class="nnavbarcontents">
-    <a href="#" class="headerbutton w-inline-block">
+    <div href="#" class="headerbutton w-inline-block">
       <div class="frostedglasswrapper left">
         <div class="frostedglasseffect notfixed"></div>
         <div class="blockcontents">
           <div id="identiconAddressImage" class="buttondisk">
-            <!-- <img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage"> -->
+            <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage">
           </div>
-          <div id="userAddressSet" class="textdarkmode">0x56t7...897d</div>
+          <div id="userAddressSet" class="textdarkmode"><Metamask /></div>
         </div>
       </div>
-    </a>
+    </div>
   </div>
 </div>
 <div class="headermain">

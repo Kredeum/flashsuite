@@ -22,7 +22,7 @@
   </div>
 </div>
 <div class="headermain">
-  <!-- INSERT HERE -->
+  <!-- INSERTED HERE -->
   <div class="sectioncontainer">
     <div class="sectionbumper">
       <div class="blockimage">
@@ -1207,7 +1207,7 @@
       overflow: scroll;
       width: 100%;
       height: 100%;
-      padding-top: 355px;
+      padding-top: 230px;
       padding-right: 100px;
       padding-left: 100px;
       -webkit-box-orient: vertical;
