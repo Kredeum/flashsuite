@@ -1430,6 +1430,7 @@
     }
     
     .placeholderimage {
+      width: 100%;
       overflow: hidden;
       border-radius: 30px;
     }
