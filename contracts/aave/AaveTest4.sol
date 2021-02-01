@@ -4,10 +4,11 @@ pragma solidity 0.6.12;
 // https://github.com/aave/code-examples-protocol/tree/main/V2/Flash%20Loan%20-%20Batch
 
 import { FlashLoanReceiverBase } from "./FlashLoanReceiverBase.sol";
-import { ILendingPool, ILendingPoolAddressesProvider, IERC20, IProtocolDataProvider, IStableDebtToken } from "./Interfaces.sol";
-import { SafeMath } from "./Libraries.sol";
+import { ILendingPool, ILendingPoolAddressesProvider, IProtocolDataProvider, IStableDebtToken } from "./Interfaces.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
+import { SafeMath } from "../libraries/SafeMath.sol";
 
-import "./Ownable.sol";
+import "../libraries/Ownable.sol";
 
 contract AaveTest4 is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;

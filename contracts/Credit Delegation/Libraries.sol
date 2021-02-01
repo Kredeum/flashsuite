@@ -2,7 +2,7 @@
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
-import { IERC20 } from "./Interfaces.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
 
 library DataTypes {
   // refer to the whitepaper, section 1.1 basic concepts for a formal description of these properties.

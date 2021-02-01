@@ -28,8 +28,8 @@ describe("FlashAccounts deployment and run", function () {
     // DEBT
     const stableDAI = "0x3B91257Fe5CA63b4114ac41A0d467D25E2F747F3";
     const stableBAT = "0x07a0B32983ab8203E8C3493F0AbE5bFe784fAa15";
-    const aliceBorrowedDAI = ethers.utils.parseEther('12');
-    const aliceBorrowedBAT = ethers.utils.parseEther('12');
+    const aliceBorrowedDAI = ethers.utils.parseEther('13');
+    const aliceBorrowedBAT = ethers.utils.parseEther('13');
     const loans = [{symbol: 'DAI', underlyingAsset: DAI, amount: aliceBorrowedDAI, stableDebtTokenAddress: stableDAI}, {symbol: 'BAT', underlyingAsset: BAT, amount: aliceBorrowedBAT, stableDebtTokenAddress: stableBAT}];
    
     // console.log(`DAI       ${ethscan}/address/${DAI}`);
@@ -70,7 +70,7 @@ describe("FlashAccounts deployment and run", function () {
     // TX1 : Get aTokens allowance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     for await (const [index, deposit] of deposits.entries()) {
-      const aTokencontrat = await ethers.getContractAt("contracts/aave/Interfaces.sol:IERC20", deposit.aTokenAddress, Alice);
+      const aTokencontrat = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", deposit.aTokenAddress, Alice);
 
       const tx1 = await aTokencontrat.approve(flashAccounts.address, deposit.approval);
       expect(tx1.hash).to.match(/^0x/);

@@ -4,11 +4,12 @@ pragma solidity 0.6.12;
 // https://github.com/aave/code-examples-protocol/tree/main/V2/Flash%20Loan%20-%20Batch
 
 import { FlashLoanReceiverBase } from "./FlashLoanReceiverBase.sol";
-import { ILendingPool, ILendingPoolAddressesProvider, IERC20 } from "./Interfaces.sol";
-import { SafeMath } from "./Libraries.sol";
+import { ILendingPool, ILendingPoolAddressesProvider } from "./Interfaces.sol";
+import { SafeMath } from "../libraries/SafeMath.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
+import "../libraries/Ownable.sol";
+import "../libraries/console.sol";
 
-import "./Ownable.sol";
-import "./console.sol";
 
 /*
 * A contract that executes the following logic in a single atomic transaction:
