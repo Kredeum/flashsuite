@@ -23,7 +23,7 @@
     </div>
     <div class="headercontents right">
       <div class="headeritemcontents">
-        <a id="flashPosTrigger" href="#sectionFlashPos" class="headerbutton w-inline-block">
+        <a id="flashPosTrigger" href="/flashaccounts" class="headerbutton w-inline-block">
           <div class="frostedglasswrapper">
             <div class="frostedglasseffect"></div>
             <div class="blockimage"><img src="images/FlashPos-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
@@ -32,7 +32,7 @@
         <p class="headerparagraph headeritemparagraph">Allows you to migrate your position, full and partially from one address to another.</p>
       </div>
       <div class="headeritemcontents">
-        <a id="flashArbTrigger" href="#" class="headerbutton w-inline-block">
+        <a id="flashArbTrigger" href="/arbitrage" class="headerbutton w-inline-block">
           <div class="frostedglasswrapper">
             <div class="frostedglasseffect"></div>
             <div class="blockimage"><img src="images/FlashArb-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
@@ -130,7 +130,7 @@ a {
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  height: 120vh;
+  height: 100vh;
   margin-bottom: 0px;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
