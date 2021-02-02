@@ -1,3 +1,51 @@
+<svelte:options tag="flashsuite-main" immutable={true} />
+
+<div class="nnavbar">
+  <div class="nnavbarcontents">
+    <a href="#" class="headerbutton w-inline-block">
+      <div class="frostedglasswrapper left">
+        <div class="frostedglasseffect notfixed"></div>
+        <div class="blockcontents">
+          <div id="identiconAddressImage" class="buttondisk">
+            <!-- <img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage"> -->
+          </div>
+          <div id="userAddressSet" class="textdarkmode">0x56t7...897d</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+<div class="headermain">
+  <div data-w-id="4a69aa65-f69d-177b-618b-fec329a2edbb" style="opacity:1" class="header1400container">
+    <div class="headercontents left"><img src="images/FLSuite-Logo-Full-Dark.svg" loading="eager" width="400" id="flashSuiteLogo" alt="" class="flashsuitelogo">
+      <h4 class="textdarkmode">Flashloan DApps</h4>
+      <p class="headerparagraph">without the need to write a single line of code</p>
+    </div>
+    <div class="headercontents right">
+      <div class="headeritemcontents">
+        <a id="flashPosTrigger" href="#sectionFlashPos" class="headerbutton w-inline-block">
+          <div class="frostedglasswrapper">
+            <div class="frostedglasseffect"></div>
+            <div class="blockimage"><img src="images/FlashPos-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
+          </div>
+        </a>
+        <p class="headerparagraph headeritemparagraph">Allows you to migrate your position, full and partially from one address to another.</p>
+      </div>
+      <div class="headeritemcontents">
+        <a id="flashArbTrigger" href="#" class="headerbutton w-inline-block">
+          <div class="frostedglasswrapper">
+            <div class="frostedglasseffect"></div>
+            <div class="blockimage"><img src="images/FlashArb-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
+          </div>
+        </a>
+        <p class="headerparagraph headeritemparagraph">A graphical interface that helps you identify good arbitrage opportunities </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
 .w-layout-grid {
   display: -ms-grid;
   display: grid;
@@ -1856,3 +1904,7 @@ a {
     align-self: center;
   }
 }
+
+
+
+</style>
