@@ -6,9 +6,9 @@
   export let user = {};
   export let checkbox = false;
 
-  function _bal(_balance, _decimals) {
+  function _bal(_balance, _decimals, _precision=3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
-    return ent + "." + dec.substring(0, 3);
+    return ent + "." + dec.substring(0, _precision);
   }
 
   async function dashboard() {
@@ -52,7 +52,7 @@
             {#each dashboard.tokens as item}
               {#if item.type == 0}
                 <tr>
-                  <td align="right"> {_bal(item.amount, item.decimals)}</td>
+                  <td align="right"><div title="{_bal(item.amount, item.decimals, 18)}">{_bal(item.amount, item.decimals)}</div></td>
                   <td>{item.symbol}</td>
                   {#if checkbox}
                     <td><input type="checkbox" on:click={handleCheck} value={item.symbol} checked={item.checked} /></td>
@@ -67,7 +67,7 @@
             {#each dashboard.tokens as item}
               {#if item.type > 0}
                 <tr>
-                  <td align="right">{_bal(item.amount, item.decimals)}</td>
+                  <td align="right"><div title="{_bal(item.amount, item.decimals, 18)}">{_bal(item.amount, item.decimals)}</div></td>
                   <td>{item.symbol}</td>
                   {#if checkbox}
                     <td><input type="checkbox" on:click={handleCheck} value={item.symbol} checked={item.checked} /></td>
