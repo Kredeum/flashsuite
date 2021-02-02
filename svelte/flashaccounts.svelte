@@ -12,13 +12,13 @@
   let balance = -1;
 
   let dashboards = {};
-  let dashboard = {};
+  let positions = {};
   let nd = 0;
   let Alice = "";
   let Bob = "";
   let signer;
   let startMigration = false;
-  let step;
+  let step = 0;
   let message;
   let again = true;
   function refresh() {
@@ -63,11 +63,11 @@
   $: console.log("STEP:", step);
 
   Dashboards.subscribe((value) => {
-    dashboards = value;
-    nd = Object.keys(dashboards).length;
-    if (nd >= 1 && step <= 2) step23();
-    else if (nd >= 2 && step == 5) step67();
-    else if (nd >= 2 && step == 8) step9();
+      dashboards = value;
+      nd = Object.keys(dashboards).length;
+      if (nd >= 1 && step <= 2) step23();
+      else if (nd >= 2 && step == 5) step67();
+      else if (nd >= 2 && step == 8) step9();
   });
 
   function _bal(_balance, _decimals) {
@@ -107,9 +107,9 @@
   async function step34() {
     step = 3;
     startMigration = false;
-    dashboard = dashboards[Alice].filter((pos) => pos.checked);
+    positions = dashboards[Alice].tokens.filter((pos) => pos.checked);
 
-    const deposits = dashboard.filter((pos) => pos.type == 0);
+    const deposits = positions.filter((pos) => pos.type == 0);
     const nd = deposits.length;
     if (nd > 0) {
       try {
@@ -140,7 +140,7 @@
   }
   async function step67() {
     step = 6;
-    const loans = dashboard.filter((pos) => pos.type != 0);
+    const loans = positions.filter((pos) => pos.type != 0);
     const nl = loans.length;
     if (nl > 0) {
       try {
@@ -165,7 +165,7 @@
     step = 7;
     message = ">>> Approve Flash Loan with your browser wallet";
     try {
-      const tx = await FlashAccountsContract.callFlashLoanTx(dashboard, Alice, Bob, signer);
+      const tx = await FlashAccountsContract.callFlashLoanTx(positions, Alice, Bob, signer);
 
       message = `<<< Flash Loan Magic in progress... wait a few seconds`;
       console.log(await tx.wait());

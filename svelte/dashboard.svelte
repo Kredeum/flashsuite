@@ -17,11 +17,11 @@
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       $Dashboards[user] = await aaveDashboard(user, _provider, true);
       if (oldDashboard) {
-        for (const position of oldDashboard) {
+        for (const position of oldDashboard.tokens) {
           if (position.checked) setChecked(position.symbol, true);
         }
       } else {
-        for (const position of $Dashboards[user]) {
+        for (const position of $Dashboards[user].tokens) {
           setChecked(position.symbol, true);
         }
       }
@@ -30,8 +30,8 @@
     return user && $Dashboards[user];
   }
   function setChecked(_symbol, _checked) {
-    const idToken = $Dashboards[user].findIndex((db) => db.symbol == _symbol);
-    $Dashboards[user][idToken].checked = _checked;
+    const idToken = $Dashboards[user].tokens.findIndex((db) => db.symbol == _symbol);
+    $Dashboards[user].tokens[idToken].checked = _checked;
   }
   function handleCheck(_event) {
     setChecked(_event.target.value, _event.target.checked);
@@ -43,13 +43,13 @@
 
   {#await dashboard(user)}
     <p>loading</p>
-  {:then items}
+  {:then dashboard}
     <table>
-      <tr
-        ><td>
+      <tr>
+        <td>
           <h3>Deposits</h3>
           <table>
-            {#each items as item}
+            {#each dashboard.tokens as item}
               {#if item.type == 0}
                 <tr>
                   <td align="right"> {_bal(item.amount, item.decimals)}</td>
@@ -64,7 +64,7 @@
         </td><td>
           <h3>Borrows</h3>
           <table>
-            {#each items as item}
+            {#each dashboard.tokens as item}
               {#if item.type > 0}
                 <tr>
                   <td align="right">{_bal(item.amount, item.decimals)}</td>
@@ -76,9 +76,11 @@
               {/if}
             {/each}
           </table>
-        </td></tr
-      >
+        </td>
+      </tr>
+      
     </table>
+    <p class="hf">Health Factor : {_bal(dashboard.account.healthFactor,18)}</p>
   {:catch error}
     <p style="color: red">{error.message}</p>
   {/await}
@@ -95,5 +97,8 @@
   td {
     vertical-align: top;
     width: 50%;
+  }
+  p.hf {
+    text-align: center;
   }
 </style>
