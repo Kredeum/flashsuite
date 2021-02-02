@@ -95,10 +95,16 @@
     balance: {balance}<br />
     network: {network}
   </small> -->
-  <span>{address.substr(0, 6) + "..." + address.substring(address.length - 4, address.length)} </span>
-{:else}
+
+  <span class="opacity-0">{address.substr(0, 6) +
+    "..." +
+    address.substring(address.length - 4, address.length)}
+  </span>
+
+  {:else}
   <span on:click={connectMetamask}>Connect wallet</span>
 {/if}
+
 
 <style>
   .block_contents {
@@ -120,4 +126,10 @@
     -ms-flex-item-align: center;
     align-self: center;
   }
+
+
+  .opacity-0 {
+    opacity: 0;
+  }
+  
 </style>
