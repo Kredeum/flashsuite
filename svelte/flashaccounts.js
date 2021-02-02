@@ -1,6 +1,6 @@
-import App from './flashaccounts.svelte';
+import FlashAccounts from './flashaccounts.svelte';
 
-const app = new App({
+const flashaccounts = new FlashAccounts({
   target: document.body,
   props: {}
 });

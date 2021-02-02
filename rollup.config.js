@@ -34,7 +34,7 @@ const toRollupConfig = component => {
       sourcemap: true,
       format: 'iife',
       name: 'app',
-      file: `docs/${component}.js`
+      file: `docs/build/${component}.js`
     },
     plugins: [
       svelte({
@@ -90,6 +90,6 @@ const toRollupConfig = component => {
 
 export default [
   toRollupConfig('flashaccounts'),
-  toRollupConfig('main'),
-  toRollupConfig('flashposition')
+  toRollupConfig('flashposition'),
+  toRollupConfig('main')
 ];

@@ -1,5 +1,3 @@
-<svelte:options tag="flashsuite-main" immutable={true} />
-
 <script>
    import Metamask from "./metamask.svelte";
 </script>

@@ -129,7 +129,7 @@
 
 
   .opacity-0 {
-    opacity: 0;
+    opacity: 1;
   }
   
 </style>
