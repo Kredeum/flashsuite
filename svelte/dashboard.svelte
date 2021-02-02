@@ -4,6 +4,7 @@
   import { Dashboards } from "./stores.mjs";
 
   export let user = {};
+  export let checkbox = false;
 
   function _bal(_balance, _decimals) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -11,19 +12,29 @@
   }
 
   async function dashboard() {
-    let _dashboard = {};
     if (user) {
-      console.log("dashboard(user)", user);
-
+      const oldDashboard = $Dashboards[user];
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
-      console.log("_provider", _provider);
-
-      _dashboard = await aaveDashboard(user, _provider, true);
-      console.log("_dashboard", _dashboard);
-
-      $Dashboards[user] = _dashboard;
+      $Dashboards[user] = await aaveDashboard(user, _provider, true);
+      if (oldDashboard) {
+        for (const position of oldDashboard) {
+          if (position.checked) setChecked(position.symbol, true);
+        }
+      } else {
+        for (const position of $Dashboards[user]) {
+          setChecked(position.symbol, true);
+        }
+      }
+      console.log("$dashboard", user, $Dashboards[user]);
     }
-    return _dashboard;
+    return user && $Dashboards[user];
+  }
+  function setChecked(_symbol, _checked) {
+    const idToken = $Dashboards[user].findIndex((db) => db.symbol == _symbol);
+    $Dashboards[user][idToken].checked = _checked;
+  }
+  function handleCheck(_event) {
+    setChecked(_event.target.value, _event.target.checked);
   }
 </script>
 
@@ -43,6 +54,9 @@
                 <tr>
                   <td align="right"> {_bal(item.amount, item.decimals)}</td>
                   <td>{item.symbol}</td>
+                  {#if checkbox}
+                    <td><input type="checkbox" on:click={handleCheck} value={item.symbol} checked={item.checked} /></td>
+                  {/if}
                 </tr>
               {/if}
             {/each}
@@ -55,6 +69,9 @@
                 <tr>
                   <td align="right">{_bal(item.amount, item.decimals)}</td>
                   <td>{item.symbol}</td>
+                  {#if checkbox}
+                    <td><input type="checkbox" on:click={handleCheck} value={item.symbol} checked={item.checked} /></td>
+                  {/if}
                 </tr>
               {/if}
             {/each}
@@ -72,8 +89,8 @@
     padding: 1em;
     margin: 0 auto;
   }
-  table{
-    width: 100%
+  table {
+    width: 100%;
   }
   td {
     vertical-align: top;

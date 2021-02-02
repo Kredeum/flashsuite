@@ -8,7 +8,7 @@ async function graphQL(url, query) {
   return response;
 }
 
-const queryFile = process.argv[2] || "flashloans.gql";
+const queryFile = process.argv[2] || "flashsuite.gql";
 const url = process.argv[3] || 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2-kovan';
 const query = fs.readFileSync(queryFile, "utf8");
 

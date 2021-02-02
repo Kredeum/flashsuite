@@ -12,6 +12,7 @@
   let balance = -1;
 
   let dashboards = {};
+  let dashboard = {};
   let nd = 0;
   let Alice = "";
   let Bob = "";
@@ -62,12 +63,11 @@
   $: console.log("STEP:", step);
 
   Dashboards.subscribe((value) => {
-    console.log("in subscribe", dashboards, value);
     dashboards = value;
     nd = Object.keys(dashboards).length;
     if (nd >= 1 && step <= 2) step23();
-    else if (nd == 2 && step == 5) step67();
-    else if (nd == 2 && step == 8) step9();
+    else if (nd >= 2 && step == 5) step67();
+    else if (nd >= 2 && step == 8) step9();
   });
 
   function _bal(_balance, _decimals) {
@@ -107,24 +107,27 @@
   async function step34() {
     step = 3;
     startMigration = false;
-    const nd = dashboards[Alice].filter((pos) => pos.type == 0).length;
-    try {
-      let ia = 0;
-      for await (const position of dashboards[Alice]) {
-        if (position.type == 0) {
-          const amount = `${_bal(position.amount, position.decimals)} ${position.symbol}`;
+    dashboard = dashboards[Alice].filter((pos) => pos.checked);
+
+    const deposits = dashboard.filter((pos) => pos.type == 0);
+    const nd = deposits.length;
+    if (nd > 0) {
+      try {
+        let ia = 0;
+        for await (const deposit of deposits) {
+          const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
 
           message = `>>> Approve the transfer of your ${++ia}/${nd} deposit of ${amount} with your browser wallet`;
-          const tx = await FlashAccountsContract.approveTransfer(position, signer, ia);
+          const tx = await FlashAccountsContract.approveTransfer(deposit, signer, ia);
 
           message = `<<< Waiting approval of your ${ia}/${nd} deposit of ${amount}`;
           console.log(await tx.wait());
         }
+        step45();
+      } catch (e) {
+        message = "<<< Transaction failed";
+        console.error(e);
       }
-      step45();
-    } catch (e) {
-      message = "<<< Transaction failed";
-      console.error(e);
     }
   }
   async function step45() {
@@ -136,32 +139,33 @@
     message = "<<< Destinator account connected, retreiving AAVE dashboard...";
   }
   async function step67() {
-    const nl = dashboards[Alice].filter((pos) => pos.type != 0).length;
     step = 6;
-    try {
-      let il = 0;
-      for await (const position of dashboards[Alice]) {
-        if (position.type > 0) {
-          const amount = `${_bal(position.amount, position.decimals)} ${position.symbol}`;
+    const loans = dashboard.filter((pos) => pos.type != 0);
+    const nl = loans.length;
+    if (nl > 0) {
+      try {
+        let il = 0;
+        for await (const loan of loans) {
+          const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
 
           message = `>>> Approve the credit delegation of your ${++il}/${nl} loan of ${amount} with your browser wallet`;
-          const tx = await FlashAccountsContract.approveLoan(position, signer, il);
+          const tx = await FlashAccountsContract.approveLoan(loan, signer, il);
 
           message = `<<< Waiting credit delegation approval for your ${il}/${nl} loan of ${amount}`;
           console.log(await tx.wait());
         }
+        step78();
+      } catch (e) {
+        message = "<<< Transaction failed";
+        console.error(e);
       }
-      step78();
-    } catch (e) {
-      message = "<<< Transaction failed";
-      console.error(e);
     }
   }
   async function step78() {
     step = 7;
     message = ">>> Approve Flash Loan with your browser wallet";
     try {
-      const tx = await FlashAccountsContract.callFlashLoanTx(dashboards[Alice], Alice, Bob, signer);
+      const tx = await FlashAccountsContract.callFlashLoanTx(dashboard, Alice, Bob, signer);
 
       message = `<<< Flash Loan Magic in progress... wait a few seconds`;
       console.log(await tx.wait());
@@ -184,7 +188,7 @@
 
 <main>
   <img src="logo.png" width="600" alt="FlashSuite" />
-  <p><strong>FlashSuite Accounts : transfer your AAVE account to another address</strong></p>
+  <p><strong>FlashPos : migrate your AAVE positions to another address</strong></p>
   <hr />
 
   <p class="message">{message}</p>
@@ -200,7 +204,7 @@
         <tr
           ><td>
             <h2>Origin AAVE dashboard</h2>
-            <Dashboard user={Alice} />
+            <Dashboard user={Alice} checkbox="true" />
           </td></tr
         >
       {/if}
