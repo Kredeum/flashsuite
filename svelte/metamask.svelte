@@ -1,5 +1,3 @@
-<svelte:options tag="svelte-metamask" immutable={true} />
-
 <script>
   import { ethers } from "ethers";
   import detectEthereumProvider from "@metamask/detect-provider";
@@ -40,12 +38,12 @@
   }
   function setNetwork(_chainId) {
     const networks = new Map([
-        [1, "mainnet"],
-        [3, "ropsten"],
-        [4, "rinkeby"],
-        [5, "goerli"],
-        [42, "kovan"],
-      ]);
+      [1, "mainnet"],
+      [3, "ropsten"],
+      [4, "rinkeby"],
+      [5, "goerli"],
+      [42, "kovan"],
+    ]);
     if (_chainId) {
       network = networks.get(Number(_chainId));
     }
