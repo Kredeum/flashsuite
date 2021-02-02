@@ -1,27 +1,7 @@
 <svelte:options tag="svelte-metamask" immutable={true} />
 
 
-<style>
-  .block_contents {
-  position: absolute;
-  z-index: 1;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-align-self: center;
-  -ms-flex-item-align: center;
-  align-self: center;
-}
-</style>
+
 
 <script>
   import { ethers } from "ethers";
@@ -116,10 +96,18 @@
     balance: {balance}<br />
     network: {network}
   </small> -->
-  <span>{address.substr(0, 6) +
+  <span class="opacity-0">{address.substr(0, 6) +
     "..." +
     address.substring(address.length - 4, address.length)}
   </span>
 {:else}
   <span on:click={connectMetamask}>Connect wallet</span>
 {/if}
+
+
+<style>
+  .opacity-0 {
+    opacity: 0;
+  }
+  
+</style>

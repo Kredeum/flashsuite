@@ -24032,7 +24032,7 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$1 = "svelte/metamask.svelte";
 
-    // (123:0) {:else}
+    // (103:0) {:else}
     function create_else_block(ctx) {
     	let span;
     	let mounted;
@@ -24042,7 +24042,7 @@ var app = (function () {
     		c: function create() {
     			span = element("span");
     			span.textContent = "Connect wallet";
-    			add_location(span, file$1, 123, 2, 2981);
+    			add_location(span, file$1, 103, 2, 2522);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
@@ -24064,14 +24064,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(123:0) {:else}",
+    		source: "(103:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (112:0) {#if address}
+    // (92:0) {#if address}
     function create_if_block$1(ctx) {
     	let span;
     	let t_value = /*address*/ ctx[0].substr(0, 6) + "..." + /*address*/ ctx[0].substring(/*address*/ ctx[0].length - 4, /*address*/ ctx[0].length) + "";
@@ -24081,7 +24081,8 @@ var app = (function () {
     		c: function create() {
     			span = element("span");
     			t = text(t_value);
-    			add_location(span, file$1, 118, 2, 2860);
+    			attr_dev(span, "class", "opacity-0");
+    			add_location(span, file$1, 98, 2, 2383);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
@@ -24099,7 +24100,7 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(112:0) {#if address}",
+    		source: "(92:0) {#if address}",
     		ctx
     	});
 
@@ -24291,7 +24292,7 @@ var app = (function () {
     class Metamask extends SvelteElement {
     	constructor(options) {
     		super();
-    		
+    		this.shadowRoot.innerHTML = `<style>.opacity-0{opacity:0}</style>`;
 
     		init(
     			this,
