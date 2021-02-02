@@ -61,7 +61,7 @@
     kyberBalancer = `${(kyberPrice / balancerPrice - 1) * 100}%`;
     bancorKyber = `${(bancorPrice / kyberPrice - 1) * 100}%`;
     kyberBancor = `${(kyberPrice / bancorPrice - 1) * 100}%`;
-
+    // hi
   }
 
  async function onReloadPrices() {
