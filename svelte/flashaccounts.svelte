@@ -1,5 +1,3 @@
-<svelte:options tag="flashsuite-accounts" immutable={true} />
-
 <script>
   import { ethers } from "ethers";
   import { onMount } from "svelte";
@@ -200,7 +198,7 @@
     {#key again}
       {#if Alice}
         <tr
-          ><td class="cadre">
+          ><td>
             <h2>Origin AAVE dashboard</h2>
             <Dashboard user={Alice} />
           </td></tr
@@ -208,7 +206,7 @@
       {/if}
       {#if Bob}
         <tr
-          ><td class="cadre">
+          ><td>
             <h2>Destination AAVE dashboard</h2>
             <Dashboard user={Bob} />
           </td></tr
@@ -238,23 +236,17 @@
     padding-left: 10px;
     margin-bottom: 0px;
   }
-  h4 {
-    margin-bottom: 0px;
-  }
   p.message {
     color: purple;
     font-style: oblique;
   }
   table {
-    width: 300px;
-  }
-  td.cadre {
-    border: 1px solid purple;
+    width: 400px;
   }
   td {
-    vertical-align: top;
-    width: 150px;
+    border: 1px solid purple;
   }
+
   @media (min-width: 640px) {
     main {
       max-width: none;

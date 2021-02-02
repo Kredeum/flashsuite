@@ -1,5 +1,3 @@
-<svelte:options tag="flashsuite-dashboard" immutable={true} />
-
 <script>
   import { ethers } from "ethers";
   import aaveDashboard from "../lib/aaveDashboard.mjs";
@@ -71,14 +69,14 @@
 
 <style>
   main {
-    padding: 0em;
-    max-width: 240px;
+    padding: 1em;
     margin: 0 auto;
   }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
+  table{
+    width: 100%
+  }
+  td {
+    vertical-align: top;
+    width: 50%;
   }
 </style>

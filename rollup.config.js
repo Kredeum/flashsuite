@@ -29,7 +29,7 @@ function serve() {
 
 const toRollupConfig = component => {
   return {
-    input: `svelte/${component}.svelte`,
+    input: `svelte/${component}.js`,
     output: {
       sourcemap: true,
       format: 'iife',
@@ -38,14 +38,14 @@ const toRollupConfig = component => {
     },
     plugins: [
       svelte({
-        customElement: true,
+        // customElement: true,
         // enable run-time checks when not in production
         dev: !production,
         // we'll extract any component CSS out into
         // a separate file - better for performance
-        // css: css => {
-        //   css.write(`${component}.css`);
-        // },
+        css: css => {
+          css.write(`${component}.css`);
+        },
       }),
 
       // If you have external dependencies installed from
