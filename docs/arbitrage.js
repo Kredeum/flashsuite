@@ -495,7 +495,6 @@ var app = (function () {
 
     async function get0xPairPrice({asset1 = 'DAI', asset2 = 'WETH', amount = '1000000000000000000',  network = 'mainnet', _selectedExchange}) {
       let arrayEx = ["0x", "Uniswap", "Uniswap_V2", "Eth2Dai", "Kyber", "Curve", "LiquidityProvider", "MultiBridge", "Balancer", "CREAM", "Bancor", "mStable", "Mooniswap", "MultiHop", "Shell", "Swerve", "SnowSwap","SushiSwap", "DODO", "CryptoCom"]; 
-      // _selectedExchange = "Kyber"
 
       // Filtering out the exchange we want to make sure our data comes from that exchange
       let filteredAryEx = arrayEx.filter(function(e) {return e !== _selectedExchange});
@@ -544,7 +543,7 @@ var app = (function () {
     // import { BigNumber } from "ethers";
 
 
-    async function getSpread() {
+    async function getSpreadData() {
       const data = await getPriceData({pair: selectedPair});
       uniswapPrice = data.uniswapPrice;
       sushiswapPrice = data.sushiswapPrice;
@@ -1443,7 +1442,7 @@ var app = (function () {
 
     	$$self.$capture_state = () => ({
     		getPriceData,
-    		getSpreadData: getSpread,
+    		getSpreadData,
     		loading,
     		uniswapPrice,
     		sushiswapPrice,
