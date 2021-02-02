@@ -25,7 +25,7 @@
     </div>
     <div class="headercontents right">
       <div class="headeritemcontents">
-        <a id="flashPosTrigger" href="/flashposition" class="headerbutton w-inline-block">
+        <a id="flashPosTrigger" href="/flashpos" class="headerbutton w-inline-block">
           <div class="frostedglasswrapper">
             <div class="frostedglasseffect"></div>
             <div class="blockimage"><img src="images/FlashPos-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
@@ -34,7 +34,7 @@
         <p class="headerparagraph headeritemparagraph">Allows you to migrate your position, full and partially from one address to another.</p>
       </div>
       <div class="headeritemcontents">
-        <a id="flashArbTrigger" href="/arbitrage" class="headerbutton w-inline-block">
+        <a id="flashArbTrigger" href="/flasharb" class="headerbutton w-inline-block">
           <div class="frostedglasswrapper">
             <div class="frostedglasseffect"></div>
             <div class="blockimage"><img src="images/FlashArb-Sub-Logo-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo"></div>
@@ -44,6 +44,7 @@
       </div>
     </div>
   </div>
+  <a href="/flashaccounts">FlashAccounts</a>
 </div>
 
 
