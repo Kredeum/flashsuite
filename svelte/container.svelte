@@ -1,11 +1,14 @@
 <script>
   import Metamask from "./metamask.svelte";
+
+  export let address;
+
 </script>
 
 
 <div class="nnavbar">
   <div class="nnavbarcontents">
-   <Metamask />
+   <Metamask bind:address />
   </div>
 </div>
 <div class="headermain fs-headermain">

@@ -1,9 +1,18 @@
 <script>
   import Container from './container.svelte';
+  import Dashboard from './dashboard.svelte';
+
+  let address;
+  let originAddress = "";
+
+  if (address) {
+    console.log('address', address);
+    originAddress = address;
+  }
 </script>
 
 
-<Container>
+<Container bind:address>
   <div style="height: 1000px; width: 80%;">
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
@@ -105,6 +114,7 @@
           </div>
         </div>
         <!-- ORIGIN DASHBOARD -->
+        <Dashboard isOrigin={true} user={originAddress} />
       </div>
       <!-- DESTINATION -->
       <div
