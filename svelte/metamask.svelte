@@ -93,7 +93,7 @@
   <div class="frostedglasswrapper left">
     <div class="frostedglasseffect notfixed"></div>
     <div class="blockcontents">
-      <div id="identiconAddressImage" class="buttondisk">
+      <div id="identiconAddressImage" class="buttondisk fs-account-icon-wrapper">
         <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage {address ? 'address-icon' : 'no-address-icon'}">
       </div>
       <div id="userAddressSet" class="textdarkmode">
@@ -116,8 +116,13 @@
   .connect-text {
     cursor: pointer;
   }
+
+  .fs-account-icon-wrapper {
+    display: flex;
+    justify-content: center;
+  }
   .address-icon {
-    width: 100%;
+    width: 80%;
   }
 
   .no-address-icon {
