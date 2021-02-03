@@ -13,7 +13,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
 
     address thisContract;
 
-    event FlashLoanTriggered(address indexed origin, address indexed destination, address[] assets, uint256[] amounts, uint256[] premiums);
+    event FlashLoanTriggered(address indexed origin, address indexed destination, address[] assets, uint256[] amounts, uint256[] premiums, address initiator);
     event LoansRepaid(address[] assets, uint256[] amounts, uint256[] interestRateModes, address indexed borrower);
     event NewLoan(address indexed asset, uint256 amount, uint256 interestRateMode, address indexed borrower);
 
@@ -40,7 +40,7 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
       // Get origin account's address
       (address origin, address destination,,,uint256[] memory interestRateModes) = abi.decode(params, (address, address, address[], uint256[], uint256[]));
 
-      emit FlashLoanTriggered(origin, destination, assets, amounts, premiums);
+      emit FlashLoanTriggered(origin, destination, assets, amounts, premiums, initiator);
 
       // Repay the origin account's loans
       repayMultipleLoans(assets, amounts, interestRateModes, origin);
@@ -79,14 +79,15 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     function transferATokens(address[] memory _aTokens, uint256[] memory _aTokenAmounts, address _origin, address _destination) internal {
       for (uint i = 0; i < _aTokens.length; i++) {
 
-          uint256 amountToTransfer = _aTokenAmounts[i];
+        uint256 amountToTransfer;
+        uint256 userBalance = IAToken(_aTokens[i]).balanceOf(_origin);
 
-          // Transfer whole balance if aTokenAmount == -1
-          if (amountToTransfer == type(uint256).max) {
-            uint256 userBalance = IAToken(_aTokens[i]).balanceOf(_origin);
+          // Transfer limited by balance
+          if ( _aTokenAmounts[i] >  userBalance ) { 
             amountToTransfer = userBalance;
+          } else{
+            amountToTransfer = _aTokenAmounts[i];
           }
-
           IERC20(_aTokens[i]).transferFrom(_origin, _destination, amountToTransfer);
       }
     }

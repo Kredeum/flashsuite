@@ -5,6 +5,7 @@
 
   export let user = {};
   export let checkbox = false;
+  const chekboxDefault = false;
 
   function _bal(_balance, _decimals, _precision=3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -18,11 +19,11 @@
       $Dashboards[user] = await aaveDashboard(user, _provider, true);
       if (oldDashboard) {
         for (const position of oldDashboard.tokens) {
-          if (position.checked) setChecked(position.symbol, true);
+          setChecked(position.symbol, position.checked);
         }
       } else {
         for (const position of $Dashboards[user].tokens) {
-          setChecked(position.symbol, true);
+          setChecked(position.symbol, chekboxDefault );
         }
       }
       console.log("$dashboard", user, $Dashboards[user]);
@@ -31,7 +32,7 @@
   }
   function setChecked(_symbol, _checked) {
     const idToken = $Dashboards[user].tokens.findIndex((db) => db.symbol == _symbol);
-    $Dashboards[user].tokens[idToken].checked = _checked;
+    if (idToken >= 0) $Dashboards[user].tokens[idToken].checked = _checked;
   }
   function handleCheck(_event) {
     setChecked(_event.target.value, _event.target.checked);
