@@ -8,7 +8,7 @@
    <Metamask />
   </div>
 </div>
-<div class="headermain">
+<div class="headermain fs-headermain">
   <slot></slot>
 </div>
 
@@ -86,7 +86,8 @@
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  height: 100vh;
+  height: 100%;
+  min-height: 100vh;
   margin-bottom: 0px;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
@@ -108,6 +109,10 @@
   background-attachment: fixed;
 }
 
+.fs-headermain {
+  padding-top: 10%;
+  padding-bottom: 10%;
+}
 
 @media screen and (max-width: 479px) {
   .nnavbarcontents {
