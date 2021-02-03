@@ -63,11 +63,11 @@
   $: console.log("STEP:", step);
 
   Dashboards.subscribe((value) => {
-      dashboards = value;
-      nd = Object.keys(dashboards).length;
-      if (nd >= 1 && step <= 2) step23();
-      else if (nd >= 2 && step == 5) step67();
-      else if (nd >= 2 && step == 8) step9();
+    dashboards = value;
+    nd = Object.keys(dashboards).length;
+    if (nd >= 1 && step <= 2) step23();
+    else if (nd >= 2 && step == 5) step67();
+    else if (nd >= 2 && step == 8) step9();
   });
 
   function _bal(_balance, _decimals) {
@@ -111,8 +111,8 @@
 
     const deposits = positions.filter((pos) => pos.type == 0);
     const nd = deposits.length;
-    if (nd > 0) {
-      try {
+    try {
+      if (nd > 0) {
         let ia = 0;
         for await (const deposit of deposits) {
           const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
@@ -123,11 +123,11 @@
           message = `<<< Waiting approval of your ${ia}/${nd} deposit of ${amount}`;
           console.log(await tx.wait());
         }
-        step45();
-      } catch (e) {
-        message = "<<< Transaction failed";
-        console.error(e);
       }
+      step45();
+    } catch (e) {
+      message = "<<< Transaction failed";
+      console.error(e);
     }
   }
   async function step45() {
@@ -142,8 +142,8 @@
     step = 6;
     const loans = positions.filter((pos) => pos.type != 0);
     const nl = loans.length;
-    if (nl > 0) {
-      try {
+    try {
+      if (nl > 0) {
         let il = 0;
         for await (const loan of loans) {
           const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
@@ -154,11 +154,11 @@
           message = `<<< Waiting credit delegation approval for your ${il}/${nl} loan of ${amount}`;
           console.log(await tx.wait());
         }
-        step78();
-      } catch (e) {
-        message = "<<< Transaction failed";
-        console.error(e);
       }
+      step78();
+    } catch (e) {
+      message = "<<< Transaction failed";
+      console.error(e);
     }
   }
   async function step78() {

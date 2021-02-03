@@ -79,15 +79,9 @@ contract FlashAccounts is FlashLoanReceiverBase, Ownable {
     function transferATokens(address[] memory _aTokens, uint256[] memory _aTokenAmounts, address _origin, address _destination) internal {
       for (uint i = 0; i < _aTokens.length; i++) {
 
-          uint256 amountToTransfer = _aTokenAmounts[i];
-
-          // Transfer whole balance if aTokenAmount == -1
-          if (amountToTransfer == type(uint256).max) {
-            uint256 userBalance = IAToken(_aTokens[i]).balanceOf(_origin);
-            amountToTransfer = userBalance;
-          }
-
-          IERC20(_aTokens[i]).transferFrom(_origin, _destination, amountToTransfer);
+          // transfer all the amount
+          uint256 balance = IAToken(_aTokens[i]).balanceOf(_origin);
+          IERC20(_aTokens[i]).transferFrom(_origin, _destination, balance);
       }
     }
 
