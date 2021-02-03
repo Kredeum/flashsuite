@@ -1,13 +1,8 @@
 <script>
-   import Metamask from "./metamask.svelte";
+   import Container from "./container.svelte";
 </script>
 
-<div class="nnavbar">
-  <div class="nnavbarcontents">
-   <Metamask />
-  </div>
-</div>
-<div class="headermain">
+<Container>
   <div data-w-id="4a69aa65-f69d-177b-618b-fec329a2edbb" style="opacity:1" class="header1400container">
     <div class="headercontents left"><img src="images/FLSuite-Logo-Full-Dark.svg" loading="eager" width="400" id="flashSuiteLogo" alt="" class="flashsuitelogo">
       <h4 class="textdarkmode">Flashloan DApps</h4>
@@ -35,7 +30,7 @@
     </div>
   </div>
   <a href="/flashaccounts">FlashAccounts</a>
-</div>
+</Container>
 
 
 <style>
@@ -118,32 +113,6 @@ a {
   text-decoration: underline;
 }
 
-.headermain {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 100vh;
-  margin-bottom: 0px;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-image: url('../images/Synth-BG-Header-Hi.png');
-  background-position: 50% 50%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-}
 
 .flashsuitelogo {
   margin-bottom: -22px;
@@ -394,39 +363,7 @@ a {
   align-self: center;
 }
 
-.nnavbarcontents {
-  position: fixed;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  width: 100%;
-  max-width: 1400px;
-  margin-right: 0px;
-  margin-left: 0px;
-  padding-right: 140px;
-  padding-left: 140px;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-box-pack: end;
-  -webkit-justify-content: flex-end;
-  -ms-flex-pack: end;
-  justify-content: flex-end;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-align-self: stretch;
-  -ms-flex-item-align: stretch;
-  align-self: stretch;
-  -webkit-box-flex: 0;
-  -webkit-flex: 0 0 auto;
-  -ms-flex: 0 0 auto;
-  flex: 0 0 auto;
-}
+
 
 .navbaritems {
   display: -webkit-box;
@@ -492,36 +429,6 @@ a {
   border-bottom: 4px solid #ff500b;
 }
 
-.nnavbar {
-  position: absolute;
-  left: 0%;
-  top: 6%;
-  right: 0%;
-  bottom: auto;
-  z-index: 2;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  width: 100%;
-  height: 55px;
-  padding-bottom: 0px;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-color: transparent;
-  box-shadow: none;
-}
 
 .navbartextblock {
   margin-top: 40px;
@@ -1488,15 +1395,6 @@ a {
     max-width: 1400px;
   }
 
-  .nnavbarcontents {
-    padding-right: 0px;
-    padding-left: 0px;
-    -webkit-box-pack: end;
-    -webkit-justify-content: flex-end;
-    -ms-flex-pack: end;
-    justify-content: flex-end;
-  }
-
   .addressblock.textdarkmode {
     padding-left: 20px;
   }
@@ -1689,11 +1587,7 @@ a {
     flex-direction: column;
   }
 
-  .nnavbarcontents {
-    margin-right: 40px;
-    margin-left: 40px;
-  }
-
+  
   .navblockitemstrigger {
     display: -webkit-box;
     display: -webkit-flex;
