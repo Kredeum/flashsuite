@@ -88,48 +88,39 @@
   init();
 </script>
 
-{#if address}
-  <!-- <p><strong>account connected</strong></p>
-  <small>
-    account: {address}<br />
-    balance: {balance}<br />
-    network: {network}
-  </small> -->
 
-  <span class="opacity-0">{address.substr(0, 6) +
-    "..." +
-    address.substring(address.length - 4, address.length)}
-  </span>
+<div href="#" class="headerbutton w-inline-block">
+  <div class="frostedglasswrapper left">
+    <div class="frostedglasseffect notfixed"></div>
+    <div class="blockcontents">
+      <div id="identiconAddressImage" class="buttondisk">
+        <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage {address ? 'address-icon' : 'no-address-icon'}">
+      </div>
+      <div id="userAddressSet" class="textdarkmode">
+        {#if address}
+          <span class="opacity-0">{address.substr(0, 6) +
+            "..." +
+            address.substring(address.length - 4, address.length)}
+          </span>
+          {:else}
+          <span on:click={connectMetamask} class="connect-text">Connect wallets</span>
+        {/if}
+      </div>
+    </div>
+  </div>
+</div>
 
-  {:else}
-  <span on:click={connectMetamask}>Connect wallet</span>
-{/if}
 
 
 <style>
-  .block_contents {
-    position: absolute;
-    z-index: 1;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-pack: start;
-    -webkit-justify-content: flex-start;
-    -ms-flex-pack: start;
-    justify-content: flex-start;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-align-self: center;
-    -ms-flex-item-align: center;
-    align-self: center;
+  .connect-text {
+    cursor: pointer;
+  }
+  .address-icon {
+    width: 100%;
   }
 
-
-  .opacity-0 {
-    opacity: 1;
+  .no-address-icon {
+    opacity: 0;
   }
-  
 </style>

@@ -4,17 +4,7 @@
 
 <div class="nnavbar">
   <div class="nnavbarcontents">
-    <div href="#" class="headerbutton w-inline-block">
-      <div class="frostedglasswrapper left">
-        <div class="frostedglasseffect notfixed"></div>
-        <div class="blockcontents">
-          <div id="identiconAddressImage" class="buttondisk">
-            <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage">
-          </div>
-          <div id="userAddressSet" class="textdarkmode"><Metamask /></div>
-        </div>
-      </div>
-    </div>
+   <Metamask />
   </div>
 </div>
 <div class="headermain">
