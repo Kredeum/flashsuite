@@ -98,7 +98,7 @@
       </div>
       <div id="userAddressSet" class="textdarkmode">
         {#if address}
-          <span class="opacity-0">{address.substr(0, 6) +
+          <span>{address.substr(0, 6) +
             "..." +
             address.substring(address.length - 4, address.length)}
           </span>
@@ -123,4 +123,5 @@
   .no-address-icon {
     opacity: 0;
   }
+
 </style>
