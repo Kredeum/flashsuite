@@ -203,6 +203,10 @@
   .dropdown-toggle {
     min-width: 155px;
   }
+
+  .dropdown-list {
+    border-radius: 10px;
+  }
   .fs-chip {
     position: absolute;
     top: -14px;
