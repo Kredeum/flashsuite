@@ -47,9 +47,16 @@
 
   const computeSpread = (price1, price2) => (price1 / price2 - 1) * 100;
 
-  // const getSpreadClass = (spread) => {
-  //   if(Math.abs(spread) < 0.09)
-  // }
+  const getSpreadClass = (spread) => {
+    const absoluteSpread = Math.abs(spread);
+    if (absoluteSpread < 0.1) {
+      return "fs-red-spread";
+    } else if (absoluteSpread < 0.2) {
+      return "fs-black-spread";
+    } else {
+      return "fs-green-spread";
+    }
+  };
 
   let selectedPair = pairs[0];
 
@@ -183,7 +190,15 @@
                       2};"
                   >
                     {#if i !== j}
-                      <span class="fs-spread">
+                      <!-- TODO: avoid computeSpread duplication -->
+                      <span
+                        class="fs-spread {getSpreadClass(
+                          computeSpread(
+                            priceData[`${colDex}Price`],
+                            priceData[`${rowDex}Price`]
+                          )
+                        )}"
+                      >
                         {computeSpread(
                           priceData[`${colDex}Price`],
                           priceData[`${rowDex}Price`]
@@ -281,7 +296,7 @@
     font: normal normal normal 16px/19px Montserrat;
     letter-spacing: 0px;
     color: #241130;
-    opacity: 0.7;
+    opacity: 0.9;
     text-transform: capitalize;
     margin-bottom: 4px;
   }
@@ -302,5 +317,17 @@
     opacity: 1;
     max-width: 120px;
     overflow: hidden;
+  }
+
+  .fs-red-spread {
+    color: #ff4545;
+  }
+
+  .fs-black-spread {
+    color: #241130;
+  }
+
+  .fs-green-spread {
+    color: #3ba34b;
   }
 </style>
