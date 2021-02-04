@@ -176,7 +176,7 @@
           iw++;
         }
         for await (const tx of txsWait) {
-          message = `<<< Waiting approvals... ${il + 1}/${nd} loan${il > 0 ? "s" : ""} approved`;
+          message = `<<< Waiting approvals... ${il + 1}/${nl} loan${il > 0 ? "s" : ""} approved`;
           console.log(`TX2.${il+1}/${nl} END`, tx);
           il++;
         }
