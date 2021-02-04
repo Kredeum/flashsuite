@@ -88,29 +88,44 @@
   init();
 </script>
 
-
 <div href="#" class="headerbutton w-inline-block">
   <div class="frostedglasswrapper left">
-    <div class="frostedglasseffect notfixed"></div>
+    <div class="frostedglasseffect notfixed" />
     <div class="blockcontents">
-      <div id="identiconAddressImage" class="buttondisk fs-account-icon-wrapper">
-        <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage {address ? 'address-icon' : 'no-address-icon'}">
-      </div>
+      {#if address}
+        <div
+          id="identiconAddressImage"
+          class="buttondisk fs-account-icon-wrapper"
+        >
+          <img
+            src="images/account_icon.svg"
+            loading="lazy"
+            id="platformLogo"
+            alt=""
+            class="placeholderimage {address
+              ? 'address-icon'
+              : 'no-address-icon'}"
+          />
+        </div>
+      {/if}
       <div id="userAddressSet" class="textdarkmode">
         {#if address}
-          <span>{address.substr(0, 6) +
-            "..." +
-            address.substring(address.length - 4, address.length)}
+          <span
+            >{address.substr(0, 6) +
+              "..." +
+              address.substring(address.length - 4, address.length)}
           </span>
-          {:else}
-          <span on:click={connectMetamask} class="connect-text">Connect wallets</span>
+        {:else}
+          <span
+            on:click={connectMetamask}
+            class="connect-text"
+            style="margin-left: 32px;">Connect wallets</span
+          >
         {/if}
       </div>
     </div>
   </div>
 </div>
-
-
 
 <style>
   .connect-text {
@@ -128,5 +143,4 @@
   .no-address-icon {
     opacity: 0;
   }
-
 </style>
