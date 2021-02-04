@@ -5,7 +5,7 @@
 
   export let user = {};
   export let checkbox = false;
-  const chekboxDefault = false;
+  const chekboxDefault = true;
 
   function _bal(_balance, _decimals, _precision=3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");

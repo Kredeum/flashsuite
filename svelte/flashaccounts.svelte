@@ -113,15 +113,28 @@
     const nd = deposits.length;
     try {
       if (nd > 0) {
+        let amounts = [];
+        let txsDeposit = [];
+        let txsWait = [];
+        let ic = 0;
+        let iw = 0;
         let ia = 0;
-        for await (const deposit of deposits) {
+        for (const deposit of deposits) {
           const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
-
-          message = `>>> Approve the transfer of your ${++ia}/${nd} deposit of ${amount} with your browser wallet`;
-          const tx = await FlashAccountsContract.approveTransfer(deposit, signer, ia);
-
-          message = `<<< Waiting approval of your ${ia}/${nd} deposit of ${amount}`;
-          console.log(await tx.wait());
+          message = `>>> Approve the transfer of your ${nd} deposits with your browser wallet`;
+          txsDeposit[ic] = FlashAccountsContract.approveTransfer(deposit, signer);
+          amounts[ic] = amount;
+          ic++;
+        }
+        for await (const txDeposit of txsDeposit) {
+          console.log(`TX1.${iw+1}/${nd} CALL`, txDeposit);
+          txsWait[iw] = txDeposit.wait();
+          iw++;
+        }
+        for await (const tx of txsWait) {
+          message = `<<< Waiting approvals... ${ia + 1}/${nd} deposit${ia > 0 ? "s" : ""} approved`;
+          console.log(`TX1.${ia+1}/${nd} END`, tx);
+          ia++;
         }
       }
       step45();
@@ -144,15 +157,28 @@
     const nl = loans.length;
     try {
       if (nl > 0) {
+        let amounts = [];
+        let txsLoan = [];
+        let txsWait = [];
+        let ic = 0;
+        let iw = 0;
         let il = 0;
-        for await (const loan of loans) {
+        for (const loan of loans) {
           const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
-
-          message = `>>> Approve the credit delegation of your ${++il}/${nl} loan of ${amount} with your browser wallet`;
-          const tx = await FlashAccountsContract.approveLoan(loan, signer, il);
-
-          message = `<<< Waiting credit delegation approval for your ${il}/${nl} loan of ${amount}`;
-          console.log(await tx.wait());
+          message = `>>> Approve the credit delegation of your ${nl} loans with your browser wallet`;
+          txsLoan[ic] = await FlashAccountsContract.approveLoan(loan, signer);
+          amounts[ic] = amount;
+          ic++;
+        }
+        for await (const txLoan of txsLoan) {
+          console.log(`TX2.${iw+1}/${nl} CALL`, txLoan);
+          txsWait[iw] = txLoan.wait();
+          iw++;
+        }
+        for await (const tx of txsWait) {
+          message = `<<< Waiting approvals... ${il + 1}/${nd} loan${il > 0 ? "s" : ""} approved`;
+          console.log(`TX2.${il+1}/${nl} END`, tx);
+          il++;
         }
       }
       step78();
@@ -168,7 +194,7 @@
       const tx = await FlashAccountsContract.callFlashLoanTx(positions, Alice, Bob, signer);
 
       message = `<<< Flash Loan Magic in progress... wait a few seconds`;
-      console.log(await tx.wait());
+      console.log(`TX2`, await tx.wait());
       step89();
     } catch (e) {
       message = "<<< Transaction failed";
