@@ -3,6 +3,8 @@
   import getPriceData from "../lib/getPriceData.mjs";
   import getSpreadData from "../lib/getSpreadData.mjs";
 
+  const NUMBER_PRICE_DIGITS_SHOWN = 8;
+
   let isPairDropdownOpen = false;
 
   let loading;
@@ -16,38 +18,38 @@
 
   const pairs = [
     {
-      id: "DAI_WETH",
-      text: "DAI-WETH",
-      asset1: "DAI",
-      asset2: "WETH",
+      id: "WETH_DAI",
+      text: "WETH-DAI",
+      asset1: "WETH",
+      asset2: "DAI",
       asset1Decimals: 18,
       asset2Decimals: 18,
     },
     {
-      id: "USDC_WETH",
-      text: "USDC-WETH",
-      asset1: "USDC",
-      asset2: "WETH",
-      asset1Decimals: 6,
-      asset2Decimals: 18,
+      id: "WETH_USDC",
+      text: "WETH-USDC",
+      asset2: "USDC",
+      asset1: "WETH",
+      asset1Decimals: 18,
+      asset2Decimals: 6,
     },
     {
-      id: "USDT_WETH",
-      text: "USDT-WETH",
-      asset1: "USDT",
-      asset2: "WETH",
-      asset1Decimals: 6,
-      asset2Decimals: 18,
+      id: "WETH_USDT",
+      text: "WETH-USDT",
+      asset1: "WETH",
+      asset2: "USDT",
+      asset1Decimals: 18,
+      asset2Decimals: 6,
     },
   ];
 
   const dexes = ["uniswap", "sushiswap", "balancer", "bancor", "kyber"];
 
-  // const dexPairs = dexes.flatMap(
-  //   (v, i) => dexes.slice(i+1).map( w => v + '/' + w)
-  // );
+  const computeSpread = (price1, price2) => (price1 / price2 - 1) * 100;
 
-  const computeSpread = (price1, price2) => `${(price1 / price2 - 1) * 100}%`;
+  // const getSpreadClass = (spread) => {
+  //   if(Math.abs(spread) < 0.09)
+  // }
 
   let selectedPair = pairs[0];
 
@@ -150,7 +152,10 @@
                     {rowHeaderDex}
                   </div>
                   <div class="fs-exchange-price">
-                    {priceData[`${rowHeaderDex}Price`]}
+                    {priceData[`${rowHeaderDex}Price`].substring(
+                      0,
+                      NUMBER_PRICE_DIGITS_SHOWN
+                    )}
                   </div>
                 </div>
               {/each}
@@ -163,7 +168,10 @@
                     {colHeaderDex}
                   </div>
                   <div class="fs-exchange-price">
-                    {priceData[`${colHeaderDex}Price`]}
+                    {priceData[`${colHeaderDex}Price`].substring(
+                      0,
+                      NUMBER_PRICE_DIGITS_SHOWN
+                    )}
                   </div>
                 </div>
               {/each}
@@ -179,7 +187,7 @@
                         {computeSpread(
                           priceData[`${colDex}Price`],
                           priceData[`${rowDex}Price`]
-                        )}
+                        ).toPrecision(3)}%
                       </span>
                     {/if}
                   </div>
