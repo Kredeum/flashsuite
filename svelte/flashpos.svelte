@@ -24,7 +24,9 @@
 
   // NETWORK MUST BE KOVAN
   $: if (network && network != "kovan") {
-    alert("FlashAccount is in beta mode ! only available on Kovan\nPlease switch to the Kovan testnet");
+    alert(
+      "FlashAccount is in beta mode ! only available on Kovan\nPlease switch to the Kovan testnet"
+    );
   }
 
   // FIRST ADDRESS IS ALICE, SECOND ADDRESS BOB
@@ -81,7 +83,8 @@
 
   async function step0() {
     step = 0;
-    message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
+    message =
+      ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
     if (Alice) step1();
   }
   async function step1() {
@@ -118,9 +121,14 @@
         let iw = 0;
         let ia = 0;
         for (const deposit of deposits) {
-          const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
+          const amount = `${_bal(deposit.amount, deposit.decimals)} ${
+            deposit.symbol
+          }`;
           message = `>>> Approve the transfer of your ${nd} deposits with your browser wallet`;
-          txsDeposit[ic] = FlashAccountsContract.approveTransfer(deposit, signer);
+          txsDeposit[ic] = FlashAccountsContract.approveTransfer(
+            deposit,
+            signer
+          );
           amounts[ic] = amount;
           ic++;
         }
@@ -130,7 +138,9 @@
           iw++;
         }
         for await (const tx of txsWait) {
-          message = `<<< Waiting approvals... ${ia + 1}/${nd} deposit${ia > 0 ? "s" : ""} approved`;
+          message = `<<< Waiting approvals... ${ia + 1}/${nd} deposit${
+            ia > 0 ? "s" : ""
+          } approved`;
           console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
@@ -143,7 +153,8 @@
   }
   async function step4() {
     step = 4;
-    message = ">>> Please connect to the account you want to migrate to, with Metamask or another Wallet";
+    message =
+      ">>> Please connect to the account you want to migrate to, with Metamask or another Wallet";
     if (Bob) step5();
   }
   async function step5() {
@@ -177,7 +188,9 @@
           iw++;
         }
         for await (const tx of txsWait) {
-          message = `<<< Waiting approvals... ${il + 1}/${nl} loan${il > 0 ? "s" : ""} approved`;
+          message = `<<< Waiting approvals... ${il + 1}/${nl} loan${
+            il > 0 ? "s" : ""
+          } approved`;
           console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
@@ -192,7 +205,12 @@
     step = 7;
     message = ">>> Approve Flash Loan with your browser wallet";
     try {
-      const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
+      const tx = await FlashAccountsContract.callFlashLoanTx(
+        positionsAlice,
+        Alice,
+        Bob,
+        signer
+      );
 
       message = `<<< Flash Loan Magic in progress... wait a few seconds`;
       console.log(`TX2`, await tx.wait());
@@ -214,23 +232,37 @@
 </script>
 
 <Container bind:address bind:balance bind:network bind:signer>
-  <div style="height: 1000px; width: 80%;">
+  <div style="width: 80%;">
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
       <div class="blockimage">
-        <img src="images/FLSuite-Logo-Full-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo" />
+        <img
+          src="images/FLSuite-Logo-Full-Dark.svg"
+          loading="lazy"
+          width="125"
+          alt=""
+          class="flashlogo"
+        />
       </div>
     </div>
     <!-- CONTENTS -->
     <div class="sectioncontents fs-sectioncontents">
-      <img src="images/FlashPos-SubLogo-Light.svg" loading="lazy" width="200" alt="" class="sectionlogoimage" />
+      <img
+        src="images/FlashPos-SubLogo-Light.svg"
+        loading="lazy"
+        width="200"
+        alt=""
+        class="sectionlogoimage"
+      />
       <h1>Migrate your positions</h1>
 
       <p>{message}</p>
 
       <div class="columnspositions fs-columnspositions w-row">
         <div id="chipFlashPos" class="sectionchip fs-chip">
-          <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
+          <div id="amountDep02ORG" class="textdarkmode button">
+            Position Migration
+          </div>
         </div>
         {#key refresh}
           <Dashboard address={Alice} name="Origin" />
@@ -242,7 +274,13 @@
           <h1>Ready to Start Migration?</h1>
           <div class="buttonwrapper">
             <div id="migrateFlashPos" class="mainbutton">
-              <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
+              <div
+                on:click={step3}
+                id="amountDep02ORG"
+                class="textlightmode buttodarkmode"
+              >
+                Start Migration
+              </div>
             </div>
           </div>
         {/if}
@@ -256,6 +294,7 @@
 
 <style>
   .fs-sectioncontents {
+    padding-top: 20px;
     background-color: white;
     border-radius: 0 0 20px 20px;
   }
