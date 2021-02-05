@@ -11,7 +11,6 @@
   let network = "";
   let balance = -1;
   let address = "";
-  let addresses = [];
 
   let positionsAlice = [];
   let nd = 0;
@@ -38,24 +37,13 @@
     alert("ETH balance is to low to proceed, you need some ETH to pay gas");
   }
 
+  $: 
+
   $: console.log("STEP:", step);
-  $: console.log("DASHBOARDS:", $Dashboards);
+  $: console.log("DASHBOARDS F", $Dashboards);
   $: console.log("ALICE:", Alice);
   $: console.log("BOB:", Bob);
-
-  $: if (address) {
-    if (addresses.indexOf(address) === -1) {
-      addresses[addresses.length]=address;
-    }
-    if (!Alice){
-      Alice = address;
-    }else{
-      if(!Bob) {
-        Bob= address;
-      }
-    }
-    console.log("ADDRESSES", address, addresses);
-  }
+  $: console.log("ADDRESS F", address);
 
   // STEP 0 : initial state
   $: if (Alice && step == 0) step1();
@@ -231,14 +219,26 @@
         <div id="chipFlashPos" class="sectionchip fs-chip">
           <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
         </div>
-
-        <Dashboard user={Alice} name="Origin" addresses={Object.keys($Dashboards)} />
-        <Dashboard user={Bob} name="Destination" addresses={Object.keys($Dashboards)} />
-
+        <div id="userMessagePurple" class="usermessagesbar">
+          <div id="userMessagePurpleText" class="textdarkmode usermessage">{message}</div>
+        </div>
+        <Dashboard user={Alice} bind:address name="Origin" />
+        <Dashboard user={Bob} bind:address name="Destination" />
       </div>
+      <small>step {step}</small>
+      {#if startMigration}
+        <h1>Ready to Start Migration?</h1>
+        <div class="buttonwrapper">
+          <div id="migrateFlashPos" class="mainbutton">
+            <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
+          </div>
+        </div>
+      {/if}
+
     </div>
   </div>
-</Container>
+  
+  </Container>
 
 <style>
   .fs-sectioncontents {

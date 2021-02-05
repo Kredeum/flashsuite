@@ -8,8 +8,7 @@
   export let balance = 0;
   export let signer = {};
 
-  $: console.log("METAMASK ADDRESS", address);
-
+  $: console.log("ADDRESS M", address);
 
   async function handleChainChanged(_chainId) {
     chainId = _chainId;
