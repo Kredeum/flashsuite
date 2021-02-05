@@ -52,11 +52,18 @@
     },
   ];
 
-  const dexes = ["uniswap", "sushiswap", "balancer", "bancor", "kyber"];
+  const dexes = ["uniswap", "sushiswap", "balancer", "bancor", "dodo"];
 
-  const computeSpread = (price1, price2) => (price1 / price2 - 1) * 100;
+  const computeSpread = (price1, price2) => {
+    const ratio = price1 / price2;
+    const spread = (price1 / price2 - 1) * 100;
+    if (Number.isNaN(spread)) return null;
+    return spread.toPrecision(3);
+  };
 
   const getSpreadClass = (spread) => {
+    if (!spread) return "fs-black-spread";
+
     const absoluteSpread = Math.abs(spread);
     if (absoluteSpread < 0.1) {
       return "fs-red-spread";
@@ -67,7 +74,7 @@
     }
   };
 
-  let selectedPair = pairs[0];
+  let selectedPair = pairs[1];
 
   async function getPrices() {
     const data = await getPriceData({ pair: selectedPair });
@@ -230,7 +237,7 @@
                         {computeSpread(
                           priceData[`${colDex}Price`],
                           priceData[`${rowDex}Price`]
-                        ).toPrecision(3)}%
+                        ) || "-"}%
                       </span>
                       <span class="fs-spread-select">Select</span>
                     {/if}
