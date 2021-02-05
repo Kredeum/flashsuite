@@ -47,7 +47,9 @@
   }
 
   function setChecked(_symbol, _checked) {
-    const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
+    const idToken = $Dashboards[address].tokens.findIndex(
+      (db) => db.symbol == _symbol
+    );
     if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
     refresh++;
   }
@@ -55,21 +57,32 @@
 
 <main>
   {#key refresh}
-    <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack">
+    <div
+      id="OriginPosition"
+      class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack"
+    >
       <div class="columntitlebar reverse">
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
-        <img src="images/Network-Dot-Green.svg" loading="lazy" width="50" alt="" class="connectindicator" />
+        <img
+          src="images/Network-Dot-Green.svg"
+          loading="lazy"
+          width="50"
+          alt=""
+          class="connectindicator"
+        />
       </div>
 
-      <div id="gridOrigin" class="w-layout-grid gridorigin fs-grid-dashboard">
-        <h3 class="left">Your Deposits</h3>
-        <h3 class="right">Your Loans</h3>
-
-        {#await currentDashboard}
-          <p>loading</p>
-        {:then dashboard}
-          {#if dashboard}
+      {#await currentDashboard}
+        <p>loading</p>
+      {:then dashboard}
+        {#if dashboard}
+          <div
+            id="gridOrigin"
+            class="w-layout-grid gridorigin fs-grid-dashboard"
+          >
+            <h3 class="left">Your Deposits</h3>
+            <h3 class="right">Your Loans</h3>
             {#if dashboard.tokens.length > 0}
               <div class="fs-item-container">
                 {#each dashboard.tokens as item}
@@ -92,7 +105,10 @@
                             class="placeholderimage"
                           />
                         </div>
-                        <div id="tokenSymbolDep01ORG" class="textlightmode label">
+                        <div
+                          id="tokenSymbolDep01ORG"
+                          class="textlightmode label"
+                        >
                           {item.symbol}
                         </div>
                       </div>
@@ -121,7 +137,10 @@
                       checked={item.checked}
                     >
                       <div class="tokendetails reverse">
-                        <div id="platformAddressLogo" class="buttondisk reverse">
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk reverse"
+                        >
                           <img
                             src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
                             loading="lazy"
@@ -130,7 +149,9 @@
                             class="placeholderimage"
                           />
                         </div>
-                        <div id="tokenSymbolLoan01" class="textlightmode">{item.symbol}</div>
+                        <div id="tokenSymbolLoan01" class="textlightmode">
+                          {item.symbol}
+                        </div>
                       </div>
                       <div class="readonlyfield">
                         <div id="amountLoan01ORG" class="textlightmode numbers">
@@ -141,28 +162,38 @@
                         {#if item.checked}V{:else}O{/if}
                       </div>
                     </div>
-                    <div id="APRLoan01ORG" class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee">
+                    <div
+                      id="APRLoan01ORG"
+                      class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee"
+                    >
                       <div id="tokenSymbolDep01ORG" class="textlightmode rates">
                         {item.type == 2 ? "Variable rate" : "Stable rate"}
                       </div>
-                      <img src="images/Info-Icon.svg" loading="lazy" alt="" class="infroicon" />
+                      <!-- <img
+                        src="images/Info-Icon.svg"
+                        loading="lazy"
+                        alt=""
+                        class="infroicon"
+                      /> -->
                     </div>
                   {/if}
                 {/each}
               </div>
-              <div id="healthFactorInfoORG" class="healthfactorinfo">
-                <div class="hfcontents origin">
-                  <p class="textlightmode rates">Health Factor : {_healthFactor(dashboard)}</p>
-                </div>
-              </div>
             {:else}
               <div>No positions</div>
             {/if}
-          {/if}
-        {:catch error}
-          <p style="color: red">{error.message}</p>
-        {/await}
-      </div>
+          </div>
+          <div id="healthFactorInfoORG" class="healthfactorinfo">
+            <div class="hfcontents origin">
+              <p class="textlightmode rates">
+                Health Factor : {_healthFactor(dashboard)}
+              </p>
+            </div>
+          </div>
+        {/if}
+      {:catch error}
+        <p style="color: red">{error.message}</p>
+      {/await}
       <!-- <div id="clearALL" class="secondarybutton">
         <div on:click={refresh} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
       </div> -->
@@ -172,8 +203,10 @@
 
 <style>
   main {
-    padding: 1em;
+    width: 100%;
     margin: 0 auto;
+    margin-right: 5px;
+    margin-left: 5px;
   }
   table {
     width: 100%;
