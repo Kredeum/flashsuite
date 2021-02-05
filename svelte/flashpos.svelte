@@ -307,6 +307,7 @@
   .fs-columnspositions {
     position: relative;
     margin-top: 40px;
+    min-height: 0;
   }
   .fs-chip {
     position: absolute;

@@ -74,7 +74,7 @@
       </div>
 
       {#await currentDashboard}
-        <p>loading</p>
+        <p style="text-align: center;">loading</p>
       {:then dashboard}
         {#if dashboard}
           <div
