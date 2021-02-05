@@ -89,7 +89,7 @@
                   {#if item.type == 0}
                     <div
                       class:checked={item.checked}
-                      class:fs-dashboard-item__origin={name}
+                      class:fs-dashboard-item__origin={name === "Origin"}
                       class="deposititem fs-deposit-item"
                       on:click={() => setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
@@ -131,6 +131,7 @@
                   {#if item.type > 0}
                     <div
                       class:checked={item.checked}
+                      class:fs-dashboard-item__origin={name === "Origin"}
                       class="loanitem fs-dashboard-item  fs-loan-item"
                       on:click={() => setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
@@ -228,12 +229,12 @@
   }
 
   .fs-dashboard-item__origin {
+    align-items: center;
     cursor: pointer;
   }
 
   .fs-deposit-item {
     margin-bottom: 24px;
-    align-items: center;
   }
 
   .fs-deposit-item.checked {
