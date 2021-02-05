@@ -31,13 +31,21 @@
   }
 
   // FIRST ADDRESS IS ALICE, SECOND ADDRESS BOB
+  $: if (address) {
+    if (!Alice) {
+      Alice = address;
+    } else {
+      if (step <= 4) {
+        Bob = address;
+      }
+    }
+    console.log("ADDRESSES", address);
+  }
 
   // BALANCE TO LOW
   $: if (address && network == "kovan" && balance == 0) {
     alert("ETH balance is to low to proceed, you need some ETH to pay gas");
   }
-
-  $: 
 
   $: console.log("STEP:", step);
   $: console.log("DASHBOARDS F", $Dashboards);
@@ -201,9 +209,9 @@
   }
 </script>
 
-<Container bind:address>
+<Container bind:address >
   <div style="height: 1000px; width: 80%;">
-    <!-- BUMPER -->BUMPER
+    <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
       <div class="blockimage">
         <img src="images/FLSuite-Logo-Full-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo" />
@@ -222,23 +230,21 @@
         <div id="userMessagePurple" class="usermessagesbar">
           <div id="userMessagePurpleText" class="textdarkmode usermessage">{message}</div>
         </div>
-        <Dashboard user={Alice} bind:address name="Origin" />
-        <Dashboard user={Bob} bind:address name="Destination" />
+        <Dashboard address={Alice} name="Origin" />
+        <Dashboard address={Bob} name="Destination" />
       </div>
-      <small>step {step}</small>
-      {#if startMigration}
-        <h1>Ready to Start Migration?</h1>
-        <div class="buttonwrapper">
-          <div id="migrateFlashPos" class="mainbutton">
-            <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
-          </div>
-        </div>
-      {/if}
-
     </div>
-  </div>
-  
-  </Container>
+    <small>step {step}</small>
+    {#if startMigration}
+      <h1>Ready to Start Migration?</h1>
+      <div class="buttonwrapper">
+        <div id="migrateFlashPos" class="mainbutton">
+          <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
+        </div>
+      </div>
+    {/if}
+</div>
+</Container>
 
 <style>
   .fs-sectioncontents {
