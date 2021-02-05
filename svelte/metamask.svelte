@@ -8,6 +8,9 @@
   export let balance = 0;
   export let signer = {};
 
+  $: console.log("METAMASK ADDRESS", address);
+
+
   async function handleChainChanged(_chainId) {
     chainId = _chainId;
     setNetwork(chainId);
@@ -88,29 +91,23 @@
   init();
 </script>
 
-
 <div href="#" class="headerbutton w-inline-block">
   <div class="frostedglasswrapper left">
-    <div class="frostedglasseffect notfixed"></div>
+    <div class="frostedglasseffect notfixed" />
     <div class="blockcontents">
       <div id="identiconAddressImage" class="buttondisk fs-account-icon-wrapper">
-        <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage {address ? 'address-icon' : 'no-address-icon'}">
+        <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage {address ? 'address-icon' : 'no-address-icon'}" />
       </div>
       <div id="userAddressSet" class="textdarkmode">
         {#if address}
-          <span>{address.substr(0, 6) +
-            "..." +
-            address.substring(address.length - 4, address.length)}
-          </span>
-          {:else}
+          <span>{address.substr(0, 6) + "..." + address.substring(address.length - 4, address.length)} </span>
+        {:else}
           <span on:click={connectMetamask} class="connect-text">Connect wallets</span>
         {/if}
       </div>
     </div>
   </div>
 </div>
-
-
 
 <style>
   .connect-text {
@@ -128,5 +125,4 @@
   .no-address-icon {
     opacity: 0;
   }
-
 </style>

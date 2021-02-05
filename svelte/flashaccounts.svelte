@@ -11,8 +11,7 @@
   let address = "";
   let balance = -1;
 
-  let dashboards = {};
-  let positions = {};
+  let positionsAlice = [];
   let nd = 0;
   let Alice = "";
   let Bob = "";
@@ -61,10 +60,13 @@
   }
 
   $: console.log("STEP:", step);
+  $: console.log("DASHBOARDS:", $Dashboards);
+  $: console.log("ALICE:", Alice);
+  $: console.log("BOB:", Bob);
 
   Dashboards.subscribe((value) => {
-    dashboards = value;
-    nd = Object.keys(dashboards).length;
+    console.log("DASHBOARDS VALUE:", value);
+    nd = Object.keys(value).length;
     if (nd >= 1 && step <= 2) step23();
     else if (nd >= 2 && step == 5) step67();
     else if (nd >= 2 && step == 8) step9();
@@ -107,9 +109,9 @@
   async function step34() {
     step = 3;
     startMigration = false;
-    positions = dashboards[Alice].tokens.filter((pos) => pos.checked);
+    positionsAlice = $Dashboards[Alice].tokens.filter((pos) => pos.checked);
 
-    const deposits = positions.filter((pos) => pos.type == 0);
+    const deposits = positionsAlice.filter((pos) => pos.type == 0);
     const nd = deposits.length;
     try {
       if (nd > 0) {
@@ -127,13 +129,13 @@
           ic++;
         }
         for await (const txDeposit of txsDeposit) {
-          console.log(`TX1.${iw+1}/${nd} CALL`, txDeposit);
+          console.log(`TX1.${iw + 1}/${nd} CALL`, txDeposit);
           txsWait[iw] = txDeposit.wait();
           iw++;
         }
         for await (const tx of txsWait) {
           message = `<<< Waiting approvals... ${ia + 1}/${nd} deposit${ia > 0 ? "s" : ""} approved`;
-          console.log(`TX1.${ia+1}/${nd} END`, tx);
+          console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
       }
@@ -153,7 +155,7 @@
   }
   async function step67() {
     step = 6;
-    const loans = positions.filter((pos) => pos.type != 0);
+    const loans = positionsAlice.filter((pos) => pos.type != 0);
     const nl = loans.length;
     try {
       if (nl > 0) {
@@ -171,13 +173,13 @@
           ic++;
         }
         for await (const txLoan of txsLoan) {
-          console.log(`TX2.${iw+1}/${nl} CALL`, txLoan);
+          console.log(`TX2.${iw + 1}/${nl} CALL`, txLoan);
           txsWait[iw] = txLoan.wait();
           iw++;
         }
         for await (const tx of txsWait) {
           message = `<<< Waiting approvals... ${il + 1}/${nl} loan${il > 0 ? "s" : ""} approved`;
-          console.log(`TX2.${il+1}/${nl} END`, tx);
+          console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
       }
@@ -191,7 +193,7 @@
     step = 7;
     message = ">>> Approve Flash Loan with your browser wallet";
     try {
-      const tx = await FlashAccountsContract.callFlashLoanTx(positions, Alice, Bob, signer);
+      const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
 
       message = `<<< Flash Loan Magic in progress... wait a few seconds`;
       console.log(`TX2`, await tx.wait());
@@ -214,7 +216,7 @@
 
 <main>
   <img src="logo.png" width="600" alt="FlashSuite" />
-  <p><strong>FlashPos : migrate your AAVE positions to another address</strong></p>
+  <p><strong>FlashPos : migrate your AAVE positions</strong></p>
   <hr />
 
   <p class="message">{message}</p>
@@ -226,22 +228,16 @@
 
   <table>
     {#key again}
-      {#if Alice}
         <tr
           ><td>
-            <h2>Origin AAVE dashboard</h2>
-            <Dashboard user={Alice} checkbox="true" />
+            <Dashboard user={Alice} name="Origin" addresses={Object.keys($Dashboards)} />
           </td></tr
         >
-      {/if}
-      {#if Bob}
         <tr
           ><td>
-            <h2>Destination AAVE dashboard</h2>
-            <Dashboard user={Bob} />
+            <Dashboard user="{Bob}" name="Destination"  addresses={Object.keys($Dashboards)}/>
           </td></tr
         >
-      {/if}
     {/key}
   </table>
 
