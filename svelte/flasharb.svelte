@@ -154,10 +154,10 @@
           <div id="amountDep02ORG" class="textdarkmode button">Arbitrage</div>
         </div>
         {#await getPrices()}
-          <p>Loading</p>
+          <p style="text-align: center;">Loading...</p>
         {:then}
           {#if loading}
-            <p>Fetching</p>
+            <p style="text-align: center;">Fetching...</p>
           {:else}
             <div class="grid-container">
               <div class="grid-item" style="grid-column: 1/1; grid-row: 1/1;">
@@ -332,6 +332,10 @@
     margin-top: 20px;
     margin-bottom: 0;
     padding-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 558px;
   }
 
   .dropdown-toggle {
