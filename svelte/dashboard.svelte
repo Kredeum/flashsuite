@@ -60,6 +60,7 @@
     <div
       id="OriginPosition"
       class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack"
+      style="min-height: 220px;"
     >
       <div class="columntitlebar reverse">
         <h2 id="columnTitle">{name}</h2>
