@@ -23,10 +23,12 @@
 
   let selectedSpread = { spread: 0, dex1: "", dex2: "" };
 
-  $: flashloanFee = amountToBorrow * 0.0009;
   $: grossProfit = amountToBorrow * Math.abs(selectedSpread.spread);
+  $: flashloanFee = amountToBorrow * 0.0009;
   $: tradingFee1 = amountToBorrow * getTradeFee(selectedSpread.dex1);
   $: tradingFee2 = amountToBorrow * getTradeFee(selectedSpread.dex2);
+  $: estimatedProfit =
+    grossProfit - flashloanFee - gasCost - tradingFee1 - tradingFee2;
 
   const pairs = [
     {
@@ -145,9 +147,7 @@
         class="sectionlogoimage"
       />
       <h1>Choose Pair &amp; Price Discrepancy Opportunities</h1>
-      <p class="paragraph">
-        Connect your primary wallet with enough ETH for gas.
-      </p>
+      <p class="paragraph">Simulate an arbitrage trade with a flash loan.</p>
       <!-- MATRIX -->
       <div class="subpricecostcontents" style="position: relative;">
         <div id="chipFlashPos" class="sectionchip fs-chip">
@@ -277,7 +277,7 @@
         </div>
         <div class="fs-simulation-right">
           <div id="DepositPosition" class="columnpricecost w-col">
-            <div class="columntitlebar">
+            <div class="columntitlebar" style="padding-left: 0;">
               <h2 id="columnTitle">Cost-Profit analysis</h2>
               <div class="textlightmode rates">(in {selectedPair.asset1})</div>
             </div>
@@ -299,11 +299,25 @@
               </div>
               <div class="textlightmode label02">Trading Fees (1)</div>
               <div id="costPlatform01" class="textlightmode numbers">
-                {tradingFee1.toFixed(6)}
+                {tradingFee1.toFixed(5)}
               </div>
               <div class="textlightmode label02">Trading Fees (2)</div>
               <div id="costPlatform02" class="textlightmode numbers">
-                {tradingFee2.toFixed(6)}
+                {tradingFee2.toFixed(5)}
+              </div>
+            </div>
+            <div
+              id="DepositPosition"
+              class="columnamountprofit w-col"
+              style="margin-top: 16px"
+            >
+              <div class="columntitlebar profit" style="padding-left: 0;">
+                <h2 id="columnTitle" style="font-size: 16px">
+                  Estimated Profit 🤑
+                </h2>
+                <div id="differenceProfit" class="textlightmode numbers big">
+                  {estimatedProfit.toFixed(5)}
+                </div>
               </div>
             </div>
           </div>
@@ -470,6 +484,7 @@
   }
   .fs-simulation-right {
     min-width: 36%;
+    margin-top: 6px;
   }
 
   .fs-amount-field {
