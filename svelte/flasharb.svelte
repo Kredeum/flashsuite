@@ -19,11 +19,14 @@
   let amountToBorrow = 0;
   let grossProfit = 0;
   let flashloanFee = 0;
+  let gasCost = 0;
 
   let selectedSpread = { spread: 0, dex1: "", dex2: "" };
 
   $: flashloanFee = amountToBorrow * 0.0009;
   $: grossProfit = amountToBorrow * Math.abs(selectedSpread.spread);
+  $: tradingFee1 = amountToBorrow * getTradeFee(selectedSpread.dex1);
+  $: tradingFee2 = amountToBorrow * getTradeFee(selectedSpread.dex2);
 
   const pairs = [
     {
@@ -71,6 +74,21 @@
       return "fs-black-spread";
     } else {
       return "fs-green-spread";
+    }
+  };
+
+  const getTradeFee = (exchange) => {
+    // uniswap 0.3%
+    // sushiswap 0.3%
+    // balancer variable
+    // bancor 0
+    // dodo 0.3%
+    if (exchange === "balancer") {
+      return 0.1;
+    } else if (exchange === "bancor") {
+      return 0;
+    } else {
+      return 0.003;
     }
   };
 
@@ -266,18 +284,27 @@
             <div class="w-layout-grid gridcosts">
               <div class="textlightmode label02">Gross profit</div>
               <div id="costArbitrage" class="textlightmode numbers">
-                {grossProfit}
+                {grossProfit === 0 ? "Select a spread" : grossProfit}
               </div>
               <div class="textlightmode label02">Flashloan Fee</div>
               <div id="costFlashLoan" class="textlightmode numbers">
                 {flashloanFee}
               </div>
-              <div class="textlightmode label02">Gas Price</div>
-              <div id="costGas" class="textlightmode numbers">0.000</div>
+              <div class="textlightmode label02">Gas Cost</div>
+              <div id="costGas" class="textlightmode numbers">
+                <input
+                  bind:value={gasCost}
+                  class="inputtextfield faflashloan w-embed fs-amount-field fs-cost-field"
+                />
+              </div>
               <div class="textlightmode label02">Trading Fees (1)</div>
-              <div id="costPlatform01" class="textlightmode numbers">0.000</div>
+              <div id="costPlatform01" class="textlightmode numbers">
+                {tradingFee1.toFixed(6)}
+              </div>
               <div class="textlightmode label02">Trading Fees (2)</div>
-              <div id="costPlatform02" class="textlightmode numbers">0.000</div>
+              <div id="costPlatform02" class="textlightmode numbers">
+                {tradingFee2.toFixed(6)}
+              </div>
             </div>
           </div>
         </div>
@@ -299,6 +326,7 @@
 
   .gridcosts {
     grid-template-columns: 1fr 0.8fr;
+    align-items: center;
   }
 
   .dropdown-list {
@@ -415,7 +443,7 @@
     cursor: pointer;
   }
   .fs-spread-cell:hover:not(.fs-grey-cell-empty) {
-    background-color: #a04bce;
+    background-color: #a04bce8c;
     border-radius: 50px;
   }
   .fs-spread-cell:hover .fs-spread {
@@ -449,5 +477,9 @@
     height: 38px;
     padding-left: 8px;
     outline: 0;
+  }
+
+  .fs-cost-field {
+    width: 100%;
   }
 </style>
