@@ -88,9 +88,9 @@
     message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
     if (Alice) step1();
   }
-  async function step1(_some) {
+  async function step1() {
     step = 1;
-    message = `<<< ${_some} account connected, retreiving AAVE dashboard...`;
+    message = `<<< Origin account connected, retreiving AAVE dashboard...`;
     startMigration = false;
     if (Alice && $Dashboards[Alice]) step2();
   }
@@ -100,9 +100,16 @@
     startMigration = true;
   }
   async function step3() {
+    console.log("STEP3", address, Alice);
+    if (address != Alice){
+      message = "<<< Connect first our browser wallet with origin account !";
+      step2();
+    }
     step = 3;
     startMigration = false;
     positionsAlice = $Dashboards[Alice].tokens.filter((pos) => pos.checked);
+
+    console.log("STEP3 positionsAlice",positionsAlice);
 
     const deposits = positionsAlice.filter((pos) => pos.type == 0);
     const nd = deposits.length;
@@ -144,6 +151,7 @@
     if (Bob) step5();
   }
   async function step5() {
+    console.log("Bob",Bob);
     step = 5;
     message = "<<< Destinator account connected, retreiving AAVE dashboard...";
     if (Bob && $Dashboards[Bob]) step6();
@@ -209,7 +217,7 @@
   }
 </script>
 
-<Container bind:address >
+<Container bind:address>
   <div style="height: 1000px; width: 80%;">
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
@@ -222,29 +230,30 @@
       <img src="images/FlashPos-SubLogo-Light.svg" loading="lazy" width="200" alt="" class="sectionlogoimage" />
       <h1>Migrate your positions</h1>
       <p class="paragraph">Use 2 accounts to connect and disconnect to FlashSuite when you are prompted.</p>
+      <p>{message}</p>
 
       <div class="columnspositions fs-columnspositions w-row">
         <div id="chipFlashPos" class="sectionchip fs-chip">
           <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
         </div>
-        <div id="userMessagePurple" class="usermessagesbar">
-          <div id="userMessagePurpleText" class="textdarkmode usermessage">{message}</div>
-        </div>
         <Dashboard address={Alice} name="Origin" />
         <Dashboard address={Bob} name="Destination" />
       </div>
+      <div>
+        {#if startMigration}
+          <h1>Ready to Start Migration?</h1>
+          <div class="buttonwrapper">
+            <div id="migrateFlashPos" class="mainbutton">
+              <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
+            </div>
+          </div>
+        {/if}
+        <small>step {step}</small> <br/>
+        <small>Alice {Alice}</small> <br/>
+        <small>Bob {Bob}</small> <br/>      </div>
     </div>
-    <small>step {step}</small>
-    {#if startMigration}
-      <h1>Ready to Start Migration?</h1>
-      <div class="buttonwrapper">
-        <div id="migrateFlashPos" class="mainbutton">
-          <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
-        </div>
-      </div>
-    {/if}
-</div>
-</Container>
+  </div></Container
+>
 
 <style>
   .fs-sectioncontents {
