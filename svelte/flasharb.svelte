@@ -16,6 +16,15 @@
   // let crypto_comPrice = 0;
   let priceData;
 
+  let amountToBorrow = 0;
+  let grossProfit = 0;
+  let flashloanFee = 0;
+
+  let selectedSpread = { spread: 0, dex1: "", dex2: "" };
+
+  $: flashloanFee = amountToBorrow * 0.0009;
+  $: grossProfit = amountToBorrow * Math.abs(selectedSpread.spread);
+
   const pairs = [
     {
       id: "WETH_DAI",
@@ -71,6 +80,20 @@
     await getPrices();
     loading = false;
   }
+
+  function onSelectSpread(dex1, dex2) {
+    console.log("dex1", dex1, dex2);
+    const spread = computeSpread(
+      priceData[`${dex1}Price`],
+      priceData[`${dex2}Price`]
+    );
+    console.log("spreadddd", spread);
+    selectedSpread = {
+      spread,
+      dex1,
+      dex2,
+    };
+  }
 </script>
 
 <Container>
@@ -100,7 +123,7 @@
       <p class="paragraph">
         Connect your primary wallet with enough ETH for gas.
       </p>
-
+      <!-- MATRIX -->
       <div class="subpricecostcontents" style="position: relative;">
         <div id="chipFlashPos" class="sectionchip fs-chip">
           <div id="amountDep02ORG" class="textdarkmode button">Arbitrage</div>
@@ -185,9 +208,14 @@
               {#each dexes as colDex, i}
                 {#each dexes as rowDex, j}
                   <div
-                    class="grid-item {i == j ? 'fs-grey-cell-lighter' : ''}"
+                    class="grid-item {i == j
+                      ? 'fs-grey-cell-empty'
+                      : ''} fs-spread-cell"
                     style="grid-column: {i + 2}/{i + 2}; grid-row: {j + 2}/{j +
                       2};"
+                    on:click={() => i !== j && onSelectSpread(colDex, rowDex)}
+                    class:selectedSpread={selectedSpread.dex1 == colDex &&
+                      selectedSpread.dex2 == rowDex}
                   >
                     {#if i !== j}
                       <!-- TODO: avoid computeSpread duplication -->
@@ -204,6 +232,7 @@
                           priceData[`${rowDex}Price`]
                         ).toPrecision(3)}%
                       </span>
+                      <span class="fs-spread-select">Select</span>
                     {/if}
                   </div>
                 {/each}
@@ -212,19 +241,57 @@
           {/if}
         {/await}
       </div>
+
+      <div class="fs-simulation-section">
+        <div class="fs-simulation-left columntitlebar amount">
+          <h3 class="columnTitle">Amount to borrow</h3>
+          <input
+            bind:value={amountToBorrow}
+            class="inputtextfield faflashloan w-embed fs-amount-field"
+          />
+        </div>
+        <div class="fs-simulation-right">
+          <div id="DepositPosition" class="columnpricecost w-col">
+            <div class="columntitlebar">
+              <h2 id="columnTitle">Cost-Profit analysis</h2>
+              <div class="textlightmode rates">(in {selectedPair.asset1})</div>
+            </div>
+            <div class="w-layout-grid gridcosts">
+              <div class="textlightmode label02">Gross profit</div>
+              <div id="costArbitrage" class="textlightmode numbers">
+                {grossProfit}
+              </div>
+              <div class="textlightmode label02">Flashloan Fee</div>
+              <div id="costFlashLoan" class="textlightmode numbers">
+                {flashloanFee}
+              </div>
+              <div class="textlightmode label02">Gas Price</div>
+              <div id="costGas" class="textlightmode numbers">0.000</div>
+              <div class="textlightmode label02">Trading Fees (1)</div>
+              <div id="costPlatform01" class="textlightmode numbers">0.000</div>
+              <div class="textlightmode label02">Trading Fees (2)</div>
+              <div id="costPlatform02" class="textlightmode numbers">0.000</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </Container>
 
 <style>
   .subpricecostcontents {
-    min-height: none;
     margin-top: 20px;
+    margin-bottom: 0;
     padding-top: 40px;
   }
 
   .dropdown-toggle {
     min-width: 155px;
+  }
+
+  .gridcosts {
+    grid-template-columns: 1fr 0.8fr;
   }
 
   .dropdown-list {
@@ -281,7 +348,7 @@
     border-radius: 10px;
     background-color: #f1f1f1;
   }
-  .fs-grey-cell-lighter {
+  .fs-grey-cell-empty {
     border-radius: 10px;
     background-color: #f9f9f9;
   }
@@ -329,5 +396,51 @@
 
   .fs-green-spread {
     color: #3ba34b;
+  }
+
+  .fs-spread-select {
+    display: none;
+    font: normal normal bold 20px/24px Montserrat;
+    color: #fff;
+  }
+
+  .fs-spread-cell:hover:not(.fs-grey-cell-empty) {
+    cursor: pointer;
+  }
+  .fs-spread-cell:hover:not(.fs-grey-cell-empty) {
+    background-color: #a04bce;
+    border-radius: 50px;
+  }
+  .fs-spread-cell:hover .fs-spread {
+    display: none;
+  }
+
+  .fs-spread-cell:hover .fs-spread-select {
+    display: block;
+  }
+
+  .selectedSpread {
+    border: 2px solid #f2def5;
+    border-radius: 30px;
+  }
+
+  .fs-simulation-section {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .fs-simulation-left {
+    display: flex;
+  }
+  .fs-simulation-right {
+    min-width: 36%;
+  }
+
+  .fs-amount-field {
+    width: 230px;
+    height: 38px;
+    padding-left: 8px;
+    outline: 0;
   }
 </style>
