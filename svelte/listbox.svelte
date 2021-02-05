@@ -27,7 +27,7 @@
   <option value=""  id="chosenAddressDEST" class="textlightmode">Select address</option>
   {#if options && options.length > 0}
     {#each options as address}
-      <option value={address}>{address.substr(0, 6) + "..." + address.substring(address.length - 4, address.length)}</option>
+      <option value={address}>{address.substr(0, 20) + "..." + address.substring(address.length - 4, address.length)}</option>
     {/each}
   {/if}
 </select>

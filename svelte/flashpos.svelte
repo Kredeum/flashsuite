@@ -20,10 +20,7 @@
   let startMigration = false;
   let step = 0;
   let message;
-  let again = true;
-  function refresh() {
-    again = Boolean(!again);
-  }
+  let refresh = 0;
 
   // NETWORK MUST BE KOVAN
   $: if (network && network != "kovan") {
@@ -31,14 +28,13 @@
   }
 
   // FIRST ADDRESS IS ALICE, SECOND ADDRESS BOB
-  $: if (address) {
-    if (!Alice) {
-      Alice = address;
-    } else {
-      if (step <= 4) {
+  $: {
+    if (address && address != Alice && address != Bob && step <= 4)
+      if (!Alice) {
+        Alice = address;
+      } else {
         Bob = address;
       }
-    }
     console.log("ADDRESSES", address);
   }
 
@@ -96,12 +92,12 @@
   }
   async function step2() {
     step = 2;
-    message = ">>> Ready to start the migration ?";
+    message = ">>> Select what positions to migrate, and start migration";
     startMigration = true;
   }
   async function step3() {
     console.log("STEP3", address, Alice);
-    if (address != Alice){
+    if (address != Alice) {
       message = "<<< Connect first our browser wallet with origin account !";
       step2();
     }
@@ -109,7 +105,7 @@
     startMigration = false;
     positionsAlice = $Dashboards[Alice].tokens.filter((pos) => pos.checked);
 
-    console.log("STEP3 positionsAlice",positionsAlice);
+    console.log("STEP3 positionsAlice", positionsAlice);
 
     const deposits = positionsAlice.filter((pos) => pos.type == 0);
     const nd = deposits.length;
@@ -151,7 +147,7 @@
     if (Bob) step5();
   }
   async function step5() {
-    console.log("Bob",Bob);
+    console.log("Bob", Bob);
     step = 5;
     message = "<<< Destinator account connected, retreiving AAVE dashboard...";
     if (Bob && $Dashboards[Bob]) step6();
@@ -209,7 +205,7 @@
   async function step8() {
     step = 8;
     message = "<<< Flash Loan succeeded !  refreshing dashboards";
-    refresh();
+    refresh++;
   }
   async function step9() {
     step = 9;
@@ -217,7 +213,7 @@
   }
 </script>
 
-<Container bind:address>
+<Container bind:address bind:balance bind:network bind:signer>
   <div style="height: 1000px; width: 80%;">
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
@@ -229,15 +225,17 @@
     <div class="sectioncontents fs-sectioncontents">
       <img src="images/FlashPos-SubLogo-Light.svg" loading="lazy" width="200" alt="" class="sectionlogoimage" />
       <h1>Migrate your positions</h1>
-      <p class="paragraph">Use 2 accounts to connect and disconnect to FlashSuite when you are prompted.</p>
+
       <p>{message}</p>
 
       <div class="columnspositions fs-columnspositions w-row">
         <div id="chipFlashPos" class="sectionchip fs-chip">
           <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
         </div>
-        <Dashboard address={Alice} name="Origin" />
-        <Dashboard address={Bob} name="Destination" />
+        {#key refresh}
+          <Dashboard address={Alice} name="Origin" />
+          <Dashboard address={Bob} name="Destination" />
+        {/key}
       </div>
       <div>
         {#if startMigration}
@@ -248,9 +246,10 @@
             </div>
           </div>
         {/if}
-        <small>step {step}</small> <br/>
-        <small>Alice {Alice}</small> <br/>
-        <small>Bob {Bob}</small> <br/>      </div>
+        <small>step {step}</small> <br />
+        <small>Alice {Alice}</small> <br />
+        <small>Bob {Bob}</small> <br />
+      </div>
     </div>
   </div></Container
 >

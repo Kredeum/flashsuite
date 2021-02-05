@@ -3,12 +3,15 @@
   import Metamask from "./metamask.svelte";
 
   export let address;
+  export let balance;
+  export let network;
+  export let signer;
   $: console.log("CONTAINER ADDRESS", address);
 </script>
 
 <div class="nnavbar">
   <div class="nnavbarcontents">
-    <Metamask bind:address />
+    <Metamask bind:address bind:balance bind:network bind:signer />
   </div>
 </div>
 <div class="headermain fs-headermain">

@@ -12,7 +12,7 @@
   $: console.log("ADDRESS D", address);
   $: console.log("NAME", name);
 
-  const chekboxDefault = true;
+  const chekboxDefault = false;
 
   function _bal(_balance, _decimals, _precision = 3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -163,7 +163,6 @@
           <p style="color: red">{error.message}</p>
         {/await}
       </div>
-      <small> {address}</small>
       <!-- <div id="clearALL" class="secondarybutton">
         <div on:click={refresh} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
       </div> -->
