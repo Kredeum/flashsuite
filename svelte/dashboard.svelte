@@ -1,21 +1,26 @@
 <script>
-  import { ethers } from "ethers";
+  import { ethers, BigNumber } from "ethers";
   import aaveDashboard from "../lib/aaveDashboard.mjs";
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
 
   export let name;
+  let again = true;
+  function refresh() {
+    again = Boolean(!again);
+  }
+
+  export let user = {};
   export let addresses;
-
-  export let user = "";
-  export let origin = true;
   const chekboxDefault = true;
-
-  $: console.log("DASHBOARD ADDRESS", user);
 
   function _bal(_balance, _decimals, _precision = 3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
     return ent + "." + dec.substring(0, _precision);
+  }
+  function _healthFactor(db) {
+    const hf = db.account.healthFactor;
+    return hf.gt(BigNumber.from(10).pow(24)) ? "∞" : _bal(hf, 18);
   }
 
   async function dashboard() {
@@ -33,18 +38,19 @@
           setChecked(position.symbol, chekboxDefault);
         }
       }
-      console.log("$dashboard", user, $Dashboards[user]);
+      console.log("DASHBOARD", user, $Dashboards[user]);
     }
     return $Dashboards[user];
   }
   function setChecked(_symbol, _checked) {
-    console.log("_symbol", _symbol);
-    console.log("_checked", _checked);
     const idToken = $Dashboards[user].tokens.findIndex((db) => db.symbol == _symbol);
+
+    console.log("SET CHECK", _symbol, _checked, idToken);
+
+    console.log("SET CHECK", $Dashboards[user].tokens[idToken].checked);
     if (idToken >= 0) $Dashboards[user].tokens[idToken].checked = _checked;
-  }
-  function handleCheck(_symbol, _checked) {
-    setChecked(_symbol, !_checked);
+    console.log("SET CHECK", $Dashboards[user].tokens[idToken].checked);
+    refresh();
   }
 </script>
 
@@ -63,9 +69,7 @@
     </div>
   </div>
 
-
-
-
+  {#key again}
   {#if user}
     {#await dashboard(user)}
       <p>loading</p>
@@ -78,7 +82,7 @@
             {#if item.type == 0}
               <div
                 class:checked={item.checked}
-                class:fs-dashboard-item__origin={origin}
+                class:fs-dashboard-item__origin={name}
                 class="deposititem fs-deposit-item"
                 on:click={() => setChecked(item.symbol, !item.checked)}
                 value={item.symbol}
@@ -103,9 +107,10 @@
                     {_bal(item.amount, item.decimals)}
                   </div>
                 </div>
-                {#if item.checked}
-                  <div class="fs-checkmark">V</div>
-                {/if}
+
+                <div class="fs-checkmark">
+                  {#if item.checked }V{:else}O{/if}
+                </div>
               </div>
             {/if}
           {/each}
@@ -145,15 +150,64 @@
       </div>
       <div id="healthFactorInfoORG" class="healthfactorinfo">
         <div class="hfcontents origin">
-          <p class="textlightmode rates">Health Factor : {_bal(dashboard.account.healthFactor, 18)}</p>
+          <p class="textlightmode rates">Health Factor : {_healthFactor(dashboard)}</p>
         </div>
       </div>
     {:catch error}
       <p style="color: red">{error.message}</p>
     {/await}
-  {/if}
+    {/if}  {/key}
 </main>
 
+<!-- <main>
+  <h2>{name} dashboard</h2>
+  <ListBox bind:value={user} options={addresses} />
+
+  {#if user}
+    {#await dashboard(user)}
+      <p>loading</p>
+    {:then dashboard}
+      <table>
+        <tr>
+          <td>
+            <h3>Deposits</h3>
+            <table>
+              {#each dashboard.tokens as item}
+                {#if item.type == 0}
+                  <tr>
+                    <td align="right"><div title={_bal(item.amount, item.decimals, 18)}>{_bal(item.amount, item.decimals)}</div></td>
+                    <td>{item.symbol}</td>
+                    {#if name == "Origin"}
+                      <td><input type="checkbox" on:click={handleCheck} value={item.symbol} checked={item.checked} /></td>
+                    {/if}
+                  </tr>
+                {/if}
+              {/each}
+            </table>
+          </td><td>
+            <h3>Borrows</h3>
+            <table>
+              {#each dashboard.tokens as item}
+                {#if item.type > 0}
+                  <tr>
+                    <td align="right"><div title={_bal(item.amount, item.decimals, 18)}>{_bal(item.amount, item.decimals)}</div></td>
+                    <td>{item.symbol}</td>
+                    {#if name == "Origin"}
+                      <td><input type="checkbox" on:click={handleCheck} value={item.symbol} checked={item.checked} /></td>
+                    {/if}
+                  </tr>
+                {/if}
+              {/each}
+            </table>
+          </td>
+        </tr>
+      </table>
+      <p class="hf">Health Factor : {_healthFactor(dashboard)}</p>
+    {:catch error}
+      <p style="color: red">{error.message}</p>
+    {/await}
+  {/if}
+</main> -->
 <style>
   main {
     padding: 1em;

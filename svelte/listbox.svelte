@@ -1,10 +1,9 @@
 <script>
-  export let label = "";
   export let value;
   export let options;
 </script>
 
-<div data-hover="" data-delay="0" class="adressdropdown w-dropdown">
+<!-- <div data-hover="" data-delay="0" class="adressdropdown w-dropdown">
   <div class="dropdown-toggle addresses w-dropdown-toggle">
     <div class="arrow lightmode w-icon-dropdown-toggle" />
     <div id="platformAddressLogo" class="buttondisk">
@@ -14,11 +13,21 @@
     <select bind:value>
         <option value=""  id="chosenAddressDEST" class="textlightmode">Select address</option>
         {#if options && options.length > 0}
-          {#each options as m}
-            <option value={m}>{m.substring(0,12)}...</option>
+          {#each options as address}
+            <option value={address}>{address.substr(0, 6) + "..." + address.substring(address.length - 4, address.length)}</option>
           {/each}
         {/if}
       </select>
 
     </div>
-</div>
+</div> -->
+
+
+<select bind:value>
+  <option value=""  id="chosenAddressDEST" class="textlightmode">Select address</option>
+  {#if options && options.length > 0}
+    {#each options as address}
+      <option value={address}>{address.substr(0, 6) + "..." + address.substring(address.length - 4, address.length)}</option>
+    {/each}
+  {/if}
+</select>
