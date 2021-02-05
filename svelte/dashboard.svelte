@@ -12,6 +12,8 @@
   $: console.log("ADDRESS D", address);
   $: console.log("NAME", name);
 
+  const isOrigin = name === "Origin";
+
   const chekboxDefault = false;
 
   function _bal(_balance, _decimals, _precision = 3) {
@@ -90,9 +92,10 @@
                   {#if item.type == 0}
                     <div
                       class:checked={item.checked}
-                      class:fs-dashboard-item__origin={name === "Origin"}
+                      class:fs-dashboard-item__origin={isOrigin}
                       class="deposititem fs-deposit-item"
-                      on:click={() => setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        isOrigin && setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
@@ -118,10 +121,11 @@
                           {_bal(item.amount, item.decimals)}
                         </div>
                       </div>
-
-                      <div class="fs-checkmark">
-                        {#if item.checked}V{:else}O{/if}
-                      </div>
+                      {#if isOrigin}
+                        <div class="fs-checkmark">
+                          {#if item.checked}V{:else}O{/if}
+                        </div>
+                      {/if}
                     </div>
                   {/if}
                 {/each}
@@ -134,7 +138,8 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={name === "Origin"}
                       class="loanitem fs-dashboard-item  fs-loan-item"
-                      on:click={() => setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        isOrigin && setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
@@ -160,9 +165,11 @@
                           {_bal(item.amount, item.decimals)}
                         </div>
                       </div>
-                      <div class="fs-checkmark">
-                        {#if item.checked}V{:else}O{/if}
-                      </div>
+                      {#if isOrigin}
+                        <div class="fs-checkmark">
+                          {#if item.checked}V{:else}O{/if}
+                        </div>
+                      {/if}
                     </div>
                     <div
                       id="APRLoan01ORG"
