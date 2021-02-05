@@ -273,7 +273,7 @@
         {#if startMigration}
           <h1>Ready to Start Migration?</h1>
           <div class="buttonwrapper">
-            <div id="migrateFlashPos" class="mainbutton">
+            <div id="migrateFlashPos" class="mainbutton fs-mainbutton">
               <div
                 on:click={step3}
                 id="amountDep02ORG"
@@ -319,5 +319,9 @@
   }
   .fs-col-destination {
     margin-left: 5px;
+  }
+
+  .fs-mainbutton {
+    cursor: pointer;
   }
 </style>
