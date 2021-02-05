@@ -8,10 +8,11 @@
 
   // exports Metamask
   let network = "";
-  let balance = -1;
   let address = "";
+  let balance = -1;
 
-  let positionsAlice = [];
+  let dashboards = {};
+  let positions = {};
   let nd = 0;
   let Alice = "";
   let Bob = "";
@@ -19,7 +20,10 @@
   let startMigration = false;
   let step = 0;
   let message;
-  let refresh = 0;
+  let again = true;
+  function refresh() {
+    again = Boolean(!again);
+  }
 
   // NETWORK MUST BE KOVAN
   $: if (network && network != "kovan") {
@@ -27,14 +31,28 @@
   }
 
   // FIRST ADDRESS IS ALICE, SECOND ADDRESS BOB
-  $: {
-    if (address && address != Alice && address != Bob && step <= 4)
-      if (!Alice) {
-        Alice = address;
-      } else {
-        Bob = address;
+  $: if (address) {
+    if (Alice) {
+      if (address != Alice) {
+        if (step < 3) {
+          Alice = address;
+          step12("New origin");
+        } else {
+          if (Bob) {
+            if (address != Bob) {
+              // third account , reset by refreshing the browser
+              document.location.reload();
+            }
+          } else {
+            Bob = address;
+            step56();
+          }
+        }
       }
-    console.log("ADDRESSES", address);
+    } else {
+      Alice = address;
+      step12("Origin");
+    }
   }
 
   // BALANCE TO LOW
@@ -42,25 +60,15 @@
     alert("ETH balance is to low to proceed, you need some ETH to pay gas");
   }
 
-  // STEP 0 : initial state
-  $: if (Alice && step == 0) step1();
-  // STEP 1 : address Alice defined
-  $: if (Alice && $Dashboards[Alice] && step < 2) step2();
-  // STEP 2 : dashboard Alice retrieved
-  // Click button
-  // STEP 3 : start migration
-  // Transfers approved
-  // STEP 4 : connect destinator
-  $: if (Bob && step == 4) step5();
-  // STEP 5 : address Bob defined
-  $: if (Bob && $Dashboards[Bob] && step == 5) step6();
-  // STEP 6 : dashboard Bob retreived
-  // Transfers approved
-  // STEP 7 : call flashloan
-  // Flashlaon approval
-  // STEP 8 : flashloan succeeded
-  // Refresh dashboards
-  // STEP 9 : final state, positions migrated
+  $: console.log("STEP:", step);
+
+  Dashboards.subscribe((value) => {
+    dashboards = value;
+    nd = Object.keys(dashboards).length;
+    if (nd >= 1 && step <= 2) step23();
+    else if (nd >= 2 && step == 5) step67();
+    else if (nd >= 2 && step == 8) step9();
+  });
 
   function _bal(_balance, _decimals) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -69,40 +77,39 @@
 
   onMount(async function () {
     await FlashAccountsContract.Init(true);
-    step0();
+    step01();
   });
 
-  async function step0() {
+  // step0 initial
+  // step1  address Alice defined
+  // step2 dashboard Alice retrieved
+  // step3 start migration
+  // step4.n transfers allowed
+  // step5 adress Bob defined
+  // step6 dashboard Bob retreived
+  // step7.n loans allowed - Approve Flash Loan
+  // step8 Flash Loan succeeded
+  // step9 dashboards refresh
+  async function step01() {
     step = 0;
     message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
-    if (Alice) step1();
   }
-  async function step1() {
+  async function step12(_some) {
     step = 1;
-    message = `<<< Origin account connected, retreiving AAVE dashboard...`;
+    message = `<<< ${_some} account connected, retreiving AAVE dashboard...`;
     startMigration = false;
-    if (Alice && $Dashboards[Alice]) step2();
   }
-  async function step2(_message) {
+  async function step23() {
     step = 2;
-    message = _message || ">>> Select what positions to migrate, and start migration";
+    message = ">>> Ready to start the migration ?";
     startMigration = true;
   }
-  async function step3() {
-    refresh++;
-    
-
-    console.log("STEP3", address, Alice);
-    if (address != Alice) {
-      step1("<<< Connect your browser wallet with origin account !");
-    }
+  async function step34() {
     step = 3;
     startMigration = false;
-    positionsAlice = $Dashboards[Alice].tokens.filter((pos) => pos.checked);
+    positions = dashboards[Alice].tokens.filter((pos) => pos.checked);
 
-    console.log("STEP3 positionsAlice", positionsAlice);
-
-    const deposits = positionsAlice.filter((pos) => pos.type == 0);
+    const deposits = positions.filter((pos) => pos.type == 0);
     const nd = deposits.length;
     try {
       if (nd > 0) {
@@ -120,36 +127,33 @@
           ic++;
         }
         for await (const txDeposit of txsDeposit) {
-          console.log(`TX1.${iw + 1}/${nd} CALL`, txDeposit);
+          console.log(`TX1.${iw+1}/${nd} CALL`, txDeposit);
           txsWait[iw] = txDeposit.wait();
           iw++;
         }
         for await (const tx of txsWait) {
           message = `<<< Waiting approvals... ${ia + 1}/${nd} deposit${ia > 0 ? "s" : ""} approved`;
-          console.log(`TX1.${ia + 1}/${nd} END`, tx);
+          console.log(`TX1.${ia+1}/${nd} END`, tx);
           ia++;
         }
       }
-      step4();
+      step45();
     } catch (e) {
       message = "<<< Transaction failed";
       console.error(e);
     }
   }
-  async function step4() {
+  async function step45() {
     step = 4;
     message = ">>> Please connect to the account you want to migrate to, with Metamask or another Wallet";
-    if (Bob) step5();
   }
-  async function step5() {
-    console.log("Bob", Bob);
+  async function step56() {
     step = 5;
     message = "<<< Destinator account connected, retreiving AAVE dashboard...";
-    if (Bob && $Dashboards[Bob]) step6();
   }
-  async function step6() {
+  async function step67() {
     step = 6;
-    const loans = positionsAlice.filter((pos) => pos.type != 0);
+    const loans = positions.filter((pos) => pos.type != 0);
     const nl = loans.length;
     try {
       if (nl > 0) {
@@ -167,40 +171,40 @@
           ic++;
         }
         for await (const txLoan of txsLoan) {
-          console.log(`TX2.${iw + 1}/${nl} CALL`, txLoan);
+          console.log(`TX2.${iw+1}/${nl} CALL`, txLoan);
           txsWait[iw] = txLoan.wait();
           iw++;
         }
         for await (const tx of txsWait) {
           message = `<<< Waiting approvals... ${il + 1}/${nl} loan${il > 0 ? "s" : ""} approved`;
-          console.log(`TX2.${il + 1}/${nl} END`, tx);
+          console.log(`TX2.${il+1}/${nl} END`, tx);
           il++;
         }
       }
-      step7();
+      step78();
     } catch (e) {
       message = "<<< Transaction failed";
       console.error(e);
     }
   }
-  async function step7() {
+  async function step78() {
     step = 7;
     message = ">>> Approve Flash Loan with your browser wallet";
     try {
-      const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
+      const tx = await FlashAccountsContract.callFlashLoanTx(positions, Alice, Bob, signer);
 
       message = `<<< Flash Loan Magic in progress... wait a few seconds`;
       console.log(`TX2`, await tx.wait());
-      step8();
+      step89();
     } catch (e) {
       message = "<<< Transaction failed";
       console.error(e);
     }
   }
-  async function step8() {
+  async function step89() {
     step = 8;
     message = "<<< Flash Loan succeeded !  refreshing dashboards";
-    refresh++;
+    refresh();
   }
   async function step9() {
     step = 9;
@@ -216,31 +220,40 @@
   <p class="message">{message}</p>
   <p>
     {#if startMigration}
-      <button on:click={step3}>START MIGRATION</button>
+      <button on:click={step34}>START MIGRATION</button>
     {/if}
   </p>
 
   <table>
-    {#key refresh}
-      <tr
-        ><td>
-          <Dashboard address={Alice} name="Origin" />
-        </td><td>
-          <Dashboard address={Bob} name="Destination" />
-        </td></tr
-      >
+    {#key again}
+      {#if Alice}
+        <tr
+          ><td>
+            <h2>Origin AAVE dashboard</h2>
+            <Dashboard user={Alice} checkbox="true" />
+          </td></tr
+        >
+      {/if}
+      {#if Bob}
+        <tr
+          ><td>
+            <h2>Destination AAVE dashboard</h2>
+            <Dashboard user={Bob} />
+          </td></tr
+        >
+      {/if}
     {/key}
   </table>
 
-
+  <p>
+    <button on:click={refresh}
+      >Refresh Dashboard{#if nd > 1}s{/if}</button
+    >
+  </p>
   <hr />
   <p>
+    <small>step {step}</small>
     <Metamask bind:address bind:balance bind:network bind:signer />
-    <br />
-    <small>origin: {Alice}</small> <br />
-    <small>signer: {address}</small> <br />
-    <small>destination: {Bob}</small> <br />
-    <small>step: {step}</small> <br />
   </p>
 </main>
 
@@ -249,16 +262,24 @@
     padding: 1em;
     margin: 0 auto;
   }
+  h2 {
+    padding-left: 10px;
+    margin-bottom: 0px;
+  }
   p.message {
     color: purple;
     font-style: oblique;
   }
   table {
-    width: 800px;
+    width: 400px;
   }
   td {
-    vertical-align: top;
     border: 1px solid purple;
-    width: 50%;
+  }
+
+  @media (min-width: 640px) {
+    main {
+      max-width: none;
+    }
   }
 </style>
