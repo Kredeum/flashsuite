@@ -297,11 +297,15 @@
     padding-top: 20px;
     background-color: white;
     border-radius: 0 0 20px 20px;
+    min-height: 900px;
+    justify-content: flex-start;
   }
 
   .fs-sectionbumper {
     border-bottom: none;
     border-radius: 20px 20px 0 0;
+    background: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(5px);
   }
 
   .fs-columnspositions {
