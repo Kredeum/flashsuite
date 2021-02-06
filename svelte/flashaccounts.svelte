@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { Dashboards } from "./stores.mjs";
   import FlashAccountsContract from "../lib/contracts/FlashAccounts.mjs";
-  import Dashboard from "./dashboard.svelte";
+  import Dashboard from "./dashboard3.svelte";
   import Metamask from "./metamask2.svelte";
 
   // exports Metamask

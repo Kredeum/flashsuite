@@ -4,6 +4,16 @@
   import aaveDashboard from "../lib/aaveDashboard.mjs";
   import { Dashboards } from "./stores.mjs";
 
+  function getTokenLogo(symbol) {
+    let ret = "/images/no_logo.svg";
+
+    const coins = ["sUSD", "USDT",  "USDC", "BUSD", "AAVE", "BAT", "DAI", "USZDC", "SNX", "YFI"];
+    for (const coin of coins) {
+      if (symbol.includes(coin)) ret = `/images/${coin}_logo.svg`;
+    }
+    return ret;
+  }
+
   export let name;
   export let address;
   export let refresh = 0;
@@ -68,6 +78,7 @@
     healthFactorChecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)).healthFactor;
     healthFactorUnchecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)).healthFactor;
   }
+
   function setChecked(_symbol, _checked) {
     const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
     if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
