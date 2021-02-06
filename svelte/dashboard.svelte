@@ -238,7 +238,19 @@
                       </div>
                       {#if name == "Origin"}
                         <div class="fs-checkmark">
-                          {#if item.checked}V{:else}O{/if}
+                          {#if item.checked}
+                            <img
+                              src="/images/checked_purple.svg"
+                              loading="lazy"
+                              alt=""
+                            />
+                          {:else}
+                            <img
+                              src="/images/unchecked_purple.svg"
+                              loading="lazy"
+                              alt=""
+                            />
+                          {/if}
                         </div>
                       {/if}
                     </div>
@@ -283,7 +295,19 @@
                       </div>
                       {#if name == "Origin"}
                         <div class="fs-checkmark">
-                          {#if item.checked}V{:else}O{/if}
+                          {#if item.checked}
+                            <img
+                              src="/images/checked_white.svg"
+                              loading="lazy"
+                              alt=""
+                            />
+                          {:else}
+                            <img
+                              src="/images/unchecked_white.svg"
+                              loading="lazy"
+                              alt=""
+                            />
+                          {/if}
                         </div>
                       {/if}
                     </div>
@@ -364,9 +388,9 @@
     box-shadow: inset 0px 0px 0px 1px #a04bce;
   }
   .fs-loan-item.checked {
-    -webkit-box-shadow: inset 0px 0px 0px 1px #241130;
-    -moz-box-shadow: inset 0px 0px 0px 1px #241130;
-    box-shadow: inset 0px 0px 0px 1px #241130;
+    -webkit-box-shadow: inset 0px 0px 0px 1px #969696;
+    -moz-box-shadow: inset 0px 0px 0px 1px #969696;
+    box-shadow: inset 0px 0px 0px 1px #969696;
   }
 
   /* overrides */
