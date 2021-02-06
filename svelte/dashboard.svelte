@@ -38,6 +38,7 @@
   export let name;
   export let address;
   export let refresh = 0;
+  export let ribbonMessage = "";
 
   const chekboxDefault = false;
 
@@ -145,7 +146,13 @@
           class="connectindicator"
         /> -->
       </div>
-
+      {#if name === "Origin" && ribbonMessage}
+        <div id="userMessagePurple" class="usermessagesbar">
+          <div id="userMessagePurpleText" class="textdarkmode usermessage">
+            {ribbonMessage}
+          </div>
+        </div>
+      {/if}
       {#await currentDashboard}
         <p style="text-align: center;">loading</p>
       {:then dashboard}
@@ -322,6 +329,10 @@
   p.bottom {
     text-align: center;
     vertical-align: bottom;
+  }
+
+  .usermessagesbar {
+    display: block;
   }
 
   .fs-grid-dashboard {
