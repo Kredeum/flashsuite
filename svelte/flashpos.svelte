@@ -16,12 +16,14 @@
   let Alice = "";
   let Bob = "";
   let startMigration = false;
+  let migrationInProgress = false;
   let step = 0;
   let message = "";
   let message2 = "";
+  let originMessage = "";
   let refresh = 0;
   let reget = 0;
-  let healthFactorUncheckedBob= "_";
+  let healthFactorUncheckedBob = "_";
 
   function _bal(_balance, _decimals) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -82,26 +84,27 @@
 
   async function step0() {
     step = 0;
-    message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
+    // message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
+    originMessage = "Please connect to the account you want to migrate from";
     if (Alice) step1();
   }
   async function step1() {
     step = 1;
-    message = ">>> Origin account connected";
-    message2 = `<<< Retreiving AAVE dashboard...`;
+    // message = ">>> Origin account connected";
+    // message2 = `<<< Retreiving AAVE dashboard...`;
+    originMessage = "Origin account connected, retrieving AAVE positions...";
     startMigration = false;
     if (Alice && $Dashboards[Alice]) step2();
   }
   async function step2() {
     step = 2;
-    message = ">>> Select what positions to migrate, and start migration";
-    message2 = "<<< Origin dashboard retreived";
+    // message = ">>> Select what positions to migrate, and start migration";
+    // message2 = "<<< Origin dashboard retreived";
+    originMessage = "Select the deposits and loans you want to migrate";
     startMigration = true;
   }
   async function step3() {
     handleRefresh();
-
-    console.log("STEP3 AVANT", address, Alice);
     if (address != Alice) {
       $Dashboards[Alice] = null;
       Alice = "";
@@ -112,6 +115,7 @@
     console.log("STEP3 APRES", address, Alice);
     step = 3;
     startMigration = false;
+    migrationInProgress = true;
     positionsAlice = $Dashboards[Alice].tokens.filter((pos) => pos.checked);
 
     console.log("STEP3 positionsAlice", positionsAlice);
@@ -126,51 +130,55 @@
         let ic = 0;
         let iw = 0;
         let ia = 0;
-        alertBalance()
+        alertBalance();
 
         for (const deposit of deposits) {
           const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
-          message = `>>> Approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""} with your browser wallet`;
+          message = `Please approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""} with your browser wallet`;
           txsDeposit[ic] = FlashAccountsContract.approveTransfer(deposit, signer);
           amounts[ic] = amount;
           ic++;
         }
-        message = `>>> You did approve ${nd} deposit${nd > 1 ? "s" : ""}`;
-        message2 = `<<< ${nd} transaction${nd > 1 ? "s" : ""} sent`;
+        // message = `>>> You did approve ${nd} deposit${nd > 1 ? "s" : ""}`;
+        // message2 = `<<< ${nd} transaction${nd > 1 ? "s" : ""} sent`;
+        message2 = `${nd} approval request(s) sent`;
+        message = `Please approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""}`;
         for await (const txDeposit of txsDeposit) {
           console.log(`TX1.${iw + 1}/${nd} CALL`, txDeposit);
           txsWait[iw] = txDeposit.wait();
           iw++;
         }
         for await (const tx of txsWait) {
-          message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
-          message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
+          // message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
+          // message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
+          message2 = `Waiting requests completion... ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
           console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
-        message2 = `<<< ${nd > 1 ? "All " + nd + " deposits" : "Deposit"} transaction${nd > 1 ? "s" : ""} completed`;
+        // message2 = `<<< ${nd > 1 ? "All " + nd + " deposits" : "Deposit"} transaction${nd > 1 ? "s" : ""} completed`;
+        message2 = `${nd > 1 ? "All " + nd + " requests for deposit transfer" : "Request for deposit transfer"}${nd > 1 ? "s" : ""} completed ✅`;
       }
       step4();
     } catch (e) {
-      message2 = "<<< Transaction failed";
+      message2 = "Transaction failed";
       console.error(e);
     }
   }
   async function step4() {
     step = 4;
-    message = ">>> Please connect to the account you want to migrate to, with Metamask or another Wallet";
+    message = "Please connect your destination account";
     if (Bob) step5();
   }
   async function step5() {
     console.log("Bob", Bob);
     step = 5;
-    message = ">>> Destination account connected";
-    message2 = "<<< Retreiving destination dashboard...";
+    message2 = "";
+    message = "Destination account connected, retrieving AAVE positions...";
     if (Bob && $Dashboards[Bob]) step6();
   }
   async function step6() {
     step = 6;
-    message2 = "<<< Destination dashboard retreived";
+    message2 = "Positions of the destination account retrieved!";
 
     const loans = positionsAlice.filter((pos) => pos.type != 0);
     const nl = loans.length;
@@ -183,28 +191,32 @@
         let iw = 0;
         let il = 0;
 
-        alertBalance()
+        alertBalance();
         for (const loan of loans) {
           const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
-          message = `>>> Approve the credit delegation of your ${nl} loan${nl > 1 ? "s" : ""} with your browser wallet`;
+          message = `Approve the ${nl > 1 ? `${nl} requests` : "request"} to borrow the loan(s) you want to migrate`;
           txsLoan[ic] = await FlashAccountsContract.approveLoan(loan, signer);
           amounts[ic] = amount;
           ic++;
         }
-        message = `>>> You did approve ${nl} loan${nl > 1 ? "s" : ""}`;
-        message2 = `<<< Sending ${nl} transaction${nl > 1 ? "s" : ""}`;
+        // message = `>>> You did approve ${nl} loan${nl > 1 ? "s" : ""}`;
+        // message2 = `<<< Sending ${nl} transaction${nl > 1 ? "s" : ""}`;
+        message = `Waiting for approval to take on ${nl} loan${nl > 1 ? "s" : ""} on behalf of the destination account`;
+        message2 = `${nl} credit delegation request(s) sent`;
         for await (const txLoan of txsLoan) {
           console.log(`TX2.${iw + 1}/${nl} CALL`, txLoan);
           txsWait[iw] = txLoan.wait();
           iw++;
         }
         for await (const tx of txsWait) {
-          message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
-          message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
+          // message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
+          // message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
+          message2 = `Waiting requests completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} requests completed`;
           console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
-        message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed`;
+        // message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed`;
+        message2 = `${nl > 1 ? "All " + nl + " loans" : "Loan"} request${nl > 1 ? "s" : ""} completed ✅`;
       }
       step7();
     } catch (e) {
@@ -214,23 +226,28 @@
   }
   async function step7() {
     step = 7;
-    message = ">>> Approve Flash Loan with your browser wallet";
+    // message = ">>> Approve Flash Loan with your browser wallet";
+    message = "Please approve the final transaction to complete the migration of the selected positions";
 
-    alertBalance()
+    alertBalance();
     try {
       const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
-      message2 = `<<< Flash Loan Magic in progress... wait a few seconds`;
+      // message2 = `<<< Flash Loan Magic in progress... wait a few seconds`;
+      message2 = "";
+      message = `Flash Loan Magic in progress... please wait a few seconds`;
       console.log(`TX2`, await tx.wait());
       step8();
     } catch (e) {
-      message2 = "<<< Transaction failed";
+      message2 = "Transaction failed";
       console.error(e);
     }
   }
   async function step8() {
     step = 8;
-    message = ">>> Refresh your browser to start another migration";
-    message2 = "<<< Flash Loan succeeded !  Refreshing dashboards";
+    // message = ">>> Refresh your browser to start another migration";
+    // message2 = "<<< Flash Loan succeeded !  Refreshing dashboards";
+    message = "Migration complete! 🎉 Refreshing dashboards...";
+    message2 = "";
     handleReGet();
   }
   onMount(async function () {
@@ -252,25 +269,85 @@
       <img src="images/FlashPos-SubLogo-Light.svg" loading="lazy" width="200" alt="" class="sectionlogoimage" />
       <h1>Migrate your positions</h1>
 
-      <p>{message}</p>
-      <p>{message2}</p>
+      <!-- <p>{message}</p>
+      <p>{message2}</p> -->
 
       <div class="columnspositions fs-columnspositions w-row">
         <div id="chipFlashPos" class="sectionchip fs-chip">
           <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
         </div>
         {#key refresh}
-          <Dashboard address={Alice} name="Origin" bind:reget bind:healthFactorChecked={healthFactorUncheckedBob} />
-          <Dashboard address={Bob} name="Destination"  bind:reget  bind:healthFactorUnchecked={healthFactorUncheckedBob} />
+          <Dashboard address={Alice} name="Origin" ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorUncheckedBob} />
+          <Dashboard address={Bob} name="Destination" bind:reget bind:healthFactorUnchecked={healthFactorUncheckedBob} />
         {/key}
       </div>
-      <div>
+      <div class="w-100">
         {#if startMigration}
-          <h1>Ready to Start Migration?</h1>
+          <h1 class="align-center">Ready to start migrating your positions?</h1>
           <div class="buttonwrapper">
-            <div id="migrateFlashPos" class="mainbutton">
+            <div id="migrateFlashPos" class="mainbutton fs-mainbutton">
               <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
             </div>
+          </div>
+        {/if}
+        {#if migrationInProgress}
+          <div class="stepsprocesscontents">
+            <div class="stepscolumnstop w-row">
+              <div class="stepcolumn doingpurple w-col w-col-4">
+                <div id="stepAction1" class="textlightmode instep">1. Approve deposit(s) migration</div>
+              </div>
+              <div class="stepcolumn w-col w-col-4 {step >= 6 ? 'doingpurple' : 'inactivegrey'}">
+                <div id="stepAction2" class="textlightmode instep">2. Approve loan(s) migration</div>
+              </div>
+              <div class="stepcolumn w-col w-col-4 {step >= 7 ? 'doingpurple' : 'inactivegrey'}">
+                <div id="stepAction3" class="textlightmode instep">3. Finalize migration</div>
+              </div>
+            </div>
+            <div class="actionmessage fs-actionmessage">
+              <p id="stepActionLabel" class="paragraph instep fs-message-2">
+                {message2}
+              </p>
+              <p id="stepActionLabel" class="paragraph instep fs-message-1">
+                {message}
+              </p>
+            </div>
+            <!-- <div class="actionprocess">
+              <div class="actionresultcolumns w-row">
+                <div class="actionresultcolumn01 w-col w-col-4">
+                  <p id="actionResult" class="paragraph inaction column01">
+                    Action Result
+                  </p>
+                </div>
+                <div class="actionresultcolumn w-col w-col-4">
+                  <p id="actionProgressState" class="paragraph inaction">
+                    Progress State
+                  </p>
+                  <div id="platformAddressLogo" class="iconblock">
+                    <img
+                      src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
+                      loading="lazy"
+                      id="stepTokenLogo"
+                      alt=""
+                      class="placeholderimage"
+                    />
+                  </div>
+                </div>
+                <div class="actionresultcolumn w-col w-col-4">
+                  <p id="actionLink" class="paragraph inaction">
+                    Etherscan link
+                  </p>
+                  <div id="platformAddressLogo" class="iconblock">
+                    <img
+                      src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
+                      loading="lazy"
+                      id="stepTokenLogo"
+                      alt=""
+                      class="placeholderimage"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div> -->
           </div>
         {/if}
       </div>
@@ -313,5 +390,28 @@
 
   .fs-mainbutton {
     cursor: pointer;
+  }
+
+  .fs-actionmessage {
+    display: block;
+    min-height: 70px;
+  }
+
+  .fs-message-1 {
+    font-weight: 600;
+    font-size: 18px;
+  }
+  .fs-message-2 {
+    color: rgba(36, 17, 48, 0.5);
+    font-size: 14px;
+    min-height: 24px;
+  }
+
+  .w-100 {
+    width: 100%;
+  }
+
+  .align-center {
+    text-align: center;
   }
 </style>
