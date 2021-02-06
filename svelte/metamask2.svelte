@@ -90,38 +90,10 @@
   init();
 </script>
 
-<div href="#" class="headerbutton w-inline-block">
-  <div class="frostedglasswrapper left">
-    <div class="frostedglasseffect notfixed" />
-    <div class="blockcontents">
-      <div id="identiconAddressImage" class="buttondisk fs-account-icon-wrapper">
-        <img src="images/account_icon.svg" loading="lazy" id="platformLogo" alt="" class="placeholderimage {address ? 'address-icon' : 'no-address-icon'}" />
-      </div>
-      <div id="userAddressSet" class="textdarkmode">
-        {#if address}
-          <span>{address.substr(0, 6) + "..." + address.substring(address.length - 4, address.length)} </span>
-        {:else}
-          <span on:click={connectMetamask} class="connect-text">Connect wallets</span>
-        {/if}
-      </div>
-    </div>
-  </div>
-</div>
-
-<style>
-  .connect-text {
-    cursor: pointer;
-  }
-
-  .fs-account-icon-wrapper {
-    display: flex;
-    justify-content: center;
-  }
-  .address-icon {
-    width: 80%;
-  }
-
-  .no-address-icon {
-    opacity: 0;
-  }
-</style>
+{#if address}
+  <small>
+    account: {address}<br />
+    balance: {balance} ETH<br />
+    network: {network}
+  </small>
+{/if}
