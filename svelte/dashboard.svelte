@@ -181,13 +181,13 @@
       <div class="columntitlebar reverse">
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
-        <img
+        <!-- <img
           src="images/Network-Dot-Green.svg"
           loading="lazy"
           width="50"
           alt=""
           class="connectindicator"
-        />
+        /> -->
       </div>
 
       {#await currentDashboard}
@@ -215,7 +215,10 @@
                       checked={item.checked}
                     >
                       <div class="tokendetails">
-                        <div id="platformAddressLogo" class="buttondisk">
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk fs-buttondisk"
+                        >
                           <img
                             src={getTokenLogo(item.symbol)}
                             loading="lazy"
@@ -397,6 +400,8 @@
 
   .buttondisk {
     flex-shrink: 0;
+    height: 42px;
+    width: 42px;
   }
 
   .gridorigin {

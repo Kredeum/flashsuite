@@ -81,4 +81,10 @@
   .dropdown-list {
     border-radius: 10px;
   }
+
+  .buttondisk {
+    flex-shrink: 0;
+    height: 42px;
+    width: 42px;
+  }
 </style>
