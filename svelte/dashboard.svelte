@@ -1,6 +1,5 @@
 <script>
   import { ethers, BigNumber } from "ethers";
-  import { onMount } from "svelte";
   import aaveDashboard from "../lib/aaveDashboard.mjs";
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
@@ -21,9 +20,9 @@
   function getTokenLogo(symbol) {
     let ret = "images/no_logo.svg";
 
-    const coins = ["DAI", "USDC", "TUSD", "USDT", "sUSD", "BUSD", "ETH", "AAVE", "UNI", "YFI", "BAT", "REN", "ENJ", "KNC", "LINK", "MANA", "MKR", "SNX", "WBTC", "ZRX"];
+    const coins = ["DAI", "USDC", "TUSD", "USDT", "sUSD", "BUSD", "ETH", "AAVE", "LEND","UNI", "YFI", "BAT", "REN", "REP", "ENJ", "KNC", "LINK", "MANA", "MKR", "SNX", "WBTC", "ZRX"];
     for (const coin of coins) {
-      if (symbol.includes(coin)) ret = `/images/${coin}_logo.svg`;
+      if (symbol.includes(coin)) ret = `/images/${coin.toLowerCase()}_logo.svg`;
     }
     return ret;
   }
@@ -98,7 +97,11 @@
 
 <main>
   {#key refresh}
-    <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px;">
+    <div
+      id="OriginPosition"
+      class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack"
+      style="min-height: 220px;"
+    >
       <div class="columntitlebar reverse">
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
@@ -115,7 +118,10 @@
         <p style="text-align: center;">loading</p>
       {:then dashboard}
         {#if dashboard}
-          <div id="gridOrigin" class="w-layout-grid gridorigin fs-grid-dashboard">
+          <div
+            id="gridOrigin"
+            class="w-layout-grid gridorigin fs-grid-dashboard"
+          >
             <h3 class="left">Your Deposits</h3>
             <h3 class="right">Your Loans</h3>
             {#if dashboard.tokens.length > 0}
@@ -126,15 +132,29 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={name == "Origin"}
                       class="deposititem fs-deposit-item"
-                      on:click={() => name == "Origin" && setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        name == "Origin" &&
+                        setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
                       <div class="tokendetails">
-                        <div id="platformAddressLogo" class="buttondisk fs-buttondisk">
-                          <img src={getTokenLogo(item.symbol)} loading="lazy" id="tokenLogoDep01ORG" alt="" class="placeholderimage" />
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk fs-buttondisk"
+                        >
+                          <img
+                            src={getTokenLogo(item.symbol)}
+                            loading="lazy"
+                            id="tokenLogoDep01ORG"
+                            alt=""
+                            class="placeholderimage"
+                          />
                         </div>
-                        <div id="tokenSymbolDep01ORG" class="textlightmode label">
+                        <div
+                          id="tokenSymbolDep01ORG"
+                          class="textlightmode label"
+                        >
                           {item.symbol}
                         </div>
                       </div>
@@ -146,9 +166,17 @@
                       {#if name == "Origin"}
                         <div class="fs-checkmark">
                           {#if item.checked}
-                            <img src="/images/checked_purple.svg" loading="lazy" alt="" />
+                            <img
+                              src="/images/checked_purple.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {:else}
-                            <img src="/images/unchecked_purple.svg" loading="lazy" alt="" />
+                            <img
+                              src="/images/unchecked_purple.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {/if}
                         </div>
                       {/if}
@@ -164,13 +192,24 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={name === "Origin"}
                       class="loanitem fs-dashboard-item  fs-loan-item"
-                      on:click={() => name == "Origin" && setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        name == "Origin" &&
+                        setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
                       <div class="tokendetails reverse">
-                        <div id="platformAddressLogo" class="buttondisk reverse">
-                          <img src={getTokenLogo(item.symbol)} loading="lazy" id="tokenLogoLoan01ORG" alt="" class="placeholderimage" />
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk reverse"
+                        >
+                          <img
+                            src={getTokenLogo(item.symbol)}
+                            loading="lazy"
+                            id="tokenLogoLoan01ORG"
+                            alt=""
+                            class="placeholderimage"
+                          />
                         </div>
                         <div id="tokenSymbolLoan01" class="textlightmode">
                           {item.symbol}
@@ -184,14 +223,25 @@
                       {#if name == "Origin"}
                         <div class="fs-checkmark">
                           {#if item.checked}
-                            <img src="/images/checked_white.svg" loading="lazy" alt="" />
+                            <img
+                              src="/images/checked_white.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {:else}
-                            <img src="/images/unchecked_white.svg" loading="lazy" alt="" />
+                            <img
+                              src="/images/unchecked_white.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {/if}
                         </div>
                       {/if}
                     </div>
-                    <div id="APRLoan01ORG" class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee">
+                    <div
+                      id="APRLoan01ORG"
+                      class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee"
+                    >
                       <div id="tokenSymbolDep01ORG" class="textlightmode rates">
                         {item.type == 2 ? "Variable rate" : "Stable rate"}
                       </div>
