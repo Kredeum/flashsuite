@@ -4,6 +4,7 @@
   import { Dashboards } from "./stores.mjs";
   import FlashAccountsContract from "../lib/contracts/FlashAccounts.mjs";
   import Dashboard from "./dashboard.svelte";
+  // import Metamask from "./metamask.svelte";
   import Container from "./container.svelte";
 
   // exports Metamask
@@ -213,11 +214,17 @@
 </script>
 
 <Container bind:address bind:balance bind:network bind:signer>
-  <div style="height: 1000px; width: 80%;">
+  <div style="width: 80%;">
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
       <div class="blockimage">
-        <img src="images/FLSuite-Logo-Full-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo" />
+        <img
+          src="images/FLSuite-Logo-Full-Dark.svg"
+          loading="lazy"
+          width="125"
+          alt=""
+          class="flashlogo"
+        />
       </div>
     </div>
     <!-- CONTENTS -->
@@ -255,18 +262,24 @@
 
 <style>
   .fs-sectioncontents {
+    padding-top: 20px;
     background-color: white;
     border-radius: 0 0 20px 20px;
+    min-height: 900px;
+    justify-content: flex-start;
   }
 
   .fs-sectionbumper {
     border-bottom: none;
     border-radius: 20px 20px 0 0;
+    background: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(5px);
   }
 
   .fs-columnspositions {
     position: relative;
     margin-top: 40px;
+    min-height: 0;
   }
   .fs-chip {
     position: absolute;
@@ -278,5 +291,9 @@
   }
   .fs-col-destination {
     margin-left: 5px;
+  }
+
+  .fs-mainbutton {
+    cursor: pointer;
   }
 </style>

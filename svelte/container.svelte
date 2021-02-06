@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import Metamask from "./metamask2.svelte";
+  import Metamask from "./metamask.svelte";
 
   export let address;
   export let balance;
