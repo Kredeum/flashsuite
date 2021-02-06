@@ -7,7 +7,27 @@
   function getTokenLogo(symbol) {
     let ret = "/images/no_logo.svg";
 
-    const coins = ["sUSD", "USDT",  "USDC", "BUSD", "AAVE", "BAT", "DAI", "USZDC", "SNX", "YFI"];
+    const coins = [
+      "DAI", 
+      "USDC", 
+      "TUSD", 
+      "USDT",  
+      "sUSD", 
+      "BUSD", 
+      "ETH",
+      "AAVE", 
+      "UNI",
+      "YFI",
+      "BAT", 
+      "REN",
+      "ENJ",
+      "KNC",
+      "LINK",
+      "MANA",
+      "SNX", 
+      "WBTC",
+      "ZRX"
+    ];
     for (const coin of coins) {
       if (symbol.includes(coin)) ret = `/images/${coin}_logo.svg`;
     }
