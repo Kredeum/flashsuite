@@ -365,6 +365,8 @@
   .fs-sectionbumper {
     border-bottom: none;
     border-radius: 20px 20px 0 0;
+    background: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(5px);
   }
 
   .grid-container {
