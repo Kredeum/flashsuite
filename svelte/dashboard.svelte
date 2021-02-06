@@ -46,7 +46,7 @@
       "ZRX",
     ];
     for (const coin of coins) {
-      if (symbol.includes(coin)) ret = `/images/${coin.toLowerCase()}_logo.svg`;
+      if (symbol.includes(coin)) ret = `images/${coin.toLowerCase()}_logo.svg`;
     }
     return ret;
   }

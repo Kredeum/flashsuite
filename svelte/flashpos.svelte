@@ -141,7 +141,7 @@
         }
         // message = `>>> You did approve ${nd} deposit${nd > 1 ? "s" : ""}`;
         // message2 = `<<< ${nd} transaction${nd > 1 ? "s" : ""} sent`;
-        message2 = `${nd} approval request(s) sent`;
+        message2 = `${nd} approval transaction${nd > 1 ? "s" : ""} sent`;
         message = `Please approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""}`;
         for await (const txDeposit of txsDeposit) {
           console.log(`TX1.${iw + 1}/${nd} CALL`, txDeposit);
@@ -151,12 +151,12 @@
         for await (const tx of txsWait) {
           // message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
-          message2 = `Waiting requests completion... ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
+          message2 = `Waiting transactions completion... ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
           console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
         // message2 = `<<< ${nd > 1 ? "All " + nd + " deposits" : "Deposit"} transaction${nd > 1 ? "s" : ""} completed`;
-        message2 = `${nd > 1 ? "All " + nd + " requests for deposit transfer" : "Request for deposit transfer"}${nd > 1 ? "s" : ""} completed ✅`;
+        message2 = `${nd > 1 ? "All " + nd + " transactions for deposit transfer" : "transaction for deposit transfer"}${nd > 1 ? "s" : ""} completed ✅`;
       }
       step4();
     } catch (e) {
@@ -194,7 +194,7 @@
         alertBalance();
         for (const loan of loans) {
           const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
-          message = `Approve the ${nl > 1 ? `${nl} requests` : "request"} to borrow the loan(s) you want to migrate`;
+          message = `Approve the ${nl > 1 ? `${nl} transactions` : "transaction"} to borrow the loan${nl > 1 ? "s" : ""} you want to migrate`;
           txsLoan[ic] = await FlashAccountsContract.approveLoan(loan, signer);
           amounts[ic] = amount;
           ic++;
@@ -202,7 +202,7 @@
         // message = `>>> You did approve ${nl} loan${nl > 1 ? "s" : ""}`;
         // message2 = `<<< Sending ${nl} transaction${nl > 1 ? "s" : ""}`;
         message = `Waiting for approval to take on ${nl} loan${nl > 1 ? "s" : ""} on behalf of the destination account`;
-        message2 = `${nl} credit delegation request(s) sent`;
+        message2 = `${nl} credit delegation transaction${nl > 1 ? "s" : ""} sent`;
         for await (const txLoan of txsLoan) {
           console.log(`TX2.${iw + 1}/${nl} CALL`, txLoan);
           txsWait[iw] = txLoan.wait();
@@ -211,12 +211,12 @@
         for await (const tx of txsWait) {
           // message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
-          message2 = `Waiting requests completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} requests completed`;
+          message2 = `Waiting transactions completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} transaction${il > 1 ? "s" : ""} completed`;
           console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
         // message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed`;
-        message2 = `${nl > 1 ? "All " + nl + " loans" : "Loan"} request${nl > 1 ? "s" : ""} completed ✅`;
+        message2 = `${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed ✅`;
       }
       step7();
     } catch (e) {
