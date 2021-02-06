@@ -5,6 +5,9 @@
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
 
+  const placeholderTokenLogo =
+    "https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg";
+
   export let name;
   export let address;
   export let refresh = 0;
@@ -47,7 +50,11 @@
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[_address] = await aaveDashboard.getUserData(_address, _provider, true);
+        $Dashboards[_address] = await aaveDashboard.getUserData(
+          _address,
+          _provider,
+          true
+        );
       }
       if (oldDashboard) {
         for (const position of oldDashboard.tokens) {
@@ -65,13 +72,21 @@
     return $Dashboards[_address];
   }
   async function handleHealthFactor() {
-    healthFactorAll = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 0)).healthFactor;
-    healthFactorChecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)).healthFactor;
-    healthFactorUnchecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)).healthFactor;
+    healthFactorAll = (
+      await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 0)
+    ).healthFactor;
+    healthFactorChecked = (
+      await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)
+    ).healthFactor;
+    healthFactorUnchecked = (
+      await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)
+    ).healthFactor;
   }
 
   function setChecked(_symbol, _checked) {
-    const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
+    const idToken = $Dashboards[address].tokens.findIndex(
+      (db) => db.symbol == _symbol
+    );
     if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
     refresh++;
   }
@@ -83,6 +98,17 @@
   onMount(async function () {
     getDashboard(address, true);
   });
+
+  function getTokenLogo(symbol) {
+    if (typeof symbol !== "string") return placeholderTokenLogo;
+
+    if (symbol.includes("DAI")) return "/images/dai_logo.svg";
+    if (symbol.includes("USDC")) return "/images/usdc_logo.svg";
+    if (symbol.includes("SNX")) return "/images/snx_logo.svg";
+    if (symbol.includes("YFI")) return "/images/yfi_logo.svg";
+
+    return placeholderTokenLogo;
+  }
 </script>
 
 <main>
@@ -147,18 +173,31 @@
     <p class="bottom">
       <button on:click={getDashboard(address, true)}>Refresh Dashboard</button>
     </p> -->
-    <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px;">
+    <div
+      id="OriginPosition"
+      class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack"
+      style="min-height: 220px;"
+    >
       <div class="columntitlebar reverse">
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
-        <img src="images/Network-Dot-Green.svg" loading="lazy" width="50" alt="" class="connectindicator" />
+        <img
+          src="images/Network-Dot-Green.svg"
+          loading="lazy"
+          width="50"
+          alt=""
+          class="connectindicator"
+        />
       </div>
 
       {#await currentDashboard}
         <p style="text-align: center;">loading</p>
       {:then dashboard}
         {#if dashboard}
-          <div id="gridOrigin" class="w-layout-grid gridorigin fs-grid-dashboard">
+          <div
+            id="gridOrigin"
+            class="w-layout-grid gridorigin fs-grid-dashboard"
+          >
             <h3 class="left">Your Deposits</h3>
             <h3 class="right">Your Loans</h3>
             {#if dashboard.tokens.length > 0}
@@ -169,21 +208,26 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={name == "Origin"}
                       class="deposititem fs-deposit-item"
-                      on:click={() => name == "Origin" && setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        name == "Origin" &&
+                        setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
                       <div class="tokendetails">
                         <div id="platformAddressLogo" class="buttondisk">
                           <img
-                            src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
+                            src={getTokenLogo(item.symbol)}
                             loading="lazy"
                             id="tokenLogoDep01ORG"
                             alt=""
                             class="placeholderimage"
                           />
                         </div>
-                        <div id="tokenSymbolDep01ORG" class="textlightmode label">
+                        <div
+                          id="tokenSymbolDep01ORG"
+                          class="textlightmode label"
+                        >
                           {item.symbol}
                         </div>
                       </div>
@@ -209,14 +253,19 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={name === "Origin"}
                       class="loanitem fs-dashboard-item  fs-loan-item"
-                      on:click={() => name == "Origin" && setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        name == "Origin" &&
+                        setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
                       <div class="tokendetails reverse">
-                        <div id="platformAddressLogo" class="buttondisk reverse">
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk reverse"
+                        >
                           <img
-                            src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
+                            src={getTokenLogo(item.symbol)}
                             loading="lazy"
                             id="tokenLogoLoan01ORG"
                             alt=""
@@ -238,7 +287,10 @@
                         </div>
                       {/if}
                     </div>
-                    <div id="APRLoan01ORG" class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee">
+                    <div
+                      id="APRLoan01ORG"
+                      class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee"
+                    >
                       <div id="tokenSymbolDep01ORG" class="textlightmode rates">
                         {item.type == 2 ? "Variable rate" : "Stable rate"}
                       </div>
