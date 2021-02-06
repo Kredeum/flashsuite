@@ -1,5 +1,5 @@
 <script>
-  import { ethers } from "ethers";
+  import { ethers, BigNumber } from "ethers";
   import { onMount } from "svelte";
   import aaveDashboard from "../lib/aaveDashboard.mjs";
   import { Dashboards } from "./stores.mjs";
@@ -10,23 +10,44 @@
 
   const chekboxDefault = false;
 
-  function _bal(_balance, _decimals, _precision = 3) {
+  function _bal(_balance, _decimals = 18, _precision = 3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
     return ent + "." + dec.substring(0, _precision);
   }
-  function _healthFactor(db) {
-    const hf = db.account.healthFactor;
-    return hf.gt(BigNumber.from(10).pow(24)) ? "∞" : _bal(hf, 18);
+  function _hf(_healthFactor) {
+    let ret;
+    if ((_healthFactor === "_") || (_healthFactor === "∞") ) {
+      ret = _healthFactor;
+    } else {
+      const hf = _bal(_healthFactor) 
+      const bhf = BigNumber.from(_healthFactor);
+      let warning = "";
+      if ( bhf.eq(0) ) {
+        warning = "***";
+      } else if ( bhf.lt(BigNumber.from(10).pow(17).mul(8)) ) {
+        warning = "**";
+      } else if ( bhf.lt(BigNumber.from(10).pow(17).mul(12)) ) {
+        ret = "*"
+      } 
+      ret = warning + hf + warning;
+    }
+    return ret;
   }
 
+
+  let healthFactorAll = 0;
+  let healthFactorChecked = 0;
+  let healthFactorUnchecked = 0;
+
   $: currentDashboard = getDashboard(address);
+
   async function getDashboard(_address, _force = false) {
     if (_address) {
       const oldDashboard = $Dashboards[_address];
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[_address] = await aaveDashboard(_address, _provider, true);
+        $Dashboards[_address] = await aaveDashboard.getUserData(_address, _provider, true);
       }
       if (oldDashboard) {
         for (const position of oldDashboard.tokens) {
@@ -37,19 +58,25 @@
           setChecked(position.symbol, chekboxDefault);
         }
       }
-    }
+      handleHealthFactor();
     refresh++;
+    }
     console.log("getDashboard",_address, _force, "=>", $Dashboards[_address]);
     return $Dashboards[_address];
   }
+  async function handleHealthFactor() {
+    healthFactorAll = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 0)).healthFactor;
+    healthFactorChecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)).healthFactor;
+    healthFactorUnchecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)).healthFactor;
+  }
   function setChecked(_symbol, _checked) {
-    console.log("setChecked", _symbol, _checked);
     const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
     if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
     refresh++;
   }
   function handleCheck(_event) {
     setChecked(_event.target.value, _event.target.checked);
+    handleHealthFactor();
   }
 
   onMount(async function () {
@@ -103,7 +130,11 @@
             </tr>
           </table>
           <p class="bottom">
-            Health Factor : {_bal(dashboard.account.healthFactor, 18)}<br /><br />
+            Health Factor : {_hf(healthFactorAll, 18)}<br />
+            Target Health Factor : {_hf(healthFactorUnchecked, 18)}<br /><br />
+            {#if name == "Origin"}
+            Selected Health Factor : {_hf(healthFactorChecked, 18)}
+            {/if}
           </p>
         {:else}
           <div>No positions</div>

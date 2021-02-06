@@ -37,7 +37,7 @@ console.log(`Bob       https://kovan.etherscan.io/address/${Bob.address}`);
 //     decimals: '18'
 //   }
 // ];
-const dashboard = await aaveDashboard(Alice.address, provider, true).tokens;
+const dashboard = await aaveDashboard.getUserData(Alice.address, provider, true).tokens;
 
 await FlashAccounts.Init(Alice, true);
 await FlashAccounts.approveTransfers(dashboard, Alice);

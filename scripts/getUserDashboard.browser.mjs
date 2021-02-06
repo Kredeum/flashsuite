@@ -8,5 +8,5 @@ const Bob = "0x981ab0D817710d8FFFC5693383C00D985A3BDa38";
 
 const provider = ethers.getDefaultProvider('kovan', { etherscan: process.env.ETHERSCAN_API_KEY });
 
-console.log(await aaveDashboard(Alice, provider));
-console.log(await aaveDashboard(Bob, provider, true));
+console.log(await aaveDashboard.getUserData(Alice, provider));
+console.log(await aaveDashboard.getUserData(Bob, provider, true));
