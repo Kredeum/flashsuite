@@ -34,7 +34,6 @@
       </div>
     </div>
   </div>
-  <a href="/flashaccounts">FlashAccounts</a>
 </Container>
 
 <style>

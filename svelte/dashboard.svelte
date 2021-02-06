@@ -167,13 +167,13 @@
                         <div class="fs-checkmark">
                           {#if item.checked}
                             <img
-                              src="/images/checked_purple.svg"
+                              src="images/checked_purple.svg"
                               loading="lazy"
                               alt=""
                             />
                           {:else}
                             <img
-                              src="/images/unchecked_purple.svg"
+                              src="images/unchecked_purple.svg"
                               loading="lazy"
                               alt=""
                             />
@@ -224,13 +224,13 @@
                         <div class="fs-checkmark">
                           {#if item.checked}
                             <img
-                              src="/images/checked_white.svg"
+                              src="images/checked_white.svg"
                               loading="lazy"
                               alt=""
                             />
                           {:else}
                             <img
-                              src="/images/unchecked_white.svg"
+                              src="images/unchecked_white.svg"
                               loading="lazy"
                               alt=""
                             />

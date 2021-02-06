@@ -35,7 +35,7 @@
     <div class="arrow lightmode w-icon-dropdown-toggle" />
     <div id="platformAddressLogo" class="buttondisk">
       <img
-        src="/images/aave_logo.svg"
+        src="images/aave_logo.svg"
         loading="lazy"
         id="platformLogo"
         alt=""
