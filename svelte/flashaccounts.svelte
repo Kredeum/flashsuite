@@ -4,7 +4,7 @@
   import { Dashboards } from "./stores.mjs";
   import FlashAccountsContract from "../lib/contracts/FlashAccounts.mjs";
   import Dashboard from "./dashboard.svelte";
-  import Metamask from "./metamask.svelte";
+  import Metamask from "./metamask2.svelte";
 
   // exports Metamask
   let network = "";
