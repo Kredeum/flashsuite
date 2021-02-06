@@ -5,42 +5,28 @@
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
 
-  function getTokenLogo(symbol) {
-    let ret = "/images/no_logo.svg";
+  export let name;
+  export let address;
+  export let reget = 0;
+  let refresh = 0;
 
-    const coins = [
-      "DAI", 
-      "USDC", 
-      "TUSD", 
-      "USDT",  
-      "sUSD", 
-      "BUSD", 
-      "ETH",
-      "AAVE", 
-      "UNI",
-      "YFI",
-      "BAT", 
-      "REN",
-      "ENJ",
-      "KNC",
-      "LINK",
-      "MANA",
-      "SNX", 
-      "WBTC",
-      "ZRX"
-    ];
+  const chekboxDefault = false;
+  let healthFactorAll = "_";
+  export let healthFactorUnchecked = "_";
+  export let healthFactorChecked = "_";
+
+  $: address && getDashboard();
+  $: reget && handleReGet();
+
+  function getTokenLogo(symbol) {
+    let ret = "images/no_logo.svg";
+
+    const coins = ["DAI", "USDC", "TUSD", "USDT", "sUSD", "BUSD", "ETH", "AAVE", "UNI", "YFI", "BAT", "REN", "ENJ", "KNC", "LINK", "MANA", "MKR", "SNX", "WBTC", "ZRX"];
     for (const coin of coins) {
       if (symbol.includes(coin)) ret = `/images/${coin}_logo.svg`;
     }
     return ret;
   }
-
-  export let name;
-  export let address;
-  export let refresh = 0;
-
-  const chekboxDefault = false;
-
   function _bal(_balance, _decimals = 18, _precision = 3) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
     return ent + "." + dec.substring(0, _precision);
@@ -65,54 +51,49 @@
     return ret;
   }
 
-  let healthFactorAll = 0;
-  let healthFactorChecked = 0;
-  let healthFactorUnchecked = 0;
-
-  $: currentDashboard = getDashboard(address);
-
-  async function getDashboard(_address, _force = false) {
-    if (_address) {
-      const oldDashboard = $Dashboards[_address];
+  async function handleHealthFactor() {
+    healthFactorAll = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 0)).healthFactor;
+    if (name == "Origin") {
+      healthFactorChecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)).healthFactor;
+      healthFactorUnchecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)).healthFactor;
+    }
+  }
+  function handleReGet() {
+    console.log("handleReGet", address);
+    getDashboard(true);
+  }
+  function handleRefresh() {
+    handleHealthFactor();
+    refresh++;
+    console.log("handleRefresh Dashboard", address, refresh);
+  }
+  function setChecked(_symbol, _checked) {
+    const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
+    if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
+    handleRefresh();
+  }
+  async function getDashboard(_force = false) {
+    if (address) {
+      const oldDashboard = $Dashboards[address];
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[_address] = await aaveDashboard.getUserData(_address, _provider, true);
+        $Dashboards[address] = await aaveDashboard.getUserData(address, _provider, true);
       }
       if (oldDashboard) {
         for (const position of oldDashboard.tokens) {
           setChecked(position.symbol, position.checked);
         }
       } else {
-        for (const position of $Dashboards[_address].tokens) {
+        for (const position of $Dashboards[address].tokens) {
           setChecked(position.symbol, chekboxDefault);
         }
       }
-      handleHealthFactor();
-      refresh++;
+      handleRefresh();
     }
-    console.log("getDashboard", _address, _force, "=>", $Dashboards[_address]);
-    return $Dashboards[_address];
+    console.log("getDashboard", address, _force, "=>", $Dashboards[address]);
+    return $Dashboards[address];
   }
-  async function handleHealthFactor() {
-    healthFactorAll = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 0)).healthFactor;
-    healthFactorChecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)).healthFactor;
-    healthFactorUnchecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)).healthFactor;
-  }
-
-  function setChecked(_symbol, _checked) {
-    const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
-    if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
-    refresh++;
-  }
-  function handleCheck(_event) {
-    setChecked(_event.target.value, _event.target.checked);
-    handleHealthFactor();
-  }
-
-  onMount(async function () {
-    getDashboard(address, true);
-  });
 </script>
 
 <main>
@@ -130,7 +111,7 @@
         /> -->
       </div>
 
-      {#await currentDashboard}
+      {#await $Dashboards[address]}
         <p style="text-align: center;">loading</p>
       {:then dashboard}
         {#if dashboard}
@@ -228,20 +209,21 @@
               <div>No positions</div>
             {/if}
           </div>
-          <div id="healthFactorInfoORG" class="healthfactorinfo">
-            <div class="hfcontents origin">
-              <p class="textlightmode rates">
-                Health Factor : {_hf(healthFactorAll, 18)}
-              </p>
-            </div>
-          </div>
         {/if}
       {:catch error}
         <p style="color: red">{error.message}</p>
       {/await}
-      <!-- <div id="clearALL" class="secondarybutton">
-        <div on:click={refresh} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
-      </div> -->
+      <div id="healthFactorInfoORG" class="healthfactorinfo">
+        <div class="hfcontents origin">
+          <p class="textlightmode rates">
+            Current Health Factor : {_hf(healthFactorAll, 18)}
+            -&gt; {_hf(healthFactorUnchecked, 18)} : Next Health Factor
+          </p>
+        </div>
+      </div>
+      <div id="clearALL" class="secondarybutton">
+        <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
+      </div>
     </div>
   {/key}
 </main>

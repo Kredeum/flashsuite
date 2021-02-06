@@ -4,24 +4,29 @@
   import { Dashboards } from "./stores.mjs";
   import FlashAccountsContract from "../lib/contracts/FlashAccounts.mjs";
   import Dashboard from "./dashboard.svelte";
-  // import Metamask from "./metamask.svelte";
   import Container from "./container.svelte";
 
   // exports Metamask
-  let network = "";
-  let balance = -1;
-  let address = "";
+  let address;
+  let network;
+  let balance;
+  let signer;
 
   let positionsAlice = [];
-  let nd = 0;
   let Alice = "";
   let Bob = "";
-  let signer;
   let startMigration = false;
   let step = 0;
-  let message;
-  let message2;
+  let message = "";
+  let message2 = "";
   let refresh = 0;
+  let reget = 0;
+  let healthFactorUncheckedBob= "_";
+
+  function _bal(_balance, _decimals) {
+    const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
+    return ent + "." + dec.substring(0, 3);
+  }
 
   // NETWORK MUST BE KOVAN
   $: if (network && network != "kovan") {
@@ -30,11 +35,11 @@
 
   // FIRST ADDRESS IS ALICE, SECOND ADDRESS BOB
   $: {
-    if (address && (address != Alice) && (address != Bob) && (step <= 4))
+    if (address && address != Alice && address != Bob && step <= 4)
       if (!Alice) {
         Alice = address;
       } else {
-        if (step == 4){
+        if (step == 4) {
           Bob = address;
         }
       }
@@ -42,10 +47,19 @@
   }
 
   // BALANCE TO LOW
-  $: if (address && network == "kovan" && balance == 0) {
-    alert("ETH balance is to low to proceed, you need some ETH to pay gas");
+  function alertBalance() {
+    if (address && balance == 0) {
+      alert("ETH balance is to low to proceed, you need some ETH to pay gas");
+    }
   }
-
+  function handleRefresh() {
+    refresh++;
+    console.log("handleRefresh FlashPos", refresh);
+  }
+  function handleReGet() {
+    reget++;
+    console.log("handleReGet FlashPos", reget);
+  }
   // STEP 0 : initial state
   $: if (Alice && step == 0) step1();
   // STEP 1 : address Alice defined
@@ -66,16 +80,6 @@
   // Refresh dashboards
   // STEP 9 : final state, positions migrated
 
-  function _bal(_balance, _decimals) {
-    const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
-    return ent + "." + dec.substring(0, 3);
-  }
-
-  onMount(async function () {
-    await FlashAccountsContract.Init(true);
-    step0();
-  });
-
   async function step0() {
     step = 0;
     message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
@@ -95,13 +99,12 @@
     startMigration = true;
   }
   async function step3() {
-    refresh++;
-    
+    handleRefresh();
 
     console.log("STEP3 AVANT", address, Alice);
     if (address != Alice) {
-      $Dashboards[Alice]=null;
-      Alice="";
+      $Dashboards[Alice] = null;
+      Alice = "";
       message2 = "<<< Keep your browser wallet connected with same origin account !";
       setTimeout(step0, 2000);
       return;
@@ -123,6 +126,8 @@
         let ic = 0;
         let iw = 0;
         let ia = 0;
+        alertBalance()
+
         for (const deposit of deposits) {
           const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
           message = `>>> Approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""} with your browser wallet`;
@@ -131,18 +136,19 @@
           ic++;
         }
         message = `>>> You did approve ${nd} deposit${nd > 1 ? "s" : ""}`;
-        message2 = `<<< ${nd} requests sent`;
+        message2 = `<<< ${nd} transaction${nd > 1 ? "s" : ""} sent`;
         for await (const txDeposit of txsDeposit) {
           console.log(`TX1.${iw + 1}/${nd} CALL`, txDeposit);
           txsWait[iw] = txDeposit.wait();
           iw++;
         }
         for await (const tx of txsWait) {
-          message2 = `<<< Waiting requests completion... ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
-          console.log(`TX1.${ia+1}/${nd} END`, tx);
+          message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
+          message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
+          console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
-        message2 = `<<< ${nd > 1 ? "All " + nd + " deposits" : "Deposit" } request${nd > 1 ? "s" : ""} completed`;
+        message2 = `<<< ${nd > 1 ? "All " + nd + " deposits" : "Deposit"} transaction${nd > 1 ? "s" : ""} completed`;
       }
       step4();
     } catch (e) {
@@ -176,6 +182,8 @@
         let ic = 0;
         let iw = 0;
         let il = 0;
+
+        alertBalance()
         for (const loan of loans) {
           const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
           message = `>>> Approve the credit delegation of your ${nl} loan${nl > 1 ? "s" : ""} with your browser wallet`;
@@ -184,18 +192,19 @@
           ic++;
         }
         message = `>>> You did approve ${nl} loan${nl > 1 ? "s" : ""}`;
-        message2 = `<<< ${nl} requests sent`;
+        message2 = `<<< Sending ${nl} transaction${nl > 1 ? "s" : ""}`;
         for await (const txLoan of txsLoan) {
           console.log(`TX2.${iw + 1}/${nl} CALL`, txLoan);
           txsWait[iw] = txLoan.wait();
           iw++;
         }
         for await (const tx of txsWait) {
-          message2 = `<<< Waiting requests completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
-          console.log(`TX2.${il+1}/${nl} END`, tx);
+          message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
+          message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
+          console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
-        message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan" } request${nl > 1 ? "s" : ""} completed`;
+        message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed`;
       }
       step7();
     } catch (e) {
@@ -206,9 +215,10 @@
   async function step7() {
     step = 7;
     message = ">>> Approve Flash Loan with your browser wallet";
+
+    alertBalance()
     try {
       const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
-
       message2 = `<<< Flash Loan Magic in progress... wait a few seconds`;
       console.log(`TX2`, await tx.wait());
       step8();
@@ -219,16 +229,14 @@
   }
   async function step8() {
     step = 8;
-    message = ">>> Flash Loan succeeded !";
-    message2 = "<<< Refreshing dashboards";
-    refresh++;
-    setTimeout(step0, 10000);
-  }
-  async function step9() {
-    step = 9;
     message = ">>> Refresh your browser to start another migration";
-    message2 = "";
+    message2 = "<<< Flash Loan succeeded !  Refreshing dashboards";
+    handleReGet();
   }
+  onMount(async function () {
+    await FlashAccountsContract.Init(true);
+    step0();
+  });
 </script>
 
 <Container bind:address bind:balance bind:network bind:signer>
@@ -236,13 +244,7 @@
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
       <div class="blockimage">
-        <img
-          src="images/FLSuite-Logo-Full-Dark.svg"
-          loading="lazy"
-          width="125"
-          alt=""
-          class="flashlogo"
-        />
+        <img src="images/FLSuite-Logo-Full-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo" />
       </div>
     </div>
     <!-- CONTENTS -->
@@ -258,8 +260,8 @@
           <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
         </div>
         {#key refresh}
-          <Dashboard address={Alice} name="Origin" />
-          <Dashboard address={Bob} name="Destination" />
+          <Dashboard address={Alice} name="Origin" bind:reget bind:healthFactorChecked={healthFactorUncheckedBob} />
+          <Dashboard address={Bob} name="Destination"  bind:reget  bind:healthFactorUnchecked={healthFactorUncheckedBob} />
         {/key}
       </div>
       <div>
@@ -271,13 +273,10 @@
             </div>
           </div>
         {/if}
-        <small>step {step}</small> <br />
-        <small>Alice {Alice}</small> <br />
-        <small>Bob {Bob}</small> <br />
       </div>
     </div>
-  </div></Container
->
+  </div>
+</Container>
 
 <style>
   .fs-sectioncontents {

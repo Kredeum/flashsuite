@@ -89,7 +89,6 @@ const toRollupConfig = component => {
 
 
 export default [
-  toRollupConfig('flashaccounts'),
   toRollupConfig('flashpos'),
   toRollupConfig('flasharb'),
   toRollupConfig('main')

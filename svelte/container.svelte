@@ -1,11 +1,10 @@
 <script>
-  import { onMount } from "svelte";
   import Metamask from "./metamask.svelte";
 
-  export let address;
-  export let balance;
-  export let network;
-  export let signer;
+  export let address = "";
+  export let network = "";
+  export let balance = 0;
+  export let signer = {};
   $: console.log("CONTAINER ADDRESS", address);
 </script>
 
