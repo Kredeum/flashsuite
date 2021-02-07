@@ -63,7 +63,7 @@
       const bhf = BigNumber.from(_healthFactor);
       let warning = "";
       if (bhf.eq(0)) {
-        warning = "***";
+        warning = "⛔";
       } else if (bhf.lt(BigNumber.from(10).pow(17).mul(8))) {
         warning = "**";
       } else if (bhf.lt(BigNumber.from(10).pow(17).mul(12))) {
