@@ -138,7 +138,10 @@
       class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack"
       style="min-height: 220px;"
     >
-      <div class="columntitlebar reverse">
+      <div
+        class="columntitlebar reverse"
+        class:reverse={name === "Destination"}
+      >
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
         <!-- <img
@@ -308,7 +311,7 @@
                   Current Health Factor : {_hf(healthFactorAll, 18)}
                 </p>
                 <p class="textlightmode rates fs-hf">
-                  <span style="margin-left: 21px;"> Next Health Factor: </span>
+                  <span style="margin-right: 21px;"> Next Health Factor: </span>
                   {_hf(healthFactorUnchecked, 18)}
                 </p>
               </div>
