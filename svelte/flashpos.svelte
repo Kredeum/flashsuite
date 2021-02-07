@@ -24,6 +24,7 @@
   let refresh = 0;
   let reget = 0;
   let showSpinner = false;
+  let showAnimation = false;
   let healthFactorNextBob = "_";
 
   function _bal(_balance, _decimals) {
@@ -166,7 +167,9 @@
         for await (const tx of txsWait) {
           // message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
-          message2 = `Waiting transactions completion... ${ia + 1}/${nd} deposit${nd > 1 ? "s" : ""} completed`;
+          message2 = `Waiting transactions completion... ${
+            ia + 1
+          }/${nd} deposit${nd > 1 ? "s" : ""} completed`;
           console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
@@ -240,7 +243,9 @@
         for await (const tx of txsWait) {
           // message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
-          message2 = `Waiting transactions completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} transaction${nl > 1 ? "s" : ""} completed`;
+          message2 = `Waiting transactions completion... ${il + 1}/${nl} loan${
+            il > 1 ? "s" : ""
+          } transaction${nl > 1 ? "s" : ""} completed`;
           console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
@@ -272,11 +277,13 @@
       );
       // message2 = `<<< Flash Loan Magic in progress... wait a few seconds`;
       message2 = "";
+      showAnimation = true;
       message = `Flash Loan Magic in progress... please wait a few seconds`;
       showSpinner = true;
       console.log(`TX2`, await tx.wait());
       step8();
     } catch (e) {
+      showAnimation = false;
       message2 = "Transaction failed";
       console.error(e);
     }
@@ -286,6 +293,7 @@
     // message = ">>> Refresh your browser to start another migration";
     // message2 = "<<< Flash Loan succeeded !  Refreshing dashboards";
     showSpinner = false;
+    showAnimation = false;
     message = "Migration complete! 🎉 Refreshing dashboards...";
     message2 = "";
     handleReGet();
@@ -332,6 +340,13 @@
           <Dashboard address={Bob} name={'Destination'} bind:origin={Alice} bind:reget bind:healthFactorNext={healthFactorNextBob} />
         {/key}
       </div>
+      {#if showAnimation}
+        <img
+          src="images/flashsuite_animation_200.gif"
+          style="width:100px;"
+          alt="flashsuite-animation"
+        />
+      {/if}
       <div class="w-100">
         {#if startMigration}
           <h1 class="align-center">Ready to start migrating your positions?</h1>
