@@ -65,7 +65,7 @@
       const bhf = BigNumber.from(_healthFactor);
       let warning = "";
       if (bhf.eq(0)) {
-        warning = "***";
+        warning = "⛔";
       } else if (bhf.lt(BigNumber.from(10).pow(17).mul(8))) {
         warning = "**";
       } else if (bhf.lt(BigNumber.from(10).pow(17).mul(12))) {
@@ -138,7 +138,7 @@
 <main>
   {#key refresh}
     <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px;">
-      <div class="columntitlebar reverse">
+      <div class="columntitlebar reverse" class:reverse={!isOrigin()}>
         <h2 id="columnTitle">{dashboardName()}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
         <!-- <img
@@ -149,13 +149,15 @@
           class="connectindicator"
         /> -->
       </div>
-      {#if isOrigin() && ribbonMessage}
-        <div id="userMessagePurple" class="usermessagesbar">
-          <div id="userMessagePurpleText" class="textdarkmode usermessage">
-            {ribbonMessage}
+      <div class="fs-ribbon-container">
+        {#if isOrigin() && ribbonMessage}
+          <div id="userMessagePurple" class="usermessagesbar">
+            <div id="userMessagePurpleText" class="textdarkmode usermessage">
+              {ribbonMessage}
+            </div>
           </div>
-        </div>
-      {/if}
+        {/if}
+      </div>
       {#await $Dashboards[address]}
         <p style="text-align: center;">loading</p>
       {:then dashboard}
@@ -258,19 +260,24 @@
       {:catch error}
         <p style="color: red">{error.message}</p>
       {/await}
-      <div id="healthFactorInfoORG" class="healthfactorinfo">
-        <div class="hfcontents origin">
-          <p class="textlightmode rates">
-            Current Health Factor : {_hf(healthFactor, 18)}
-            -&gt; {_hf(healthFactorNext, 18)} : Next Health Factor
-          </p>
+
+      <div class="fs-bottom-container">
+        <div id="healthFactorInfoORG" class="healthfactorinfo">
+          <div class="hfcontents origin" style="display: block;">
+            <p class="textlightmode rates fs-hf">
+              Current Health Factor : {_hf(healthFactor, 18)}
+            </p>
+            <p class="textlightmode rates fs-hf">
+              <span style="margin-right: 21px;"> Next Health Factor: </span>
+              {_hf(healthFactorNext, 18)}
+            </p>
+          </div>
         </div>
-      </div>
-      <div id="clearALL" class="secondarybutton">
-        <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
-      </div>
-    </div>
-  {/key}
+        <div id="clearALL" class="secondarybutton cursor-pointer">
+          <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
+        </div>
+      </div>   </div>
+    {/key}
 </main>
 
 <style>
@@ -290,6 +297,10 @@
 
   .usermessagesbar {
     display: block;
+  }
+
+  .fs-ribbon-container {
+    min-height: 24px;
   }
 
   .fs-grid-dashboard {
@@ -320,6 +331,16 @@
     box-shadow: inset 0px 0px 0px 1px #969696;
   }
 
+  .fs-bottom-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fs-hf {
+    text-align: left;
+  }
+
   /* overrides */
 
   .buttondisk {
@@ -333,5 +354,9 @@
   }
   img {
     max-width: 100%;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
   }
 </style>

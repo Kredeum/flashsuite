@@ -23,6 +23,7 @@
   let originMessage = "";
   let refresh = 0;
   let reget = 0;
+  let showSpinner = false;
   let healthFactorNextBob = "_";
 
   function _bal(_balance, _decimals) {
@@ -32,7 +33,9 @@
 
   // NETWORK MUST BE KOVAN
   $: if (network && network != "kovan") {
-    alert("FlashAccount is in beta mode ! only available on Kovan\nPlease switch to the Kovan testnet");
+    alert(
+      "FlashAccount is in beta mode ! only available on Kovan\nPlease switch to the Kovan testnet"
+    );
   }
 
   // FIRST ADDRESS IS ALICE, SECOND ADDRESS BOB
@@ -108,7 +111,8 @@
     if (address != Alice) {
       $Dashboards[Alice] = null;
       Alice = "";
-      message2 = "<<< Keep your browser wallet connected with same origin account !";
+      message2 =
+        "<<< Keep your browser wallet connected with same origin account !";
       setTimeout(step0, 2000);
       return;
     }
@@ -133,21 +137,32 @@
         alertBalance();
 
         for (const deposit of deposits) {
-          const amount = `${_bal(deposit.amount, deposit.decimals)} ${deposit.symbol}`;
-          message = `Please approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""} with your browser wallet`;
-          txsDeposit[ic] = FlashAccountsContract.approveTransfer(deposit, signer);
+          const amount = `${_bal(deposit.amount, deposit.decimals)} ${
+            deposit.symbol
+          }`;
+          message = `Please approve the transfer of your ${nd} deposit${
+            nd > 1 ? "s" : ""
+          } with your browser wallet`;
+          txsDeposit[ic] = FlashAccountsContract.approveTransfer(
+            deposit,
+            signer
+          );
           amounts[ic] = amount;
           ic++;
         }
         // message = `>>> You did approve ${nd} deposit${nd > 1 ? "s" : ""}`;
         // message2 = `<<< ${nd} transaction${nd > 1 ? "s" : ""} sent`;
         message2 = `${nd} approval transaction${nd > 1 ? "s" : ""} sent`;
-        message = `Please approve the transfer of your ${nd} deposit${nd > 1 ? "s" : ""}`;
+        message = `Please approve the transfer of your ${nd} deposit${
+          nd > 1 ? "s" : ""
+        }`;
+
         for await (const txDeposit of txsDeposit) {
           console.log(`TX1.${iw + 1}/${nd} CALL`, txDeposit);
           txsWait[iw] = txDeposit.wait();
           iw++;
         }
+        showSpinner = true;
         for await (const tx of txsWait) {
           // message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
@@ -156,7 +171,12 @@
           ia++;
         }
         // message2 = `<<< ${nd > 1 ? "All " + nd + " deposits" : "Deposit"} transaction${nd > 1 ? "s" : ""} completed`;
-        message2 = `${nd > 1 ? "All " + nd + " transactions for deposit transfer" : "transaction for deposit transfer"}${nd > 1 ? "s" : ""} completed ✅`;
+        showSpinner = false;
+        message2 = `${
+          nd > 1
+            ? "All " + nd + " transactions for deposit transfer"
+            : "transaction for deposit transfer"
+        }${nd > 1 ? "s" : ""} completed ✅`;
       }
       step4();
     } catch (e) {
@@ -174,10 +194,12 @@
     step = 5;
     message2 = "";
     message = "Destination account connected, retrieving AAVE positions...";
+    showSpinner = true;
     if (Bob && $Dashboards[Bob]) step6();
   }
   async function step6() {
     step = 6;
+    showSpinner = false;
     message2 = "Positions of the destination account retrieved!";
 
     const loans = positionsAlice.filter((pos) => pos.type != 0);
@@ -194,15 +216,22 @@
         alertBalance();
         for (const loan of loans) {
           const amount = `${_bal(loan.amount, loan.decimals)} ${loan.symbol}`;
-          message = `Approve the ${nl > 1 ? `${nl} transactions` : "transaction"} to borrow the loan${nl > 1 ? "s" : ""} you want to migrate`;
+          message = `Approve the ${
+            nl > 1 ? `${nl} transactions` : "transaction"
+          } to borrow the loan${nl > 1 ? "s" : ""} you want to migrate`;
           txsLoan[ic] = await FlashAccountsContract.approveLoan(loan, signer);
           amounts[ic] = amount;
           ic++;
         }
         // message = `>>> You did approve ${nl} loan${nl > 1 ? "s" : ""}`;
         // message2 = `<<< Sending ${nl} transaction${nl > 1 ? "s" : ""}`;
-        message = `Waiting for approval to take on ${nl} loan${nl > 1 ? "s" : ""} on behalf of the destination account`;
-        message2 = `${nl} credit delegation transaction${nl > 1 ? "s" : ""} sent`;
+        showSpinner = true;
+        message = `Waiting for approval to take on ${nl} loan${
+          nl > 1 ? "s" : ""
+        } on behalf of the destination account`;
+        message2 = `${nl} credit delegation transaction${
+          nl > 1 ? "s" : ""
+        } sent`;
         for await (const txLoan of txsLoan) {
           console.log(`TX2.${iw + 1}/${nl} CALL`, txLoan);
           txsWait[iw] = txLoan.wait();
@@ -216,7 +245,10 @@
           il++;
         }
         // message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed`;
-        message2 = `${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed ✅`;
+        showSpinner = false;
+        message2 = `${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${
+          nl > 1 ? "s" : ""
+        } completed ✅`;
       }
       step7();
     } catch (e) {
@@ -227,14 +259,21 @@
   async function step7() {
     step = 7;
     // message = ">>> Approve Flash Loan with your browser wallet";
-    message = "Please approve the final transaction to complete the migration of the selected positions";
+    message =
+      "Please approve the final transaction to complete the migration of the selected positions";
 
     alertBalance();
     try {
-      const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
+      const tx = await FlashAccountsContract.callFlashLoanTx(
+        positionsAlice,
+        Alice,
+        Bob,
+        signer
+      );
       // message2 = `<<< Flash Loan Magic in progress... wait a few seconds`;
       message2 = "";
       message = `Flash Loan Magic in progress... please wait a few seconds`;
+      showSpinner = true;
       console.log(`TX2`, await tx.wait());
       step8();
     } catch (e) {
@@ -246,6 +285,7 @@
     step = 8;
     // message = ">>> Refresh your browser to start another migration";
     // message2 = "<<< Flash Loan succeeded !  Refreshing dashboards";
+    showSpinner = false;
     message = "Migration complete! 🎉 Refreshing dashboards...";
     message2 = "";
     handleReGet();
@@ -261,20 +301,31 @@
     <!-- BUMPER -->
     <div class="sectionbumper fs-sectionbumper">
       <div class="blockimage">
-        <img src="images/FLSuite-Logo-Full-Dark.svg" loading="lazy" width="125" alt="" class="flashlogo" />
+        <img
+          src="images/FLSuite-Logo-Full-Dark.svg"
+          loading="lazy"
+          width="125"
+          alt=""
+          class="flashlogo"
+        />
       </div>
     </div>
     <!-- CONTENTS -->
     <div class="sectioncontents fs-sectioncontents">
-      <img src="images/FlashPos-SubLogo-Light.svg" loading="lazy" width="200" alt="" class="sectionlogoimage" />
-      <h1>Migrate your positions</h1>
-
-      <!-- <p>{message}</p>
-      <p>{message2}</p> -->
+      <img
+        src="images/FlashPos-SubLogo-Light.svg"
+        loading="lazy"
+        width="200"
+        alt=""
+        class="sectionlogoimage"
+      />
+      <h1>Migrate your Aave positions</h1>
 
       <div class="columnspositions fs-columnspositions w-row">
         <div id="chipFlashPos" class="sectionchip fs-chip">
-          <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
+          <div id="amountDep02ORG" class="textdarkmode button">
+            Position Migration
+          </div>
         </div>
         {#key refresh}
           <Dashboard address={Alice} bind:origin={Alice} ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorNextBob} />
@@ -286,7 +337,13 @@
           <h1 class="align-center">Ready to start migrating your positions?</h1>
           <div class="buttonwrapper">
             <div id="migrateFlashPos" class="mainbutton fs-mainbutton">
-              <div on:click={step3} id="amountDep02ORG" class="textlightmode buttodarkmode">Start Migration</div>
+              <div
+                on:click={step3}
+                id="amountDep02ORG"
+                class="textlightmode buttodarkmode"
+              >
+                Start Migration
+              </div>
             </div>
           </div>
         {/if}
@@ -294,22 +351,45 @@
           <div class="stepsprocesscontents">
             <div class="stepscolumnstop w-row">
               <div class="stepcolumn doingpurple w-col w-col-4">
-                <div id="stepAction1" class="textlightmode instep">1. Approve deposit(s) migration</div>
+                <div id="stepAction1" class="textlightmode instep">
+                  1. Approve deposit(s) migration
+                </div>
               </div>
-              <div class="stepcolumn w-col w-col-4 {step >= 6 ? 'doingpurple' : 'inactivegrey'}">
-                <div id="stepAction2" class="textlightmode instep">2. Approve loan(s) migration</div>
+              <div
+                class="stepcolumn w-col w-col-4 {step >= 6
+                  ? 'doingpurple'
+                  : 'inactivegrey'}"
+              >
+                <div id="stepAction2" class="textlightmode instep">
+                  2. Approve loan(s) migration
+                </div>
               </div>
-              <div class="stepcolumn w-col w-col-4 {step >= 7 ? 'doingpurple' : 'inactivegrey'}">
-                <div id="stepAction3" class="textlightmode instep">3. Finalize migration</div>
+              <div
+                class="stepcolumn w-col w-col-4 {step >= 7
+                  ? 'doingpurple'
+                  : 'inactivegrey'}"
+              >
+                <div id="stepAction3" class="textlightmode instep">
+                  3. Finalize migration
+                </div>
               </div>
             </div>
             <div class="actionmessage fs-actionmessage">
               <p id="stepActionLabel" class="paragraph instep fs-message-2">
                 {message2}
               </p>
-              <p id="stepActionLabel" class="paragraph instep fs-message-1">
-                {message}
-              </p>
+              <div style="display: flex;">
+                <p id="stepActionLabel" class="paragraph instep fs-message-1">
+                  {message}
+                </p>
+                {#if showSpinner}
+                  <img
+                    class="fs-spinner"
+                    alt="spinner"
+                    src="images/spinner_purple.svg"
+                  />
+                {/if}
+              </div>
             </div>
             <!-- <div class="actionprocess">
               <div class="actionresultcolumns w-row">
@@ -407,6 +487,21 @@
     min-height: 24px;
   }
 
+  .fs-spinner {
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    animation: spinner 1.5s linear 0s infinite;
+  }
+
+  @keyframes spinner {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
   .w-100 {
     width: 100%;
   }
