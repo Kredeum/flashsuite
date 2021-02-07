@@ -10,6 +10,7 @@
   export let ribbonMessage = "";
   export let reget = 0;
   export let refresh = 0;
+  export let name = "";
 
   const chekboxDefault = false;
   let healthFactor = "_";
@@ -77,10 +78,7 @@
   }
 
   function isOrigin() {
-    return address == origin;
-  }
-  function dashboardName() {
-    return isOrigin() ? "Origin" : "Destination";
+    return (name == "Origin");
   }
   async function handleHealthFactor() {
     if (isOrigin()) {
@@ -94,7 +92,7 @@
         ({ healthFactor: healthFactorNext } = await aaveDashboard.getHealthFactors2($Dashboards[origin].tokens, $Dashboards[address].tokens, true));
       }
     }
-    console.log("HF", dashboardName(), healthFactor, healthFactorNext, address, origin);
+    console.log("HF", name, healthFactor, healthFactorNext, address, origin);
   }
   function handleReGet() {
     console.log("handleReGet", address);
@@ -139,7 +137,7 @@
   {#key refresh}
     <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px;">
       <div class="columntitlebar reverse" class:reverse={!isOrigin()}>
-        <h2 id="columnTitle">{dashboardName()}</h2>
+        <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
         <!-- <img
           src="images/Network-Dot-Green.svg"
@@ -276,8 +274,9 @@
         <div id="clearALL" class="secondarybutton cursor-pointer">
           <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
         </div>
-      </div>   </div>
-    {/key}
+      </div>
+    </div>
+  {/key}
 </main>
 
 <style>

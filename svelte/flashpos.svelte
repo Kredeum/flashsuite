@@ -328,8 +328,8 @@
           </div>
         </div>
         {#key refresh}
-          <Dashboard address={Alice} bind:origin={Alice} ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorNextBob} />
-          <Dashboard address={Bob} bind:origin={Alice} bind:reget bind:healthFactorNext={healthFactorNextBob} />
+          <Dashboard address={Alice} name={'Origin'} bind:origin={Alice} ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorNextBob} />
+          <Dashboard address={Bob} name={'Destination'} bind:origin={Alice} bind:reget bind:healthFactorNext={healthFactorNextBob} />
         {/key}
       </div>
       <div class="w-100">
