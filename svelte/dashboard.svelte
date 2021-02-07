@@ -301,27 +301,32 @@
               <div>No positions</div>
             {/if}
           </div>
+          <div class="fs-bottom-container">
+            <div id="healthFactorInfoORG" class="healthfactorinfo">
+              <div class="hfcontents origin" style="display: block;">
+                <p class="textlightmode rates fs-hf">
+                  Current Health Factor : {_hf(healthFactorAll, 18)}
+                </p>
+                <p class="textlightmode rates fs-hf">
+                  <span style="margin-left: 21px;"> Next Health Factor: </span>
+                  {_hf(healthFactorUnchecked, 18)}
+                </p>
+              </div>
+            </div>
+            <div id="clearALL" class="secondarybutton cursor-pointer">
+              <div
+                on:click={handleReGet}
+                id="refreshFlashPos"
+                class="textlightmode button"
+              >
+                Refresh Dashboard
+              </div>
+            </div>
+          </div>
         {/if}
       {:catch error}
         <p style="color: red">{error.message}</p>
       {/await}
-      <div id="healthFactorInfoORG" class="healthfactorinfo">
-        <div class="hfcontents origin">
-          <p class="textlightmode rates">
-            Current Health Factor : {_hf(healthFactorAll, 18)}
-            -&gt; {_hf(healthFactorUnchecked, 18)} : Next Health Factor
-          </p>
-        </div>
-      </div>
-      <div id="clearALL" class="secondarybutton cursor-pointer">
-        <div
-          on:click={handleReGet}
-          id="refreshFlashPos"
-          class="textlightmode button"
-        >
-          Refresh Dashboard
-        </div>
-      </div>
     </div>
   {/key}
 </main>
@@ -371,6 +376,16 @@
     -webkit-box-shadow: inset 0px 0px 0px 1px #969696;
     -moz-box-shadow: inset 0px 0px 0px 1px #969696;
     box-shadow: inset 0px 0px 0px 1px #969696;
+  }
+
+  .fs-bottom-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fs-hf {
+    text-align: left;
   }
 
   /* overrides */
