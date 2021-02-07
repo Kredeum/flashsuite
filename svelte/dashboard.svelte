@@ -152,13 +152,15 @@
           class="connectindicator"
         /> -->
       </div>
-      {#if name === "Origin" && ribbonMessage}
-        <div id="userMessagePurple" class="usermessagesbar">
-          <div id="userMessagePurpleText" class="textdarkmode usermessage">
-            {ribbonMessage}
+      <div class="fs-ribbon-container">
+        {#if name === "Origin" && ribbonMessage}
+          <div id="userMessagePurple" class="usermessagesbar">
+            <div id="userMessagePurpleText" class="textdarkmode usermessage">
+              {ribbonMessage}
+            </div>
           </div>
-        </div>
-      {/if}
+        {/if}
+      </div>
       {#await $Dashboards[address]}
         <p style="text-align: center;">loading</p>
       {:then dashboard}
@@ -351,6 +353,10 @@
 
   .usermessagesbar {
     display: block;
+  }
+
+  .fs-ribbon-container {
+    min-height: 24px;
   }
 
   .fs-grid-dashboard {
