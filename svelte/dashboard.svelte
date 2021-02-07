@@ -11,6 +11,7 @@
   export let reget = 0;
   export let refresh = 0;
   export let name = "";
+  export let isOriginLoaded;
 
   const chekboxDefault = false;
   let healthFactor = "_";
@@ -78,18 +79,34 @@
   }
 
   function isOrigin() {
-    return (name == "Origin");
+    return name == "Origin";
   }
   async function handleHealthFactor() {
     if (isOrigin()) {
       console.log("HF ORIGIN");
-      ({ healthFactor, healthFactorUnchecked, healthFactorChecked } = await aaveDashboard.getHealthFactors($Dashboards[address].tokens, true));
+      ({
+        healthFactor,
+        healthFactorUnchecked,
+        healthFactorChecked,
+      } = await aaveDashboard.getHealthFactors(
+        $Dashboards[address].tokens,
+        true
+      ));
       healthFactorNext = healthFactorUnchecked;
     } else {
       if (address) {
         console.log("HF DESTINATION EXISTS");
-        ({ healthFactor } = await aaveDashboard.getHealthFactors($Dashboards[address].tokens, true));
-        ({ healthFactor: healthFactorNext } = await aaveDashboard.getHealthFactors2($Dashboards[origin].tokens, $Dashboards[address].tokens, true));
+        ({ healthFactor } = await aaveDashboard.getHealthFactors(
+          $Dashboards[address].tokens,
+          true
+        ));
+        ({
+          healthFactor: healthFactorNext,
+        } = await aaveDashboard.getHealthFactors2(
+          $Dashboards[origin].tokens,
+          $Dashboards[address].tokens,
+          true
+        ));
       }
     }
     console.log("HF", name, healthFactor, healthFactorNext, address, origin);
@@ -104,7 +121,9 @@
     console.log("handleRefresh Dashboard", address, refresh);
   }
   function setChecked(_symbol, _checked) {
-    const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
+    const idToken = $Dashboards[address].tokens.findIndex(
+      (db) => db.symbol == _symbol
+    );
     if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
     handleRefresh();
     console.log("setChecked", _symbol, address, refresh);
@@ -115,7 +134,11 @@
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[address] = await aaveDashboard.getUserData(address, _provider, true);
+        $Dashboards[address] = await aaveDashboard.getUserData(
+          address,
+          _provider,
+          true
+        );
       }
       if (oldDashboard) {
         for (const position of oldDashboard.tokens) {
@@ -135,17 +158,15 @@
 
 <main>
   {#key refresh}
-    <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px; height: 100%">
+    <div
+      id="OriginPosition"
+      class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack"
+      style="min-height: 220px; height: 100%"
+    >
       <div class="columntitlebar reverse" class:reverse={!isOrigin()}>
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
-        <!-- <img
-          src="images/Network-Dot-Green.svg"
-          loading="lazy"
-          width="50"
-          alt=""
-          class="connectindicator"
-        /> -->
+
       </div>
       <div class="fs-ribbon-container">
         {#if isOrigin() && ribbonMessage}
@@ -160,7 +181,10 @@
         <p style="text-align: center;">loading</p>
       {:then dashboard}
         {#if dashboard}
-          <div id="gridOrigin" class="w-layout-grid gridorigin fs-grid-dashboard">
+          <div
+            id="gridOrigin"
+            class="w-layout-grid gridorigin fs-grid-dashboard"
+          >
             <h3 class="left">Your Deposits</h3>
             <h3 class="right">Your Loans</h3>
             {#if dashboard.tokens.length > 0}
@@ -171,15 +195,28 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={isOrigin}
                       class="deposititem fs-deposit-item"
-                      on:click={() => isOrigin() && setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        isOrigin() && setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
                       <div class="tokendetails">
-                        <div id="platformAddressLogo" class="buttondisk fs-buttondisk">
-                          <img src={getTokenLogo(item.symbol)} loading="lazy" id="tokenLogoDep01ORG" alt="" class="placeholderimage" />
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk fs-buttondisk"
+                        >
+                          <img
+                            src={getTokenLogo(item.symbol)}
+                            loading="lazy"
+                            id="tokenLogoDep01ORG"
+                            alt=""
+                            class="placeholderimage"
+                          />
                         </div>
-                        <div id="tokenSymbolDep01ORG" class="textlightmode label">
+                        <div
+                          id="tokenSymbolDep01ORG"
+                          class="textlightmode label"
+                        >
                           {item.symbol}
                         </div>
                       </div>
@@ -191,9 +228,17 @@
                       {#if isOrigin()}
                         <div class="fs-checkmark">
                           {#if item.checked}
-                            <img src="images/checked_purple.svg" loading="lazy" alt="" />
+                            <img
+                              src="images/checked_purple.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {:else}
-                            <img src="images/unchecked_purple.svg" loading="lazy" alt="" />
+                            <img
+                              src="images/unchecked_purple.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {/if}
                         </div>
                       {/if}
@@ -209,13 +254,23 @@
                       class:checked={item.checked}
                       class:fs-dashboard-item__origin={isOrigin}
                       class="loanitem fs-dashboard-item  fs-loan-item"
-                      on:click={() => isOrigin() && setChecked(item.symbol, !item.checked)}
+                      on:click={() =>
+                        isOrigin() && setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
                       <div class="tokendetails reverse">
-                        <div id="platformAddressLogo" class="buttondisk reverse">
-                          <img src={getTokenLogo(item.symbol)} loading="lazy" id="tokenLogoLoan01ORG" alt="" class="placeholderimage" />
+                        <div
+                          id="platformAddressLogo"
+                          class="buttondisk reverse"
+                        >
+                          <img
+                            src={getTokenLogo(item.symbol)}
+                            loading="lazy"
+                            id="tokenLogoLoan01ORG"
+                            alt=""
+                            class="placeholderimage"
+                          />
                         </div>
                         <div id="tokenSymbolLoan01" class="textlightmode">
                           {item.symbol}
@@ -229,23 +284,29 @@
                       {#if address == origin}
                         <div class="fs-checkmark">
                           {#if item.checked}
-                            <img src="images/checked_white.svg" loading="lazy" alt="" />
+                            <img
+                              src="images/checked_white.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {:else}
-                            <img src="images/unchecked_white.svg" loading="lazy" alt="" />
+                            <img
+                              src="images/unchecked_white.svg"
+                              loading="lazy"
+                              alt=""
+                            />
                           {/if}
                         </div>
                       {/if}
                     </div>
-                    <div id="APRLoan01ORG" class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee">
+                    <div
+                      id="APRLoan01ORG"
+                      class="ratesinfo w-node-9c5920cd5a3d-3e5b97ee"
+                    >
                       <div id="tokenSymbolDep01ORG" class="textlightmode rates">
                         {item.type == 2 ? "Variable rate" : "Stable rate"}
                       </div>
-                      <!-- <img
-                        src="images/Info-Icon.svg"
-                        loading="lazy"
-                        alt=""
-                        class="infroicon"
-                      /> -->
+
                     </div>
                   {/if}
                 {/each}
@@ -258,23 +319,30 @@
       {:catch error}
         <p style="color: red">{error.message}</p>
       {/await}
-
-      <div class="fs-bottom-container">
-        <div id="healthFactorInfoORG" class="healthfactorinfo">
-          <div class="hfcontents origin" style="display: block;">
-            <p class="textlightmode rates fs-hf">
-              Current Health Factor : {_hf(healthFactor, 18)}
-            </p>
-            <p class="textlightmode rates fs-hf">
-              <span style="margin-right: 21px;"> Next Health Factor: </span>
-              {_hf(healthFactorNext, 18)}
-            </p>
+      {#if isOriginLoaded}
+        <div class="fs-bottom-container">
+          <div id="healthFactorInfoORG" class="healthfactorinfo">
+            <div class="hfcontents origin" style="display: block;">
+              <p class="textlightmode rates fs-hf">
+                Current Health Factor : {_hf(healthFactor, 18)}
+              </p>
+              <p class="textlightmode rates fs-hf">
+                <span style="margin-right: 21px;"> Next Health Factor: </span>
+                {_hf(healthFactorNext, 18)}
+              </p>
+            </div>
+          </div>
+          <div id="clearALL" class="secondarybutton cursor-pointer">
+            <div
+              on:click={handleReGet}
+              id="refreshFlashPos"
+              class="textlightmode button"
+            >
+              Refresh Dashboard
+            </div>
           </div>
         </div>
-        <div id="clearALL" class="secondarybutton cursor-pointer">
-          <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
-        </div>
-      </div>
+      {/if}
     </div>
   {/key}
 </main>

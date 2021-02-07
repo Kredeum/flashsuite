@@ -32,6 +32,8 @@
     return ent + "." + dec.substring(0, 3);
   }
 
+  $: isOriginLoaded = !!$Dashboards[Alice];
+
   // NETWORK MUST BE KOVAN
   $: if (network && network != "kovan") {
     alert(
@@ -336,8 +338,23 @@
           </div>
         </div>
         {#key refresh}
-          <Dashboard address={Alice} name={'Origin'} bind:origin={Alice} ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorNextBob} />
-          <Dashboard address={Bob} name={'Destination'} bind:origin={Alice} bind:reget bind:healthFactorNext={healthFactorNextBob} />
+          <Dashboard
+            address={Alice}
+            name={"Origin"}
+            bind:origin={Alice}
+            ribbonMessage={originMessage}
+            bind:reget
+            bind:healthFactorChecked={healthFactorNextBob}
+            {isOriginLoaded}
+          />
+          <Dashboard
+            address={Bob}
+            name={"Destination"}
+            bind:origin={Alice}
+            bind:reget
+            bind:healthFactorNext={healthFactorNextBob}
+            {isOriginLoaded}
+          />
         {/key}
       </div>
       {#if showAnimation}
@@ -406,43 +423,7 @@
                 {/if}
               </div>
             </div>
-            <!-- <div class="actionprocess">
-              <div class="actionresultcolumns w-row">
-                <div class="actionresultcolumn01 w-col w-col-4">
-                  <p id="actionResult" class="paragraph inaction column01">
-                    Action Result
-                  </p>
-                </div>
-                <div class="actionresultcolumn w-col w-col-4">
-                  <p id="actionProgressState" class="paragraph inaction">
-                    Progress State
-                  </p>
-                  <div id="platformAddressLogo" class="iconblock">
-                    <img
-                      src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
-                      loading="lazy"
-                      id="stepTokenLogo"
-                      alt=""
-                      class="placeholderimage"
-                    />
-                  </div>
-                </div>
-                <div class="actionresultcolumn w-col w-col-4">
-                  <p id="actionLink" class="paragraph inaction">
-                    Etherscan link
-                  </p>
-                  <div id="platformAddressLogo" class="iconblock">
-                    <img
-                      src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg"
-                      loading="lazy"
-                      id="stepTokenLogo"
-                      alt=""
-                      class="placeholderimage"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div> -->
+
           </div>
         {/if}
       </div>
