@@ -4,16 +4,18 @@
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
 
-  export let name;
   export let address;
+  export let origin;
+
+  export let ribbonMessage = "";
   export let reget = 0;
-  let refresh = 0;
+  export let refresh = 0;
 
   const chekboxDefault = false;
-  let healthFactorAll = "_";
-  export let healthFactorUnchecked = "_";
+  let healthFactor = "_";
+  let healthFactorUnchecked = "_";
   export let healthFactorChecked = "_";
-  export let ribbonMessage = "";
+  export let healthFactorNext = "_";
 
   $: address && getDashboard();
   $: reget && handleReGet();
@@ -74,12 +76,25 @@
     return ret;
   }
 
+  function isOrigin() {
+    return address == origin;
+  }
+  function dashboardName() {
+    return isOrigin() ? "Origin" : "Destination";
+  }
   async function handleHealthFactor() {
-    healthFactorAll = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 0)).healthFactor;
-    if (name == "Origin") {
-      healthFactorChecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 1)).healthFactor;
-      healthFactorUnchecked = (await aaveDashboard.getRiskParameters($Dashboards[address].tokens, 2)).healthFactor;
+    if (isOrigin()) {
+      console.log("HF ORIGIN");
+      ({ healthFactor, healthFactorUnchecked, healthFactorChecked } = await aaveDashboard.getHealthFactors($Dashboards[address].tokens, true));
+      healthFactorNext = healthFactorUnchecked;
+    } else {
+      if (address) {
+        console.log("HF DESTINATION EXISTS");
+        ({ healthFactor } = await aaveDashboard.getHealthFactors($Dashboards[address].tokens, true));
+        ({ healthFactor: healthFactorNext } = await aaveDashboard.getHealthFactors2($Dashboards[origin].tokens, $Dashboards[address].tokens, true));
+      }
     }
+    console.log("HF", dashboardName(), healthFactor, healthFactorNext, address, origin);
   }
   function handleReGet() {
     console.log("handleReGet", address);
@@ -94,6 +109,7 @@
     const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
     if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
     handleRefresh();
+    console.log("setChecked", _symbol, address, refresh);
   }
   async function getDashboard(_force = false) {
     if (address) {
@@ -112,8 +128,8 @@
           setChecked(position.symbol, chekboxDefault);
         }
       }
-      handleRefresh();
     }
+    handleRefresh();
     console.log("getDashboard", address, _force, "=>", $Dashboards[address]);
     return $Dashboards[address];
   }
@@ -123,7 +139,7 @@
   {#key refresh}
     <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px;">
       <div class="columntitlebar reverse">
-        <h2 id="columnTitle">{name}</h2>
+        <h2 id="columnTitle">{dashboardName()}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
         <!-- <img
           src="images/Network-Dot-Green.svg"
@@ -133,7 +149,7 @@
           class="connectindicator"
         /> -->
       </div>
-      {#if name === "Origin" && ribbonMessage}
+      {#if isOrigin() && ribbonMessage}
         <div id="userMessagePurple" class="usermessagesbar">
           <div id="userMessagePurpleText" class="textdarkmode usermessage">
             {ribbonMessage}
@@ -153,9 +169,9 @@
                   {#if item.type == 0}
                     <div
                       class:checked={item.checked}
-                      class:fs-dashboard-item__origin={name == "Origin"}
+                      class:fs-dashboard-item__origin={isOrigin}
                       class="deposititem fs-deposit-item"
-                      on:click={() => name == "Origin" && setChecked(item.symbol, !item.checked)}
+                      on:click={() => isOrigin() && setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
@@ -172,7 +188,7 @@
                           {_bal(item.amount, item.decimals)}
                         </div>
                       </div>
-                      {#if name == "Origin"}
+                      {#if isOrigin()}
                         <div class="fs-checkmark">
                           {#if item.checked}
                             <img src="images/checked_purple.svg" loading="lazy" alt="" />
@@ -191,9 +207,9 @@
                   {#if item.type > 0}
                     <div
                       class:checked={item.checked}
-                      class:fs-dashboard-item__origin={name === "Origin"}
+                      class:fs-dashboard-item__origin={isOrigin}
                       class="loanitem fs-dashboard-item  fs-loan-item"
-                      on:click={() => name == "Origin" && setChecked(item.symbol, !item.checked)}
+                      on:click={() => isOrigin() && setChecked(item.symbol, !item.checked)}
                       value={item.symbol}
                       checked={item.checked}
                     >
@@ -210,7 +226,7 @@
                           {_bal(item.amount, item.decimals)}
                         </div>
                       </div>
-                      {#if name == "Origin"}
+                      {#if address == origin}
                         <div class="fs-checkmark">
                           {#if item.checked}
                             <img src="images/checked_white.svg" loading="lazy" alt="" />
@@ -245,8 +261,8 @@
       <div id="healthFactorInfoORG" class="healthfactorinfo">
         <div class="hfcontents origin">
           <p class="textlightmode rates">
-            Current Health Factor : {_hf(healthFactorAll, 18)}
-            -&gt; {_hf(healthFactorUnchecked, 18)} : Next Health Factor
+            Current Health Factor : {_hf(healthFactor, 18)}
+            -&gt; {_hf(healthFactorNext, 18)} : Next Health Factor
           </p>
         </div>
       </div>

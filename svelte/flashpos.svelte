@@ -23,7 +23,7 @@
   let originMessage = "";
   let refresh = 0;
   let reget = 0;
-  let healthFactorUncheckedBob = "_";
+  let healthFactorNextBob = "_";
 
   function _bal(_balance, _decimals) {
     const [ent, dec] = ethers.utils.formatUnits(_balance, _decimals).split(".");
@@ -151,7 +151,7 @@
         for await (const tx of txsWait) {
           // message = `>>> ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nd > 1 ? "s" : ""} completion...`;
-          message2 = `Waiting transactions completion... ${ia + 1}/${nd} deposit${ia > 1 ? "s" : ""} completed`;
+          message2 = `Waiting transactions completion... ${ia + 1}/${nd} deposit${nd > 1 ? "s" : ""} completed`;
           console.log(`TX1.${ia + 1}/${nd} END`, tx);
           ia++;
         }
@@ -211,7 +211,7 @@
         for await (const tx of txsWait) {
           // message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
           // message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
-          message2 = `Waiting transactions completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} transaction${il > 1 ? "s" : ""} completed`;
+          message2 = `Waiting transactions completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} transaction${nl > 1 ? "s" : ""} completed`;
           console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
@@ -277,8 +277,8 @@
           <div id="amountDep02ORG" class="textdarkmode button">Position Migration</div>
         </div>
         {#key refresh}
-          <Dashboard address={Alice} name="Origin" ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorUncheckedBob} />
-          <Dashboard address={Bob} name="Destination" bind:reget bind:healthFactorUnchecked={healthFactorUncheckedBob} />
+          <Dashboard address={Alice} bind:origin={Alice} ribbonMessage={originMessage} bind:reget bind:healthFactorChecked={healthFactorNextBob} />
+          <Dashboard address={Bob} bind:origin={Alice} bind:reget bind:healthFactorNext={healthFactorNextBob} />
         {/key}
       </div>
       <div class="w-100">
