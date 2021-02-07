@@ -324,10 +324,7 @@
         alt=""
         class="sectionlogoimage"
       />
-      <h1>Migrate your positions</h1>
-
-      <!-- <p>{message}</p>
-      <p>{message2}</p> -->
+      <h1>Migrate your Aave positions</h1>
 
       <div class="columnspositions fs-columnspositions w-row">
         <div id="chipFlashPos" class="sectionchip fs-chip">
