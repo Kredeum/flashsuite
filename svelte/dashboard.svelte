@@ -135,7 +135,7 @@
 
 <main>
   {#key refresh}
-    <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px;">
+    <div id="OriginPosition" class="fs-col-origin columnposition w-col w-col-6 w-col-stack w-col-small-small-stack" style="min-height: 220px; height: 100%">
       <div class="columntitlebar reverse" class:reverse={!isOrigin()}>
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
