@@ -85,28 +85,24 @@
 
   async function step0() {
     step = 0;
-    // message = ">>> Please connect to the account you want to migrate from, with Metamask or another Wallet";
     originMessage = "Please connect to the account you want to migrate from";
     if (Alice) step1();
   }
   async function step1() {
     step = 1;
-    // message = ">>> Origin account connected";
-    // message2 = `<<< Retreiving AAVE dashboard...`;
     originMessage = "Origin account connected, retrieving AAVE positions...";
     startMigration = false;
     if (Alice && $Dashboards[Alice]) step2();
   }
   async function step2() {
     step = 2;
-    // message = ">>> Select what positions to migrate, and start migration";
-    // message2 = "<<< Origin dashboard retreived";
     originMessage = "Select the deposits and loans you want to migrate";
     startMigration = true;
   }
   async function step3() {
     handleRefresh();
     if (address != Alice) {
+      console.log("STEP3: Wrong account", address, Alice);
       $Dashboards[Alice] = null;
       Alice = "";
       message2 = "<<< Keep your browser wallet connected with same origin account !";
@@ -196,8 +192,6 @@
           amounts[ic] = amount;
           ic++;
         }
-        // message = `>>> You did approve ${nl} loan${nl > 1 ? "s" : ""}`;
-        // message2 = `<<< Sending ${nl} transaction${nl > 1 ? "s" : ""}`;
         showSpinner = true;
         message = `Waiting for approval to take on ${nl} loan${nl > 1 ? "s" : ""} on behalf of the destination account`;
         message2 = `${nl} credit delegation transaction${nl > 1 ? "s" : ""} sent`;
@@ -207,13 +201,10 @@
           iw++;
         }
         for await (const tx of txsWait) {
-          // message = `>>> ${il + 1}/${nl} loan${il > 1 ? "s" : ""} completed`;
-          // message2 = `<<< Waiting transaction${nl > 1 ? "s" : ""} completion...`;
           message2 = `Waiting transactions completion... ${il + 1}/${nl} loan${il > 1 ? "s" : ""} transaction${nl > 1 ? "s" : ""} completed`;
           console.log(`TX2.${il + 1}/${nl} END`, tx);
           il++;
         }
-        // message2 = `<<< ${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed`;
         showSpinner = false;
         message2 = `${nl > 1 ? "All " + nl + " loans" : "Loan"} transaction${nl > 1 ? "s" : ""} completed ✅`;
       }
@@ -225,14 +216,12 @@
   }
   async function step7() {
     step = 7;
-    // message = ">>> Approve Flash Loan with your browser wallet";
-    message = "Please approve the final transaction to complete the migration of the selected positions";
+    message = "Please approve the Flash Loan transaction to complete the migration of the selected positions";
 
     alertBalance();
     try {
       const tx = await FlashAccountsContract.callFlashLoanTx(positionsAlice, Alice, Bob, signer);
       console.log(`TX3 FLASH LOAN ${ethscan}/tx/${tx.hash}`);
-      // message2 = `<<< Flash Loan Magic in progress... wait a few seconds`;
       message2 = "";
       showAnimation = true;
       message = `Flash Loan Magic in progress... please wait a few seconds`;
@@ -248,13 +237,16 @@
   }
   async function step8() {
     step = 8;
-    // message = ">>> Refresh your browser to start another migration";
-    // message2 = "<<< Flash Loan succeeded !  Refreshing dashboards";
     showSpinner = false;
     showAnimation = false;
-    message = "Migration complete! 🎉 Refreshing dashboards...";
-    message2 = "";
+    message = "Migration complete! 🎉 ";
     handleReGet();
+    setTimeout(step9, 5000);
+  }
+  async function step9() {
+    step = 9;
+    message = "";
+    message2 = ">>> Refresh your browser to start another migration";
   }
   onMount(async function () {
     await FlashAccountsContract.Init(true);
