@@ -121,7 +121,7 @@
     step = 3;
     startMigration = false;
     migrationInProgress = true;
-    positionsAlice = $Dashboards[Alice].tokens.filter((pos) => pos.checked);
+    positionsAlice = $Dashboards[Alice].filter((pos) => pos.checked);
 
     console.log("STEP3 positionsAlice", positionsAlice);
 

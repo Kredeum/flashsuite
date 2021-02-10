@@ -1,0 +1,30 @@
+{
+  users(where: {id: "0x981ab0d817710d8fffc5693383c00d985a3bda38"}) {
+    reserves {
+      usageAsCollateralEnabledOnUser
+      currentATokenBalance
+      currentStableDebt
+      currentVariableDebt
+      reserve {
+        underlyingAsset,
+        reserveLiquidationThreshold,
+        aToken {
+          id
+        }
+        vToken {
+          id
+        }
+        sToken {
+          id
+        }
+        symbol
+        usageAsCollateralEnabled
+        borrowingEnabled
+        price {
+          priceInEth
+        }
+        decimals
+      }
+    }
+  }
+}

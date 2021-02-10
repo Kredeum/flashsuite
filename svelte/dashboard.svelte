@@ -1,6 +1,6 @@
 <script>
   import { ethers, BigNumber } from "ethers";
-  import aaveDashboard from "../lib/aaveDashboard.mjs";
+  import aaveDashboard2 from "../lib/aaveDashboard2.mjs";
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
 
@@ -78,18 +78,18 @@
   }
 
   function isOrigin() {
-    return (name == "Origin");
+    return name == "Origin";
   }
   async function handleHealthFactor() {
     if (isOrigin()) {
       console.log("HF ORIGIN");
-      ({ healthFactor, healthFactorUnchecked, healthFactorChecked } = await aaveDashboard.getHealthFactors($Dashboards[address].tokens, true));
+      ({ healthFactor, healthFactorUnchecked, healthFactorChecked } = await aaveDashboard2.getHealthFactors($Dashboards[address], true));
       healthFactorNext = healthFactorUnchecked;
     } else {
       if (address) {
         console.log("HF DESTINATION EXISTS");
-        ({ healthFactor } = await aaveDashboard.getHealthFactors($Dashboards[address].tokens, true));
-        ({ healthFactor: healthFactorNext } = await aaveDashboard.getHealthFactors2($Dashboards[origin].tokens, $Dashboards[address].tokens, true));
+        ({ healthFactor } = await aaveDashboard2.getHealthFactors($Dashboards[address], true));
+        ({ healthFactor: healthFactorNext } = await aaveDashboard2.getHealthFactors2($Dashboards[origin], $Dashboards[address], true));
       }
     }
     console.log("HF", name, healthFactor, healthFactorNext, address, origin);
@@ -104,8 +104,8 @@
     console.log("handleRefresh Dashboard", address, refresh);
   }
   function setChecked(_symbol, _checked) {
-    const idToken = $Dashboards[address].tokens.findIndex((db) => db.symbol == _symbol);
-    if (idToken >= 0) $Dashboards[address].tokens[idToken].checked = _checked;
+    const idToken = $Dashboards[address].findIndex((db) => db.symbol == _symbol);
+    if (idToken >= 0) $Dashboards[address][idToken].checked = _checked;
     handleRefresh();
     console.log("setChecked", _symbol, address, refresh);
   }
@@ -115,14 +115,14 @@
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[address] = await aaveDashboard.getUserData(address, _provider, true);
+        $Dashboards[address] = await aaveDashboard2.getUserData(address, _provider, true);
       }
       if (oldDashboard) {
-        for (const position of oldDashboard.tokens) {
+        for (const position of oldDashboard) {
           setChecked(position.symbol, position.checked);
         }
       } else {
-        for (const position of $Dashboards[address].tokens) {
+        for (const position of $Dashboards[address]) {
           setChecked(position.symbol, chekboxDefault);
         }
       }
@@ -139,13 +139,6 @@
       <div class="columntitlebar reverse" class:reverse={!isOrigin()}>
         <h2 id="columnTitle">{name}</h2>
         <ListBox bind:value={address} options={Object.keys($Dashboards)} />
-        <!-- <img
-          src="images/Network-Dot-Green.svg"
-          loading="lazy"
-          width="50"
-          alt=""
-          class="connectindicator"
-        /> -->
       </div>
       <div class="fs-ribbon-container">
         {#if isOrigin() && ribbonMessage}
@@ -163,9 +156,9 @@
           <div id="gridOrigin" class="w-layout-grid gridorigin fs-grid-dashboard">
             <h3 class="left">Your Deposits</h3>
             <h3 class="right">Your Loans</h3>
-            {#if dashboard.tokens.length > 0}
+            {#if dashboard.length > 0}
               <div class="fs-item-container">
-                {#each dashboard.tokens as item}
+                {#each dashboard as item}
                   {#if item.type == 0}
                     <div
                       class:checked={item.checked}
@@ -203,7 +196,7 @@
               </div>
 
               <div class="fs-item-container">
-                {#each dashboard.tokens as item}
+                {#each dashboard as item}
                   {#if item.type > 0}
                     <div
                       class:checked={item.checked}
@@ -240,12 +233,6 @@
                       <div id="tokenSymbolDep01ORG" class="textlightmode rates">
                         {item.type == 2 ? "Variable rate" : "Stable rate"}
                       </div>
-                      <!-- <img
-                        src="images/Info-Icon.svg"
-                        loading="lazy"
-                        alt=""
-                        class="infroicon"
-                      /> -->
                     </div>
                   {/if}
                 {/each}
