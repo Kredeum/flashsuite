@@ -5,7 +5,6 @@
   export let network = "";
   export let balance = 0;
   export let signer = {};
-  $: console.log("CONTAINER ADDRESS", address);
 </script>
 
 <div class="nnavbar">

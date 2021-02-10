@@ -22,9 +22,6 @@
 >
   <div
     class="dropdown-toggle addresses w-dropdown-toggle w--open"
-    on:click={() => {
-      isDropdownOpen = !isDropdownOpen;
-    }}
     id="w-dropdown-toggle-0"
     aria-controls="w-dropdown-list-0"
     aria-haspopup="menu"

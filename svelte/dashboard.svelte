@@ -49,7 +49,7 @@
       "ZRX",
     ];
     for (const coin of coins) {
-      if (symbol.includes(coin)) ret = `images/${coin.toLowerCase()}_logo.svg`;
+      if (symbol.includes(coin.toLocaleUpperCase())) ret = `images/${coin.toLowerCase()}_logo.svg`;
     }
     return ret;
   }
@@ -82,32 +82,26 @@
   }
   async function handleHealthFactor() {
     if (isOrigin()) {
-      console.log("HF ORIGIN");
-      ({ healthFactor, healthFactorUnchecked, healthFactorChecked } = await aaveDashboard2.getHealthFactors($Dashboards[address], true));
+      ({ healthFactor, healthFactorUnchecked, healthFactorChecked } = await aaveDashboard2.getHealthFactors($Dashboards[address]));
       healthFactorNext = healthFactorUnchecked;
     } else {
       if (address) {
-        console.log("HF DESTINATION EXISTS");
-        ({ healthFactor } = await aaveDashboard2.getHealthFactors($Dashboards[address], true));
-        ({ healthFactor: healthFactorNext } = await aaveDashboard2.getHealthFactors2($Dashboards[origin], $Dashboards[address], true));
+        ({ healthFactor } = await aaveDashboard2.getHealthFactors($Dashboards[address]));
+        ({ healthFactor: healthFactorNext } = await aaveDashboard2.getHealthFactors2($Dashboards[origin], $Dashboards[address]));
       }
     }
-    console.log("HF", name, healthFactor, healthFactorNext, address, origin);
   }
   function handleReGet() {
-    console.log("handleReGet", address);
     getDashboard(true);
   }
   function handleRefresh() {
     handleHealthFactor();
     refresh++;
-    console.log("handleRefresh Dashboard", address, refresh);
   }
   function setChecked(_symbol, _checked) {
     const idToken = $Dashboards[address].findIndex((db) => db.symbol == _symbol);
     if (idToken >= 0) $Dashboards[address][idToken].checked = _checked;
     handleRefresh();
-    console.log("setChecked", _symbol, address, refresh);
   }
   async function getDashboard(_force = false) {
     if (address) {
@@ -115,7 +109,7 @@
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[address] = await aaveDashboard2.getUserData(address, _provider, true);
+        $Dashboards[address] = await aaveDashboard2.getUserData(address, _provider);
       }
       if (oldDashboard) {
         for (const position of oldDashboard) {
@@ -128,7 +122,6 @@
       }
     }
     handleRefresh();
-    console.log("getDashboard", address, _force, "=>", $Dashboards[address]);
     return $Dashboards[address];
   }
 </script>
@@ -258,9 +251,9 @@
             </p>
           </div>
         </div>
-        <div id="clearALL" class="secondarybutton cursor-pointer">
+        <!-- <div id="clearALL" class="secondarybutton cursor-pointer">
           <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
-        </div>
+        </div> -->
       </div>
     </div>
   {/key}
