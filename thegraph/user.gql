@@ -1,0 +1,20 @@
+{
+  userTransactions(first: 1, where: {user: "0xa32cafbba773a7234af2a28d22ddbfd148c58de7"}) {
+    id
+    user {
+      id
+      reserves {
+        currentATokenBalance
+        currentStableDebt
+        currentVariableDebt
+        currentTotalDebt
+        reserve {
+          symbol
+        }
+      }
+    }
+    pool {
+      id
+    }
+  }
+}

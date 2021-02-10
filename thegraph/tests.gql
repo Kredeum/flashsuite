@@ -1,0 +1,25 @@
+{
+  atokens(where:{id: "0x01875ee883b32f5f961a92ec597dcee2db7589c1"}) {
+		 id,
+    underlyingAssetAddress
+  }
+
+
+   userTransactions (first:12){
+       id,
+    user  {
+      id,
+          reserves (where: {currentATokenBalance_gt:0}) {
+            currentATokenBalance,
+            currentStableDebt,
+            currentVariableDebt,
+            currentTotalDebt,
+            reserve {
+              symbol
+            }
+
+          }
+        }
+  }
+
+}
