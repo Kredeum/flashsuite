@@ -89,7 +89,7 @@
       if (address) {
         console.log("HF DESTINATION EXISTS");
         ({ healthFactor } = await aaveDashboard2.getHealthFactors($Dashboards[address], true));
-        ({ healthFactor: healthFactorNext } = await aaveDashboard2.getHealthFactors2($Dashboards[origin].tokens, $Dashboards[address], true));
+        ({ healthFactor: healthFactorNext } = await aaveDashboard2.getHealthFactors2($Dashboards[origin], $Dashboards[address], true));
       }
     }
     console.log("HF", name, healthFactor, healthFactorNext, address, origin);
@@ -118,7 +118,7 @@
         $Dashboards[address] = await aaveDashboard2.getUserData(address, _provider, true);
       }
       if (oldDashboard) {
-        for (const position of oldDashboard.tokens) {
+        for (const position of oldDashboard) {
           setChecked(position.symbol, position.checked);
         }
       } else {
