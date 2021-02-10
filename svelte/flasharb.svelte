@@ -23,7 +23,7 @@
 
   let selectedSpread = { spread: 0, dex1: "", dex2: "" };
 
-  $: grossProfit = amountToBorrow * Math.abs(selectedSpread.spread);
+  $: grossProfit = (amountToBorrow * Math.abs(selectedSpread.spread)) / 100;
   $: flashloanFee = amountToBorrow * 0.0009;
   $: tradingFee1 = amountToBorrow * getTradeFee(selectedSpread.dex1);
   $: tradingFee2 = amountToBorrow * getTradeFee(selectedSpread.dex2);
@@ -86,7 +86,7 @@
     // bancor 0
     // dodo 0.3%
     if (exchange === "balancer") {
-      return 0.1;
+      return 0.0025;
     } else if (exchange === "bancor") {
       return 0;
     } else {
