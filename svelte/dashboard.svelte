@@ -1,6 +1,7 @@
 <script>
   import { ethers, BigNumber } from "ethers";
   import aaveDashboard from "../lib/aaveDashboard.mjs";
+  import aaveDashboard2 from "../lib/aaveDashboard2.mjs";
   import { Dashboards } from "./stores.mjs";
   import ListBox from "./listbox.svelte";
 
@@ -115,7 +116,7 @@
 
       if (_force || !oldDashboard) {
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
-        $Dashboards[address] = await aaveDashboard.getUserData(address, _provider, true);
+        $Dashboards[address] = await aaveDashboard2.getUserData(address, _provider, true);
       }
       if (oldDashboard) {
         for (const position of oldDashboard.tokens) {
