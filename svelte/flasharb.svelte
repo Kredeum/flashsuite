@@ -1,7 +1,10 @@
 <script>
+  import { onMount } from "svelte";
+  import { ethers } from "ethers";
   import Container from "./container.svelte";
   import getPriceData from "../lib/getPriceData.mjs";
   import getSpreadData from "../lib/getSpreadData.mjs";
+  import getEthPriceInUSD from "../lib/getEthPrice.mjs";
 
   const NUMBER_PRICE_DIGITS_SHOWN = 8;
 
@@ -16,6 +19,10 @@
   // let crypto_comPrice = 0;
   let priceData;
 
+  // to remove after demo
+  let ethPrice = 1747;
+  let gasPrice = 0.0000001225;
+  let unitOfGasInUSD = 0.00021347788;
   let amountToBorrow = 0;
   let grossProfit = 0;
   let flashloanFee = 0;
@@ -23,10 +30,12 @@
 
   let selectedSpread = { spread: 0, dex1: "", dex2: "" };
 
-  $: grossProfit = (amountToBorrow * Math.abs(selectedSpread.spread)) / 100;
-  $: flashloanFee = amountToBorrow * 0.0009;
-  $: tradingFee1 = amountToBorrow * getTradeFee(selectedSpread.dex1);
-  $: tradingFee2 = amountToBorrow * getTradeFee(selectedSpread.dex2);
+  $: amountToBorrowUSD = amountToBorrow * ethPrice;
+  $: grossProfit = (amountToBorrowUSD * Math.abs(selectedSpread.spread)) / 100;
+  $: flashloanFee = amountToBorrowUSD * 0.0009;
+  $: gasCost = 600000 * unitOfGasInUSD;
+  $: tradingFee1 = amountToBorrowUSD * getTradeFee(selectedSpread.dex1);
+  $: tradingFee2 = amountToBorrowUSD * getTradeFee(selectedSpread.dex2);
   $: estimatedProfit =
     grossProfit - flashloanFee - gasCost - tradingFee1 - tradingFee2;
 
@@ -70,10 +79,8 @@
     if (!spread) return "fs-black-spread";
 
     const absoluteSpread = Math.abs(spread);
-    if (absoluteSpread < 0.1) {
+    if (absoluteSpread < 0.4) {
       return "fs-red-spread";
-    } else if (absoluteSpread < 0.2) {
-      return "fs-black-spread";
     } else {
       return "fs-green-spread";
     }
@@ -95,6 +102,17 @@
   };
 
   let selectedPair = pairs[1];
+
+  onMount(async () => {
+    const res = await getEthPriceInUSD();
+    if (res) {
+      ethPrice = res.ethPrice;
+      gasPrice = ethers.utils.formatUnits(res.gasPrice.gwei.toString(), "gwei");
+      unitOfGasInUSD = gasPrice * ethPrice;
+    }
+
+    console.log("ethPrice", ethPrice);
+  });
 
   async function getPrices() {
     const data = await getPriceData({ pair: selectedPair });
@@ -269,7 +287,7 @@
 
       <div class="fs-simulation-section">
         <div class="fs-simulation-left columntitlebar amount">
-          <h3 class="columnTitle">Amount to borrow</h3>
+          <h3 class="columnTitle">Amount to borrow (in WETH)</h3>
           <input
             bind:value={amountToBorrow}
             class="inputtextfield faflashloan w-embed fs-amount-field"
@@ -279,31 +297,28 @@
           <div id="DepositPosition" class="columnpricecost w-col">
             <div class="columntitlebar" style="padding-left: 0;">
               <h2 id="columnTitle">Cost-Profit analysis</h2>
-              <div class="textlightmode rates">(in {selectedPair.asset1})</div>
+              <div class="textlightmode rates">(in USD)</div>
             </div>
             <div class="w-layout-grid gridcosts">
               <div class="textlightmode label02">Gross profit</div>
               <div id="costArbitrage" class="textlightmode numbers">
-                {grossProfit === 0 ? "Select a spread" : grossProfit}
+                {grossProfit === 0 ? "Select a spread" : grossProfit.toFixed(5) + " $"}
               </div>
               <div class="textlightmode label02">Flashloan Fee</div>
               <div id="costFlashLoan" class="textlightmode numbers">
-                {flashloanFee}
+                {flashloanFee.toFixed(5)} $
               </div>
               <div class="textlightmode label02">Gas Cost</div>
               <div id="costGas" class="textlightmode numbers">
-                <input
-                  bind:value={gasCost}
-                  class="inputtextfield faflashloan w-embed fs-amount-field fs-cost-field"
-                />
+                {gasCost.toFixed(5)} $
               </div>
               <div class="textlightmode label02">Trading Fees (1)</div>
               <div id="costPlatform01" class="textlightmode numbers">
-                {tradingFee1.toFixed(5)}
+                {tradingFee1.toFixed(5)} $
               </div>
               <div class="textlightmode label02">Trading Fees (2)</div>
               <div id="costPlatform02" class="textlightmode numbers">
-                {tradingFee2.toFixed(5)}
+                {tradingFee2.toFixed(5)} $
               </div>
             </div>
             <div
@@ -313,10 +328,10 @@
             >
               <div class="columntitlebar profit" style="padding-left: 0;">
                 <h2 id="columnTitle" style="font-size: 16px">
-                  Estimated Profit 🤑
+                  Estimated Net Profit 🤑
                 </h2>
                 <div id="differenceProfit" class="textlightmode numbers big">
-                  {estimatedProfit.toFixed(5)}
+                  {estimatedProfit.toFixed(5)} $
                 </div>
               </div>
             </div>
