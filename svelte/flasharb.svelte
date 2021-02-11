@@ -302,23 +302,23 @@
             <div class="w-layout-grid gridcosts">
               <div class="textlightmode label02">Gross profit</div>
               <div id="costArbitrage" class="textlightmode numbers">
-                {grossProfit === 0 ? "Select a spread" : grossProfit}
+                {grossProfit === 0 ? "Select a spread" : grossProfit.toFixed(5) + " $"}
               </div>
               <div class="textlightmode label02">Flashloan Fee</div>
               <div id="costFlashLoan" class="textlightmode numbers">
-                {flashloanFee}
+                {flashloanFee.toFixed(5)} $
               </div>
               <div class="textlightmode label02">Gas Cost</div>
               <div id="costGas" class="textlightmode numbers">
-                {gasCost.toFixed(5)}
+                {gasCost.toFixed(5)} $
               </div>
               <div class="textlightmode label02">Trading Fees (1)</div>
               <div id="costPlatform01" class="textlightmode numbers">
-                {tradingFee1.toFixed(5)}
+                {tradingFee1.toFixed(5)} $
               </div>
               <div class="textlightmode label02">Trading Fees (2)</div>
               <div id="costPlatform02" class="textlightmode numbers">
-                {tradingFee2.toFixed(5)}
+                {tradingFee2.toFixed(5)} $
               </div>
             </div>
             <div
@@ -331,7 +331,7 @@
                   Estimated Net Profit 🤑
                 </h2>
                 <div id="differenceProfit" class="textlightmode numbers big">
-                  {estimatedProfit.toFixed(5)}
+                  {estimatedProfit.toFixed(5)} $
                 </div>
               </div>
             </div>
