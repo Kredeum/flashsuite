@@ -79,10 +79,8 @@
     if (!spread) return "fs-black-spread";
 
     const absoluteSpread = Math.abs(spread);
-    if (absoluteSpread < 0.1) {
+    if (absoluteSpread < 0.4) {
       return "fs-red-spread";
-    } else if (absoluteSpread < 0.2) {
-      return "fs-black-spread";
     } else {
       return "fs-green-spread";
     }
