@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { ethers } from "ethers";
   import Container from "./container.svelte";
   import getPriceData from "../lib/getPriceData.mjs";
   import getSpreadData from "../lib/getSpreadData.mjs";
@@ -18,7 +19,10 @@
   // let crypto_comPrice = 0;
   let priceData;
 
-  let ethPrice = 1747; // to remove after demo
+  // to remove after demo
+  let ethPrice = 1747;
+  let gasPrice = 0.0000001225;
+  let unitOfGasInUSD = 0.00021347788;
   let amountToBorrow = 0;
   let grossProfit = 0;
   let flashloanFee = 0;
@@ -29,6 +33,7 @@
   $: amountToBorrowUSD = amountToBorrow * ethPrice;
   $: grossProfit = (amountToBorrowUSD * Math.abs(selectedSpread.spread)) / 100;
   $: flashloanFee = amountToBorrowUSD * 0.0009;
+  $: gastCost = 600000 * unitOfGasInUSD;
   $: tradingFee1 = amountToBorrowUSD * getTradeFee(selectedSpread.dex1);
   $: tradingFee2 = amountToBorrowUSD * getTradeFee(selectedSpread.dex2);
   $: estimatedProfit =
@@ -101,7 +106,13 @@
   let selectedPair = pairs[1];
 
   onMount(async () => {
-    ethPrice = await getEthPriceInUSD();
+    const res = await getEthPriceInUSD();
+    if (res) {
+      ethPrice = res.ethPrice;
+      gasPrice = ethers.utils.formatUnits(res.gasPrice.gwei.toString(), "gwei");
+      unitOfGasInUSD = gasPrice * ethPrice;
+    }
+
     console.log("ethPrice", ethPrice);
   });
 
@@ -278,7 +289,7 @@
 
       <div class="fs-simulation-section">
         <div class="fs-simulation-left columntitlebar amount">
-          <h3 class="columnTitle">Amount to borrow</h3>
+          <h3 class="columnTitle">Amount to borrow (in WETH)</h3>
           <input
             bind:value={amountToBorrow}
             class="inputtextfield faflashloan w-embed fs-amount-field"
@@ -301,10 +312,7 @@
               </div>
               <div class="textlightmode label02">Gas Cost</div>
               <div id="costGas" class="textlightmode numbers">
-                <input
-                  bind:value={gasCost}
-                  class="inputtextfield faflashloan w-embed fs-amount-field fs-cost-field"
-                />
+                {gastCost.toFixed(5)}
               </div>
               <div class="textlightmode label02">Trading Fees (1)</div>
               <div id="costPlatform01" class="textlightmode numbers">
