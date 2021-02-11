@@ -1,7 +1,9 @@
 <script>
+  import { onMount } from "svelte";
   import Container from "./container.svelte";
   import getPriceData from "../lib/getPriceData.mjs";
   import getSpreadData from "../lib/getSpreadData.mjs";
+  import getEthPriceInUSD from "../lib/getEthPrice.mjs";
 
   const NUMBER_PRICE_DIGITS_SHOWN = 8;
 
@@ -16,6 +18,7 @@
   // let crypto_comPrice = 0;
   let priceData;
 
+  let ethPrice = 1747; // to remove after demo
   let amountToBorrow = 0;
   let grossProfit = 0;
   let flashloanFee = 0;
@@ -23,10 +26,11 @@
 
   let selectedSpread = { spread: 0, dex1: "", dex2: "" };
 
-  $: grossProfit = (amountToBorrow * Math.abs(selectedSpread.spread)) / 100;
-  $: flashloanFee = amountToBorrow * 0.0009;
-  $: tradingFee1 = amountToBorrow * getTradeFee(selectedSpread.dex1);
-  $: tradingFee2 = amountToBorrow * getTradeFee(selectedSpread.dex2);
+  $: amountToBorrowUSD = amountToBorrow * ethPrice;
+  $: grossProfit = (amountToBorrowUSD * Math.abs(selectedSpread.spread)) / 100;
+  $: flashloanFee = amountToBorrowUSD * 0.0009;
+  $: tradingFee1 = amountToBorrowUSD * getTradeFee(selectedSpread.dex1);
+  $: tradingFee2 = amountToBorrowUSD * getTradeFee(selectedSpread.dex2);
   $: estimatedProfit =
     grossProfit - flashloanFee - gasCost - tradingFee1 - tradingFee2;
 
@@ -95,6 +99,11 @@
   };
 
   let selectedPair = pairs[1];
+
+  onMount(async () => {
+    ethPrice = await getEthPriceInUSD();
+    console.log("ethPrice", ethPrice);
+  });
 
   async function getPrices() {
     const data = await getPriceData({ pair: selectedPair });
@@ -279,7 +288,7 @@
           <div id="DepositPosition" class="columnpricecost w-col">
             <div class="columntitlebar" style="padding-left: 0;">
               <h2 id="columnTitle">Cost-Profit analysis</h2>
-              <div class="textlightmode rates">(in {selectedPair.asset1})</div>
+              <div class="textlightmode rates">(in USD)</div>
             </div>
             <div class="w-layout-grid gridcosts">
               <div class="textlightmode label02">Gross profit</div>
@@ -313,7 +322,7 @@
             >
               <div class="columntitlebar profit" style="padding-left: 0;">
                 <h2 id="columnTitle" style="font-size: 16px">
-                  Estimated Profit 🤑
+                  Estimated Net Profit 🤑
                 </h2>
                 <div id="differenceProfit" class="textlightmode numbers big">
                   {estimatedProfit.toFixed(5)}
