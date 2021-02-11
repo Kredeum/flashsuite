@@ -251,9 +251,9 @@
             </p>
           </div>
         </div>
-        <!-- <div id="clearALL" class="secondarybutton cursor-pointer">
+        <div id="clearALL" class="secondarybutton cursor-pointer">
           <div on:click={handleReGet} id="refreshFlashPos" class="textlightmode button">Refresh Dashboard</div>
-        </div> -->
+        </div>
       </div>
     </div>
   {/key}
