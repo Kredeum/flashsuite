@@ -33,7 +33,7 @@
   $: amountToBorrowUSD = amountToBorrow * ethPrice;
   $: grossProfit = (amountToBorrowUSD * Math.abs(selectedSpread.spread)) / 100;
   $: flashloanFee = amountToBorrowUSD * 0.0009;
-  $: gastCost = 600000 * unitOfGasInUSD;
+  $: gasCost = 600000 * unitOfGasInUSD;
   $: tradingFee1 = amountToBorrowUSD * getTradeFee(selectedSpread.dex1);
   $: tradingFee2 = amountToBorrowUSD * getTradeFee(selectedSpread.dex2);
   $: estimatedProfit =
@@ -312,7 +312,7 @@
               </div>
               <div class="textlightmode label02">Gas Cost</div>
               <div id="costGas" class="textlightmode numbers">
-                {gastCost.toFixed(5)}
+                {gasCost.toFixed(5)}
               </div>
               <div class="textlightmode label02">Trading Fees (1)</div>
               <div id="costPlatform01" class="textlightmode numbers">
