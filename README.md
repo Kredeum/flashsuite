@@ -1,4 +1,4 @@
-![FlashSuite](images/logo.png)
+![FlashSuite](docs/images/FlashSuite_Logo_Light_Mode.svg)
 
 
 MarketMake FlashSuite project
