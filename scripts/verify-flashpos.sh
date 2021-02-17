@@ -1,0 +1,1 @@
+npx hardhat verify --contract contracts/FlashPos/FlashPos.sol:FlashPos 0x2316b9B7B794c32AD95F0D836165f977065fFb93 0x88757f2f99175387ab4c6a4b3067c77a695b0349

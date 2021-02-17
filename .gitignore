@@ -1,6 +1,4 @@
 node_modules
-
-#Hardhat files
 cache
 artifacts
 .DS_store

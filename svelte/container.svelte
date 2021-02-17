@@ -1,16 +1,10 @@
 <script>
-  import Metamask from "./metamask.svelte";
-
-  export let address = "";
-  export let network = "";
-  export let balance = 0;
-  export let signer = {};
-  $: console.log("CONTAINER ADDRESS", address);
+  import Connect from "./connect.svelte";
 </script>
 
 <div class="nnavbar">
   <div class="nnavbarcontents">
-    <Metamask bind:address bind:balance bind:network bind:signer />
+    <Connect  />
   </div>
 </div>
 <div class="headermain fs-headermain">

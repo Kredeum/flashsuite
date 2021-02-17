@@ -1,0 +1,17 @@
+{
+  reserves(first:100) {
+    id
+    symbol
+    decimals
+    aToken {
+      id
+    }
+    vToken {
+      id
+    }
+    sToken {
+      id
+    }
+    underlyingAsset
+  }
+}

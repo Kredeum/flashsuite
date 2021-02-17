@@ -1,12 +1,12 @@
 <script>
-  import Container from "./container.svelte";
+  import Container from './container.svelte';
   let address;
   let network;
   let balance;
   let signer;
 </script>
 
-<Container bind:address bind:balance bind:network bind:signer>
+<Container>
   <div data-w-id="4a69aa65-f69d-177b-618b-fec329a2edbb" style="opacity:1" class="header1400container">
     <div class="headercontents left">
       <img src="images/FLSuite-Logo-Full-Dark.svg" loading="eager" width="400" id="flashSuiteLogo" alt="" class="flashsuitelogo" />
@@ -290,8 +290,8 @@
     width: 100%;
     height: 100%;
     background-color: transparent;
-    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(246, 202, 255, 0.23)), to(rgba(246, 202, 255, 0.23))), url("../images/Synth-BG-Header-Hi.png");
-    background-image: linear-gradient(180deg, rgba(246, 202, 255, 0.23), rgba(246, 202, 255, 0.23)), url("../images/Synth-BG-Header-Hi.png");
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(246, 202, 255, 0.23)), to(rgba(246, 202, 255, 0.23))), url('../images/Synth-BG-Header-Hi.png');
+    background-image: linear-gradient(180deg, rgba(246, 202, 255, 0.23), rgba(246, 202, 255, 0.23)), url('../images/Synth-BG-Header-Hi.png');
     background-position: 0px 0px, 50% 50%;
     background-size: auto, cover;
     background-repeat: repeat, no-repeat;
@@ -846,6 +846,7 @@
     font-weight: 400;
   }
 
+
   .platformaddresslogo {
     position: static;
     top: -0.8333px;
@@ -918,11 +919,11 @@
     grid-column-gap: 10px;
     grid-row-gap: 0px;
     grid-template-areas:
-      "Deposit-Ttile-Origin Loan-Title-Origin"
-      "Deposit-Item-01 Loan-Item-01"
-      "Empty-area APR-Rate-Info-Loan-01"
-      "Deposit-Item-02 Loan-item-02"
-      "Empty-Area APR-Rate-Info-Loan-02";
+      'Deposit-Ttile-Origin Loan-Title-Origin'
+      'Deposit-Item-01 Loan-Item-01'
+      'Empty-area APR-Rate-Info-Loan-01'
+      'Deposit-Item-02 Loan-item-02'
+      'Empty-Area APR-Rate-Info-Loan-02';
     -ms-grid-rows: auto 0px auto 0px minmax(15px, 1fr) 0px auto 0px minmax(15px, 1fr);
     grid-template-rows: auto auto minmax(15px, 1fr) auto minmax(15px, 1fr);
   }
@@ -1012,11 +1013,11 @@
     grid-column-gap: 10px;
     grid-row-gap: 0px;
     grid-template-areas:
-      "Deposit-Ttile-Origin Loan-Title-Origin"
-      "Deposit-Item-01 Loan-Item-01"
-      "Empty-area APR-Rate-Info-Loan-01"
-      "Deposit-Item-02 Loan-item-02"
-      "Empty-Area APR-Rate-Info-Loan-02";
+      'Deposit-Ttile-Origin Loan-Title-Origin'
+      'Deposit-Item-01 Loan-Item-01'
+      'Empty-area APR-Rate-Info-Loan-01'
+      'Deposit-Item-02 Loan-item-02'
+      'Empty-Area APR-Rate-Info-Loan-02';
     -ms-grid-rows: auto 0px auto 0px minmax(15px, 1fr) 0px auto 0px minmax(15px, 1fr);
     grid-template-rows: auto auto minmax(15px, 1fr) auto minmax(15px, 1fr);
   }
@@ -1496,10 +1497,10 @@
 
     .griddestination {
       grid-template-areas:
-        "Deposit-Ttile-Origin Loan-Title-Origin"
-        "Deposit-Item-01 Loan-Item-01"
-        "Empty-area APR-Rate-Info-Loan-01"
-        "Area-2 Area";
+        'Deposit-Ttile-Origin Loan-Title-Origin'
+        'Deposit-Item-01 Loan-Item-01'
+        'Empty-area APR-Rate-Info-Loan-01'
+        'Area-2 Area';
       -ms-grid-rows: auto auto minmax(15px, 1fr) minmax(20px, 1fr);
       grid-template-rows: auto auto minmax(15px, 1fr) minmax(20px, 1fr);
     }
