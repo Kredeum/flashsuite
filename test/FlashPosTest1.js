@@ -55,7 +55,7 @@ describe("FlashPos deployment and run", function () {
     // TX1 : Transfer FlashLoan Fees in advance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     console.log("Sending", feeDAI, "DAI to contract to pay", flashDAI, "DAI flashloan 0,09% fees... ");
-    const DAIcontrat = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", DAI, Alice);
+    const DAIcontrat = await ethers.getContractAt("contracts/libraries/IERC20.sol:IERC20", DAI, Alice);
 
     const tx1 = await DAIcontrat.transfer(flashPos.address, ethers.utils.parseEther(feeDAI.toString()));
 
@@ -69,7 +69,7 @@ describe("FlashPos deployment and run", function () {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // TX2 : Get aSNX allowance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    const aSNXcontrat = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", aSNX, Alice);
+    const aSNXcontrat = await ethers.getContractAt("contracts/libraries/IERC20.sol:IERC20", aSNX, Alice);
 
     const tx2 = await aSNXcontrat.approve(flashPos.address, ethers.utils.parseEther(collSNX.toString()));
 
@@ -119,7 +119,7 @@ describe("FlashPos deployment and run", function () {
     finally {
 
       const tx4 = await flashPos.rugPull([DAI, aSNX, sDAI], true);
-      
+
       console.log("TX4       https://kovan.etherscan.io/tx/" + tx4.hash);
     }
 

@@ -2,7 +2,7 @@
 pragma solidity 0.6.12;
 
 import {IFlashLoanReceiver, ILendingPoolAddressesProvider, ILendingPool  } from "./Interfaces.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
+import { IERC20 } from "../libraries/IERC20.sol";
 import { SafeERC20 } from "../libraries/SafeERC20.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 

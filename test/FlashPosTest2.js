@@ -70,7 +70,7 @@ describe("FlashPos deployment and run", function () {
     // TX1 : Get aTokens allowance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     for await (const [index, deposit] of deposits.entries()) {
-      const aTokencontrat = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", deposit.aTokenAddress, Alice);
+      const aTokencontrat = await ethers.getContractAt("contracts/libraries/IERC20.sol:IERC20", deposit.aTokenAddress, Alice);
 
       const tx1 = await aTokencontrat.approve(flashAccounts.address, deposit.amount);
 
