@@ -1,5 +1,5 @@
 import ethers from 'ethers';
-import FlashAccounts from '../lib/contracts/FlashAccounts.mjs';
+import FlashPos from '../../lib/contracts/FlashPos.mjs';
 
 const provider = ethers.getDefaultProvider("kovan", {
   etherscan: process.env.ETHERSCAN_API_KEY,
@@ -23,10 +23,11 @@ const aTokenAmounts = [collateralSNX, collateralYFI];
 
 try {
 
-  const flashAccounts = new ethers.Contract(FlashAccounts.ADDRESS['kovan'], FlashAccounts.ABI, Signer);
-  console.log(`Contract  ${xp}/address/${flashAccounts.address}`);
+  const flashPos = new ethers.Contract(FlashPos.ADDRESS['kovan'], FlashPos.ABI, Signer);
+  console.log(`Contract  ${xp}/address/${flashPos.address}`);
 
-  const tx = await flashAccounts.migratePositions(Alice, Bob, aTokens, aTokenAmounts);
+  const tx = await flashPos.migratePositions(Alice, Bob, aTokens, aTokenAmounts, [], [], []);
+
   console.log(`TX Flash ${xp}/tx/${tx.hash}`);
   console.log(await tx.wait());
 

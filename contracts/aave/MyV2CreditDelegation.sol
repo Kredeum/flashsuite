@@ -2,8 +2,8 @@
 pragma solidity 0.6.12;
 
 import { ILendingPool, IProtocolDataProvider, IStableDebtToken } from './Interfaces.sol';
-import { SafeERC20 } from './Libraries.sol';
-import {IERC20} from '../interfaces/IERC20.sol';
+import { SafeERC20 } from '../libraries/SafeERC20.sol';
+import {IERC20} from '../libraries/IERC20.sol';
 /**
  * This is a proof of concept starter contract, showing how uncollaterised loans are possible
  * using Aave v2 credit delegation.

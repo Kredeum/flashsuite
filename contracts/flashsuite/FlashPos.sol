@@ -3,12 +3,12 @@ pragma solidity 0.6.12;
 
 import { FlashLoanReceiverBase } from "../aave/FlashLoanReceiverBase.sol";
 import { ILendingPool, ILendingPoolAddressesProvider, IProtocolDataProvider, IStableDebtToken, IAToken } from "../aave/Interfaces.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
+import { IERC20 } from "../libraries/IERC20.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 
 import "../libraries/Ownable.sol";
 
-contract FlashAccounts is FlashLoanReceiverBase, Ownable {
+contract FlashPos is FlashLoanReceiverBase, Ownable {
     using SafeMath for uint256;
 
     address thisContract;

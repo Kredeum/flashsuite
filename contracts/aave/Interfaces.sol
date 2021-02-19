@@ -3,7 +3,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import { DataTypes } from "./Libraries.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
+import { IERC20 } from "../libraries/IERC20.sol";
 
 
 interface IFlashLoanReceiver {

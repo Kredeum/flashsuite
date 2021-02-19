@@ -22,8 +22,8 @@ describe("FlashPos deployment and run", function () {
     let sDAI;
     let sBAT;
     const network = hre.network.name;
-    console.log("network",network);
-    
+    console.log("network", network);
+
     if (network == "kovan") {
       aaveLendingPool = "0x88757f2f99175387ab4c6a4b3067c77a695b0349";
       DAI = "0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD";
@@ -115,7 +115,7 @@ describe("FlashPos deployment and run", function () {
     // TX1 : Get aTokens allowance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     for await (const [index, deposit] of deposits.entries()) {
-      const aTokencontrat = await ethers.getContractAt("contracts/interfaces/IERC20.sol:IERC20", deposit.aTokenAddress, Origin);
+      const aTokencontrat = await ethers.getContractAt("contracts/libraries/IERC20.sol:IERC20", deposit.aTokenAddress, Origin);
 
       const tx1 = await aTokencontrat.approve(flashPos.address, deposit.amount);
 

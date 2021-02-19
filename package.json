@@ -28,7 +28,7 @@
     "@rollup/plugin-node-resolve": "^8.4.0",
     "chai": "^4.3.0",
     "ethereum-waffle": "^3.2.2",
-    "ethers": "^5.0.30",
+    "ethers": "^5.0.31",
     "hardhat": "^2.0.10",
     "rollup": "^2.39.0",
     "rollup-plugin-livereload": "^2.0.0",

@@ -20,7 +20,7 @@ pragma solidity 0.6.12;
 
 import { FlashLoanReceiverBase } from "../aave/FlashLoanReceiverBase.sol";
 import { ILendingPool, ILendingPoolAddressesProvider, IProtocolDataProvider, IStableDebtToken, IAToken } from "../aave/Interfaces.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
+import { IERC20 } from "../libraries/IERC20.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 import {IUniswapV2Router02} from "../uniswap/IUniswapV2Router02.sol";
 
