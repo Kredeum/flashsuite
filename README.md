@@ -4,7 +4,10 @@
 MarketMake FlashSuite project
 
 
-FlashSwap is a decentralized application with a user-friendly interface  enabling collateral swapping and address swapping  with flash loans without the need to write a single line of code
+FlashSuite is a set of tools created in a user-friendly interface with FlashLoan enabled features, without the need to write a single line of code.
+
+
+[FlashSuite won MarketMake 2021 price](https://twitter.com/LinumLabs/status/1359939129182674956) from [AAVE](https://aave.com) : "Best Integration of FlashLoans"
 
 Available on the Kovan network https://www.flashsuite.net/
 
